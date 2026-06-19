@@ -8,8 +8,6 @@
   :root {
     --navy: #1a2e5a;
     --gold: #e8a400;
-    --gold-light: #fdf3d0;
-    --gold-dark: #b07d00;
     --white: #ffffff;
     --gray-50: #f8f9fb;
     --gray-100: #eef0f4;
@@ -22,8 +20,6 @@
     --blue-light: #e6eef8;
     --purple: #4a1a7a;
     --purple-light: #f0e6f8;
-    --red: #c0392b;
-    --red-light: #fdf0ef;
     --radius: 10px;
     --shadow: 0 2px 12px rgba(26,46,90,0.08);
   }
@@ -57,7 +53,7 @@
   .nav-logo .badge {
     width: 36px; height: 36px; border-radius: 50%;
     background: var(--gold); display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 13px; color: var(--navy); letter-spacing: -0.5px;
+    font-weight: 800; font-size: 13px; color: var(--navy);
   }
   .nav-links { display: flex; gap: 0; }
   .nav-links a {
@@ -68,37 +64,41 @@
   .nav-links a:hover, .nav-links a.active {
     color: var(--white); border-bottom-color: var(--gold); background: rgba(255,255,255,0.05);
   }
-  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .nav-right { display: flex; align-items: center; gap: 8px; }
+
   .btn-upload {
-    background: var(--gold); color: var(--navy); border: none;
-    padding: 8px 16px; border-radius: var(--radius); cursor: pointer;
+    background: var(--gold); color: var(--navy);
+    padding: 8px 16px; border-radius: var(--radius);
     font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px;
-    transition: background 0.15s;
+    text-decoration: none; transition: background 0.15s;
   }
   .btn-upload:hover { background: #f5b800; }
 
-  /* ── SETUP BANNER ── */
-  .setup-banner {
-    background: #fff8e1; border-bottom: 2px solid var(--gold);
-    padding: 10px 2rem; display: flex; align-items: center; gap: 10px;
-    font-size: 13px; color: #7a5800;
+  .btn-drive {
+    background: rgba(255,255,255,0.12); color: var(--white);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    padding: 8px 16px; border-radius: var(--radius);
+    font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px;
+    text-decoration: none; transition: background 0.15s;
   }
-  .setup-banner.hidden { display: none; }
-  .setup-banner strong { color: #5a4000; }
-  .setup-banner a { color: var(--navy); font-weight: 700; }
+  .btn-drive:hover { background: rgba(255,255,255,0.22); }
+
+  /* ── INFO BANNER ── */
+  .info-banner {
+    background: #e8f5e9; border-bottom: 2px solid #2e7d32;
+    padding: 10px 2rem; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: #1b5e20; flex-wrap: wrap;
+  }
+  .info-banner a { color: #1a4a7a; font-weight: 700; text-decoration: underline; }
 
   /* ── HERO ── */
   .hero {
     background: linear-gradient(135deg, var(--navy) 0%, #2a4a8a 100%);
-    color: var(--white);
-    padding: 3rem 2rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+    color: var(--white); padding: 3rem 2rem; text-align: center;
+    position: relative; overflow: hidden;
   }
   .hero::before {
-    content: '';
-    position: absolute; inset: 0;
+    content: ''; position: absolute; inset: 0;
     background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
   .hero-content { position: relative; max-width: 680px; margin: 0 auto; }
@@ -113,9 +113,27 @@
     display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
     padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15);
   }
-  .hero-stat { text-align: center; }
   .hero-stat .num { font-size: 1.6rem; font-weight: 800; color: var(--gold); }
   .hero-stat .lbl { font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* ── HOW TO ── */
+  .how-to {
+    background: var(--white); border: 1.5px solid var(--gray-100);
+    border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .how-to h3 { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 1rem; }
+  .how-to-steps { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .how-to-step {
+    flex: 1; min-width: 160px; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--navy);
+    color: var(--white); font-size: 12px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-text { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+  .step-text strong { color: var(--gray-800); display: block; margin-bottom: 2px; }
 
   /* ── MAIN LAYOUT ── */
   .main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
@@ -123,16 +141,15 @@
   /* ── SECTION TABS ── */
   .section-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
   .tab-btn {
-    padding: 10px 22px; border-radius: var(--radius); border: 2px solid transparent;
+    padding: 10px 22px; border-radius: var(--radius); border: 2px solid var(--gray-300);
     font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.15s;
-    background: var(--white); color: var(--gray-600); border-color: var(--gray-300);
+    background: var(--white); color: var(--gray-600);
   }
   .tab-btn:hover { border-color: var(--navy); color: var(--navy); }
   .tab-btn.active-jhs { background: var(--blue); color: var(--white); border-color: var(--blue); }
   .tab-btn.active-ste { background: var(--green); color: var(--white); border-color: var(--green); }
   .tab-btn.active-shs { background: var(--purple); color: var(--white); border-color: var(--purple); }
 
-  /* ── TAB PANELS ── */
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
@@ -185,18 +202,17 @@
   }
   .file-item:last-child { border-bottom: none; }
   .file-icon { font-size: 16px; flex-shrink: 0; }
-  .file-name { flex: 1; color: var(--gray-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .file-meta { font-size: 11px; color: var(--gray-600); flex-shrink: 0; white-space: nowrap; }
-
+  .file-info { flex: 1; overflow: hidden; }
+  .file-name { color: var(--gray-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  .file-meta { font-size: 11px; color: var(--gray-600); }
   .file-actions { display: flex; gap: 4px; flex-shrink: 0; }
   .file-btn {
     background: none; border: none; cursor: pointer;
-    font-size: 15px; padding: 3px 5px; border-radius: 5px; transition: background 0.12s;
-    text-decoration: none; display: flex; align-items: center;
+    font-size: 14px; padding: 3px 6px; border-radius: 5px; transition: background 0.12s;
+    text-decoration: none; display: flex; align-items: center; color: var(--navy);
+    font-weight: 600;
   }
   .file-btn:hover { background: var(--gray-100); }
-  .file-btn.view { color: var(--blue); }
-  .file-btn.download { color: var(--navy); }
 
   .empty-state {
     text-align: center; padding: 1.5rem; color: var(--gray-600);
@@ -215,7 +231,7 @@
   .track-dot.acad { background: var(--purple); }
   .track-dot.tech { background: #e65100; }
 
-  /* ── UPLOAD MODAL ── */
+  /* ── ADD FILE MODAL ── */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.5); z-index: 200;
@@ -223,7 +239,7 @@
   }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: var(--white); border-radius: 14px; width: 95%; max-width: 500px;
+    background: var(--white); border-radius: 14px; width: 95%; max-width: 480px;
     padding: 2rem; box-shadow: 0 24px 60px rgba(0,0,0,0.2);
     position: relative; max-height: 90vh; overflow-y: auto;
   }
@@ -246,62 +262,15 @@
   }
   .form-group select:focus, .form-group input[type="text"]:focus { border-color: var(--navy); }
 
-  .drop-zone {
-    border: 2px dashed var(--gray-300); border-radius: var(--radius);
-    padding: 2rem; text-align: center; cursor: pointer;
-    transition: all 0.15s; position: relative;
-  }
-  .drop-zone:hover, .drop-zone.dragover { border-color: var(--navy); background: var(--blue-light); }
-  .drop-zone input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .drop-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-  .drop-text { font-size: 14px; color: var(--gray-600); }
-  .drop-hint { font-size: 12px; color: var(--gray-300); margin-top: 4px; }
-
-  .selected-file {
-    display: none; margin-top: 0.75rem;
-    background: var(--green-light); border-radius: 8px; padding: 8px 12px;
-    font-size: 13px; color: var(--green); font-weight: 600;
-    align-items: center; gap: 6px;
-  }
-  .selected-file.show { display: flex; }
-
-  /* Google Drive link option */
-  .or-divider {
-    display: flex; align-items: center; gap: 10px; margin: 12px 0;
-    font-size: 12px; color: var(--gray-600);
-  }
-  .or-divider::before, .or-divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--gray-300);
-  }
-
-  .gdrive-link-input {
-    display: flex; gap: 8px; align-items: center;
-  }
-  .gdrive-link-input input {
-    flex: 1; padding: 9px 12px; border-radius: 8px;
-    border: 1.5px solid var(--gray-300); font-size: 13px; color: var(--gray-800);
-    outline: none; transition: border-color 0.15s;
-  }
-  .gdrive-link-input input:focus { border-color: var(--navy); }
-  .gdrive-hint { font-size: 11px; color: var(--gray-600); margin-top: 5px; line-height: 1.5; }
+  .gdrive-hint { font-size: 12px; color: var(--gray-600); margin-top: 6px; line-height: 1.5; }
+  .gdrive-hint a { color: var(--blue); font-weight: 700; }
 
   .btn-submit {
     width: 100%; padding: 11px; background: var(--navy); color: var(--white);
     border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700;
     cursor: pointer; margin-top: 1rem; transition: background 0.15s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .btn-submit:hover { background: #2a4a8a; }
-  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-
-  .progress-bar-wrap {
-    display: none; margin-top: 12px; background: var(--gray-100);
-    border-radius: 20px; height: 8px; overflow: hidden;
-  }
-  .progress-bar-wrap.show { display: block; }
-  .progress-bar { height: 100%; background: var(--green); width: 0%; transition: width 0.3s; border-radius: 20px; }
 
   .success-msg {
     display: none; background: var(--green-light); border-radius: 8px;
@@ -310,48 +279,10 @@
   }
   .success-msg.show { display: block; }
   .error-msg {
-    display: none; background: var(--red-light); border-radius: 8px;
-    padding: 12px; color: var(--red); font-weight: 600;
-    margin-top: 1rem; font-size: 13px;
+    display: none; background: #fdf0ef; border-radius: 8px;
+    padding: 10px 12px; color: #c0392b; font-size: 13px; margin-top: 10px;
   }
   .error-msg.show { display: block; }
-
-  /* ── SETUP MODAL ── */
-  .setup-modal {
-    background: var(--white); border-radius: 14px; width: 95%; max-width: 560px;
-    padding: 2rem; box-shadow: 0 24px 60px rgba(0,0,0,0.25);
-    position: relative;
-  }
-  .setup-steps { counter-reset: step; list-style: none; margin: 1.25rem 0; }
-  .setup-steps li {
-    counter-increment: step;
-    display: flex; gap: 12px; margin-bottom: 1rem; align-items: flex-start;
-  }
-  .setup-steps li::before {
-    content: counter(step);
-    background: var(--navy); color: var(--white);
-    width: 24px; height: 24px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
-  }
-  .setup-steps li p { font-size: 14px; line-height: 1.6; }
-  .setup-steps li code {
-    background: var(--gray-100); padding: 1px 6px; border-radius: 4px;
-    font-family: monospace; font-size: 13px; color: var(--navy);
-  }
-  .setup-input-row { display: flex; gap: 8px; margin-top: 1.25rem; }
-  .setup-input-row input {
-    flex: 1; padding: 10px 14px; border-radius: 8px;
-    border: 1.5px solid var(--gray-300); font-size: 14px; outline: none;
-  }
-  .setup-input-row input:focus { border-color: var(--navy); }
-  .btn-navy {
-    background: var(--navy); color: var(--white); border: none;
-    padding: 10px 20px; border-radius: 8px; font-weight: 700;
-    font-size: 14px; cursor: pointer; white-space: nowrap;
-  }
-  .btn-navy:hover { background: #2a4a8a; }
-  .setup-note { font-size: 12px; color: var(--gray-600); margin-top: 8px; line-height: 1.5; }
 
   /* ── VIEW MODAL ── */
   .view-modal-overlay {
@@ -368,10 +299,10 @@
   .view-modal-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 1rem 1.5rem; border-bottom: 1px solid var(--gray-100);
-    background: var(--navy); color: var(--white);
+    background: var(--navy); color: var(--white); flex-wrap: wrap; gap: 8px;
   }
-  .view-modal-title { font-weight: 700; font-size: 15px; }
-  .view-modal-actions { display: flex; gap: 8px; align-items: center; }
+  .view-modal-title { font-weight: 700; font-size: 14px; }
+  .view-modal-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .btn-outline-white {
     background: rgba(255,255,255,0.15); color: var(--white); border: 1px solid rgba(255,255,255,0.3);
     padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 600;
@@ -397,20 +328,14 @@
   }
   .footer-logo { font-weight: 700; color: var(--navy); }
 
-  /* Loading skeleton */
-  .skeleton {
-    background: linear-gradient(90deg, var(--gray-100) 25%, #e8eaf0 50%, var(--gray-100) 75%);
-    background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px;
-  }
-  @keyframes shimmer { to { background-position: -200% 0; } }
-
   @media (max-width: 600px) {
     nav { padding: 0 1rem; }
-    .nav-links a { padding: 0 8px; font-size: 13px; }
+    .nav-links a { padding: 0 8px; font-size: 12px; }
     .hero { padding: 2rem 1rem; }
     .hero h1 { font-size: 1.5rem; }
     .main { padding: 1rem; }
-    .btn-upload span { display: none; }
+    .btn-upload span, .btn-drive span { display: none; }
+    .how-to-steps { flex-direction: column; }
   }
 </style>
 </head>
@@ -429,14 +354,16 @@
     <a href="#" onclick="switchTab(event,'shs')">SHS</a>
   </div>
   <div class="nav-right">
-    <button class="btn-upload" onclick="openModal()">⬆ <span>Upload Lesson Plan</span></button>
+    <a class="btn-upload" href="https://forms.gle/cyZWovrYtG9mgy4RA" target="_blank">⬆ <span>Upload Lesson Plan</span></a>
+    <a class="btn-drive" href="https://drive.google.com/drive/folders/1do2sY8ntQ6oPyE7KPKFI9SErhtYgHk_eTF6FxQkg6Iy9S4h9f7F3HEmqQ5lvnKCHqAC9LfFO?usp=sharing" target="_blank">📂 <span>View All Files</span></a>
   </div>
 </nav>
 
-<!-- SETUP BANNER -->
-<div class="setup-banner" id="setup-banner">
-  ⚠️ <strong>Setup needed:</strong> Connect your OneDrive folder to enable real uploads and downloads.
-  <a href="#" onclick="openSetupModal(event)">Click here to set up (takes 2 minutes)</a>
+<!-- INFO BANNER -->
+<div class="info-banner">
+  ✅ <strong>Files are stored in Google Drive.</strong> &nbsp;
+  Click <strong>"Upload Lesson Plan"</strong> to submit a file via Google Form. &nbsp;
+  Click <strong>"View All Files"</strong> to browse everything uploaded so far.
 </div>
 
 <!-- HERO -->
@@ -464,6 +391,36 @@
 
 <!-- MAIN -->
 <div class="main">
+
+  <!-- HOW TO USE -->
+  <div class="how-to">
+    <h3>📋 How to Use This Portal</h3>
+    <div class="how-to-steps">
+      <div class="how-to-step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Upload a Lesson Plan</strong>
+          Click the yellow "Upload Lesson Plan" button → fill out the Google Form → attach your file → Submit. It saves automatically to Google Drive.
+        </div>
+      </div>
+      <div class="how-to-step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>Add it to the Portal</strong>
+          After submitting the form, click "Add to Portal List" below to make it visible here with a view &amp; download button.
+        </div>
+      </div>
+      <div class="how-to-step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>View &amp; Download</strong>
+          Click 👁 to preview any file right here, or ⬇ to download it. Click "View All Files" to see everything in Google Drive.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
   <div class="section-tabs">
     <button class="tab-btn active-jhs" id="tab-jhs" onclick="switchTabBtn('jhs')">📘 Junior High School (JHS)</button>
     <button class="tab-btn" id="tab-ste" onclick="switchTabBtn('ste')">🔬 Science &amp; Tech (STE)</button>
@@ -512,135 +469,84 @@
       <div class="grade-grid" id="grid-shs-tech"></div>
     </div>
   </div>
-</div>
+
+</div><!-- /main -->
 
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">Tugdan National High School</div>
   <p style="margin-top:4px">Lesson Plan Management Portal · All Departments</p>
+  <p style="margin-top:6px;font-size:12px;">
+    📂 <a href="https://drive.google.com/drive/folders/1do2sY8ntQ6oPyE7KPKFI9SErhtYgHk_eTF6FxQkg6Iy9S4h9f7F3HEmqQ5lvnKCHqAC9LfFO?usp=sharing" target="_blank" style="color:var(--navy);font-weight:700;">Open Google Drive Folder</a>
+    &nbsp;·&nbsp;
+    📝 <a href="https://forms.gle/cyZWovrYtG9mgy4RA" target="_blank" style="color:var(--navy);font-weight:700;">Upload via Google Form</a>
+  </p>
 </footer>
 
-<!-- ══════════════════════════════════════
-     SETUP MODAL
-════════════════════════════════════════ -->
-<div class="modal-overlay" id="setup-modal" onclick="handleSetupOverlayClick(event)">
-  <div class="setup-modal">
-    <button class="modal-close" onclick="closeSetupModal()">✕</button>
-    <h3>🔗 Connect OneDrive</h3>
-    <p style="font-size:13px;color:var(--gray-600);margin-top:4px;margin-bottom:1rem;">
-      Do this once and all teachers can upload and view files instantly — no extra apps needed.
-    </p>
-
-    <ol class="setup-steps">
-      <li>
-        <p>Go to <strong>OneDrive</strong> (onedrive.live.com or your school's Microsoft 365) and create a folder named <code>TNHS Lesson Plans</code>.</p>
-      </li>
-      <li>
-        <p>Right-click the folder → <strong>Share</strong> → Change access to <strong>"Anyone with the link"</strong> → Copy the link.</p>
-      </li>
-      <li>
-        <p>Paste the folder link below and click <strong>Save</strong>.</p>
-      </li>
-    </ol>
-
-    <div class="setup-input-row">
-      <input type="text" id="gdrive-folder-input" placeholder="Paste OneDrive folder link here…" />
-      <button class="btn-navy" onclick="saveDriveFolder()">Save</button>
-    </div>
-    <p class="setup-note">
-      💡 The link looks like: <code>https://onedrive.live.com/...</code> or <code>https://tupd-my.sharepoint.com/...</code><br>
-      This is saved in the browser. Each colleague only needs to paste it once, or you can share the already-configured link.
-    </p>
-
-    <div class="error-msg" id="setup-error"></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     UPLOAD MODAL
-════════════════════════════════════════ -->
-<div class="modal-overlay" id="upload-modal" onclick="handleUploadOverlayClick(event)">
+<!-- ══ ADD TO PORTAL MODAL ══ -->
+<div class="modal-overlay" id="add-modal" onclick="if(event.target===this)closeAddModal()">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <h3>📤 Upload Lesson Plan</h3>
-    <p class="modal-sub">Fill in the details and attach your file. It will be linked via OneDrive and appear here for everyone.</p>
+    <button class="modal-close" onclick="closeAddModal()">✕</button>
+    <h3>📌 Add Lesson Plan to Portal</h3>
+    <p class="modal-sub">Already submitted via Google Form? Add the file link here so colleagues can view and download it directly from this page.</p>
 
     <div class="form-group">
       <label>Teacher Name</label>
-      <input type="text" id="teacher-name" placeholder="e.g. Maria Santos" />
+      <input type="text" id="add-teacher" placeholder="e.g. Maria Santos" />
     </div>
-
+    <div class="form-group">
+      <label>Subject</label>
+      <input type="text" id="add-subject" placeholder="e.g. Mathematics" />
+    </div>
     <div class="form-group">
       <label>Department</label>
-      <select id="dept-select" onchange="updateGradeOptions()">
+      <select id="add-dept" onchange="updateAddGradeOptions()">
         <option value="">– Select Department –</option>
         <option value="jhs">Junior High School (JHS)</option>
         <option value="ste">Science &amp; Technology (STE)</option>
         <option value="shs">Senior High School (SHS)</option>
       </select>
     </div>
-
-    <div class="form-group" id="grade-group" style="display:none">
+    <div class="form-group" id="add-grade-group" style="display:none">
       <label>Grade Level</label>
-      <select id="grade-select" onchange="updateTrackVisibility()">
+      <select id="add-grade" onchange="updateAddTrack()">
         <option value="">– Select Grade –</option>
       </select>
     </div>
-
-    <div class="form-group" id="track-group" style="display:none">
+    <div class="form-group" id="add-track-group" style="display:none">
       <label>Track</label>
-      <select id="track-select">
+      <select id="add-track">
         <option value="Academics">Academics</option>
         <option value="TechPro">TechPro</option>
       </select>
     </div>
-
     <div class="form-group">
-      <label>Subject</label>
-      <input type="text" id="subject-input" placeholder="e.g. Mathematics, Science, English…" />
+      <label>File Name (as it appears in Drive)</label>
+      <input type="text" id="add-filename" placeholder="e.g. Math_G7_Q1.pdf" />
+    </div>
+    <div class="form-group">
+      <label>Google Drive File Link</label>
+      <input type="text" id="add-link" placeholder="https://drive.google.com/file/d/..." />
+      <p class="gdrive-hint">
+        In Google Drive → right-click the file → <strong>Share</strong> → "Anyone with the link" → <strong>Copy link</strong> → paste here.<br>
+        <a href="https://drive.google.com/drive/folders/1do2sY8ntQ6oPyE7KPKFI9SErhtYgHk_eTF6FxQkg6Iy9S4h9f7F3HEmqQ5lvnKCHqAC9LfFO?usp=sharing" target="_blank">📂 Open Drive folder to find your file</a>
+      </p>
     </div>
 
-    <!-- File Drop Zone -->
-    <div class="drop-zone" id="drop-zone">
-      <input type="file" id="file-input" accept=".pdf,.docx,.doc,.pptx,.ppt" onchange="handleFileSelect(this)" />
-      <div class="drop-icon">📁</div>
-      <div class="drop-text">Click to browse or drag &amp; drop your file here</div>
-      <div class="drop-hint">PDF, DOCX, PPTX accepted</div>
-    </div>
-    <div class="selected-file" id="selected-file-info">
-      <span>✅</span><span id="selected-file-name"></span>
-    </div>
-
-    <div class="or-divider">or paste a Google Drive link</div>
-
-    <div class="gdrive-link-input">
-      <input type="text" id="gdrive-file-link" placeholder="https://onedrive.live.com/..." />
-    </div>
-    <p class="gdrive-hint">
-      💡 Upload the file to OneDrive first → right-click → <strong>Share</strong> → "Anyone with the link" → copy link → paste above.
-    </p>
-
-    <button class="btn-submit" id="upload-btn" onclick="handleUpload()">
-      <span id="upload-btn-text">Upload Lesson Plan</span>
-    </button>
-    <div class="progress-bar-wrap" id="progress-wrap">
-      <div class="progress-bar" id="progress-bar"></div>
-    </div>
-    <div class="success-msg" id="success-msg">🎉 Lesson plan added successfully! It's now visible to everyone.</div>
-    <div class="error-msg" id="upload-error"></div>
+    <button class="btn-submit" onclick="handleAddToPortal()">Add to Portal</button>
+    <div class="success-msg" id="add-success">✅ Added! It now appears in the portal with view &amp; download buttons.</div>
+    <div class="error-msg" id="add-error"></div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     VIEW MODAL (file preview)
-════════════════════════════════════════ -->
-<div class="view-modal-overlay" id="view-modal" onclick="handleViewOverlayClick(event)">
+<!-- ══ VIEW FILE MODAL ══ -->
+<div class="view-modal-overlay" id="view-modal" onclick="if(event.target===this)closeViewModal()">
   <div class="view-modal">
     <div class="view-modal-header">
       <div class="view-modal-title" id="view-modal-title">Loading…</div>
       <div class="view-modal-actions">
         <a id="view-download-btn" href="#" class="btn-outline-white" target="_blank">⬇ Download</a>
-        <a id="view-open-btn" href="#" class="btn-outline-white" target="_blank">↗ Open in OneDrive</a>
+        <a id="view-open-btn" href="#" class="btn-outline-white" target="_blank">↗ Open in Drive</a>
         <button class="btn-outline-white" onclick="closeViewModal()">✕ Close</button>
       </div>
     </div>
@@ -655,84 +561,29 @@
 </div>
 
 <script>
-/* ══════════════════════════════════════
-   CONFIG & STORAGE
-════════════════════════════════════════ */
-const STORE_KEY = 'tnhs_lesson_plans_v2';
-const DRIVE_KEY = 'tnhs_gdrive_folder';
+/* ══ CONFIG ══ */
+const STORE_KEY = 'tnhs_portal_v3';
+const DRIVE_FOLDER = 'https://drive.google.com/drive/folders/1do2sY8ntQ6oPyE7KPKFI9SErhtYgHk_eTF6FxQkg6Iy9S4h9f7F3HEmqQ5lvnKCHqAC9LfFO?usp=sharing';
+const FORM_URL    = 'https://forms.gle/cyZWovrYtG9mgy4RA';
 
+/* ══ STORE ══ */
 function loadStore() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return JSON.parse(raw);
+    if(raw) return JSON.parse(raw);
   } catch(e) {}
   return {
-    jhs:  { 7:[], 8:[], 9:[], 10:[] },
-    ste:  { 7:[], 8:[], 9:[], 10:[] },
-    shs:  {
-      11: { Academics:[], TechPro:[] },
-      12: { Academics:[], TechPro:[] }
-    }
+    jhs: { 7:[], 8:[], 9:[], 10:[] },
+    ste: { 7:[], 8:[], 9:[], 10:[] },
+    shs: { 11:{Academics:[],TechPro:[]}, 12:{Academics:[],TechPro:[]} }
   };
 }
-
 function saveStore() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch(e) {}
 }
-
-function loadDriveFolder() {
-  return localStorage.getItem(DRIVE_KEY) || '';
-}
-function saveDriveFolderUrl(url) {
-  localStorage.setItem(DRIVE_KEY, url);
-}
-
 let store = loadStore();
-let driveFolder = loadDriveFolder();
 
-/* ══════════════════════════════════════
-   SETUP BANNER & MODAL
-════════════════════════════════════════ */
-function checkSetupBanner() {
-  document.getElementById('setup-banner').classList.toggle('hidden', !!driveFolder);
-}
-
-function openSetupModal(e) {
-  if(e) e.preventDefault();
-  document.getElementById('gdrive-folder-input').value = driveFolder || '';
-  document.getElementById('setup-modal').classList.add('open');
-}
-function closeSetupModal() {
-  document.getElementById('setup-modal').classList.remove('open');
-}
-function handleSetupOverlayClick(e) {
-  if(e.target === e.currentTarget) closeSetupModal();
-}
-
-function saveDriveFolder() {
-  const val = document.getElementById('gdrive-folder-input').value.trim();
-  const errEl = document.getElementById('setup-error');
-
-  if (!val) {
-    errEl.textContent = 'Please paste a Google Drive folder link.';
-    errEl.classList.add('show'); return;
-  }
-  if (!val.includes('onedrive.live.com') && !val.includes('sharepoint.com') && !val.includes('1drv.ms')) {
-    errEl.textContent = 'That doesn\'t look like a OneDrive link. It should contain onedrive.live.com, sharepoint.com, or 1drv.ms';
-    errEl.classList.add('show'); return;
-  }
-
-  errEl.classList.remove('show');
-  driveFolder = val;
-  saveDriveFolderUrl(val);
-  checkSetupBanner();
-  closeSetupModal();
-  alert('✅ OneDrive folder saved! Teachers can now paste OneDrive links when uploading.');
-}
-
-/* ══════════════════════════════════════
-   TABS
-════════════════════════════════════════ */
+/* ══ TABS ══ */
 function switchTabBtn(id) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-jhs','active-ste','active-shs'));
@@ -740,8 +591,7 @@ function switchTabBtn(id) {
   document.getElementById('tab-'+id).classList.add('active-'+id);
 }
 function switchTab(e, id) {
-  e.preventDefault();
-  switchTabBtn(id);
+  e.preventDefault(); switchTabBtn(id);
   document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
   e.currentTarget.classList.add('active');
 }
@@ -751,13 +601,17 @@ function showHome(e) {
   e.currentTarget.classList.add('active');
 }
 
-/* ══════════════════════════════════════
-   RENDER
-════════════════════════════════════════ */
+/* ══ RENDER ══ */
 function renderAll() {
-  renderSection('jhs', [7,8,9,10], 'grid-jhs', 'jhs');
-  renderSection('ste', [7,8,9,10], 'grid-ste', 'ste');
-  renderSHS();
+  renderSection('jhs',[7,8,9,10],'grid-jhs','jhs');
+  renderSection('ste',[7,8,9,10],'grid-ste','ste');
+  const aGrid = document.getElementById('grid-shs-acad');
+  const tGrid = document.getElementById('grid-shs-tech');
+  aGrid.innerHTML=''; tGrid.innerHTML='';
+  [11,12].forEach(g => {
+    aGrid.appendChild(makeGradeCard(g, store.shs[g].Academics, 'shs-a', 'Academics'));
+    tGrid.appendChild(makeGradeCard(g, store.shs[g].TechPro,   'shs-t', 'TechPro'));
+  });
   updateStat();
 }
 
@@ -767,293 +621,175 @@ function renderSection(dept, grades, gridId, badgeCls) {
   grades.forEach(g => grid.appendChild(makeGradeCard(g, store[dept][g], badgeCls, null)));
 }
 
-function renderSHS() {
-  const aGrid = document.getElementById('grid-shs-acad');
-  const tGrid = document.getElementById('grid-shs-tech');
-  aGrid.innerHTML = ''; tGrid.innerHTML = '';
-  [11,12].forEach(g => {
-    aGrid.appendChild(makeGradeCard(g, store.shs[g].Academics, 'shs-a', 'Academics'));
-    tGrid.appendChild(makeGradeCard(g, store.shs[g].TechPro, 'shs-t', 'TechPro'));
-  });
-}
-
 function makeGradeCard(grade, files, badgeCls, track) {
   const card = document.createElement('div');
   card.className = 'grade-card';
-  const badgeLabels = { 'jhs':'JHS','ste':'STE','shs-a':'Academics','shs-t':'TechPro' };
+  const labels = {'jhs':'JHS','ste':'STE','shs-a':'Academics','shs-t':'TechPro'};
   const trackLabel = track ? ` – ${track}` : '';
 
-  const fileRows = files.length === 0
+  const rows = files.length === 0
     ? `<li class="empty-state">No lesson plans yet</li>`
-    : files.map((f, idx) => `
-      <li class="file-item">
-        <span class="file-icon">${fileIcon(f.file)}</span>
-        <span class="file-name" title="${escHtml(f.file)}">${escHtml(f.file)}</span>
-        <span class="file-meta">${escHtml(f.teacher||'')} · ${escHtml(f.date||'')}</span>
-        <div class="file-actions">
-          ${f.driveLink ? `
-            <button class="file-btn view" title="View file" onclick='viewFile(${JSON.stringify(f)})'>👁</button>
-            <a class="file-btn download" title="Download" href="${escAttr(driveDownloadUrl(f.driveLink))}" target="_blank">⬇</a>
-          ` : `<span style="font-size:11px;color:var(--gray-600)" title="No Drive link">local</span>`}
-        </div>
-      </li>`).join('');
+    : files.map(f => `
+        <li class="file-item">
+          <span class="file-icon">${fileIcon(f.file)}</span>
+          <div class="file-info">
+            <div class="file-name" title="${esc(f.file)}">${esc(f.file)}</div>
+            <div class="file-meta">${esc(f.teacher)} · ${esc(f.date)}</div>
+          </div>
+          <div class="file-actions">
+            ${f.driveLink
+              ? `<button class="file-btn" title="View" onclick='viewFile(${JSON.stringify(f)})'>👁 View</button>
+                 <a class="file-btn" title="Download" href="${esc(downloadUrl(f.driveLink))}" target="_blank">⬇</a>`
+              : `<span style="font-size:11px;color:var(--gray-600);">no link</span>`
+            }
+          </div>
+        </li>`).join('');
 
   card.innerHTML = `
     <div class="grade-card-top">
-      <span class="grade-badge ${badgeCls}">${badgeLabels[badgeCls]}</span>
+      <span class="grade-badge ${badgeCls}">${labels[badgeCls]}</span>
       <span class="file-count">${files.length} file${files.length!==1?'s':''}</span>
     </div>
     <div class="grade-num">G${grade}</div>
     <div class="grade-label">Grade ${grade}${trackLabel}</div>
-    <ul class="file-list">${fileRows}</ul>`;
+    <ul class="file-list">${rows}</ul>
+    <button onclick="openAddModal('${badgeCls}',${grade},'${track||''}')"
+      style="margin-top:10px;width:100%;padding:7px;border:1.5px dashed var(--gray-300);
+      border-radius:8px;background:none;cursor:pointer;font-size:12px;color:var(--gray-600);
+      transition:all 0.15s;" onmouseover="this.style.borderColor='var(--navy)';this.style.color='var(--navy)'"
+      onmouseout="this.style.borderColor='var(--gray-300)';this.style.color='var(--gray-600)'">
+      + Add to Portal List
+    </button>`;
   return card;
 }
 
-function fileIcon(name='') {
-  if(name.endsWith('.pdf')) return '📄';
-  if(name.endsWith('.docx')||name.endsWith('.doc')) return '📝';
-  if(name.endsWith('.pptx')||name.endsWith('.ppt')) return '📊';
+function fileIcon(n='') {
+  if(n.endsWith('.pdf')) return '📄';
+  if(n.endsWith('.docx')||n.endsWith('.doc')) return '📝';
+  if(n.endsWith('.pptx')||n.endsWith('.ppt')) return '📊';
   return '📁';
 }
-
 function updateStat() {
-  let total = 0;
-  [7,8,9,10].forEach(g => { total += store.jhs[g].length + store.ste[g].length; });
-  [11,12].forEach(g => { total += store.shs[g].Academics.length + store.shs[g].TechPro.length; });
-  document.getElementById('stat-total').textContent = total;
+  let t=0;
+  [7,8,9,10].forEach(g=>{t+=store.jhs[g].length+store.ste[g].length;});
+  [11,12].forEach(g=>{t+=store.shs[g].Academics.length+store.shs[g].TechPro.length;});
+  document.getElementById('stat-total').textContent=t;
 }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function escAttr(s) { return escHtml(s); }
-
-/* ══════════════════════════════════════
-   ONEDRIVE UTILITIES
-════════════════════════════════════════ */
-function extractOneDriveId(url) {
-  // Handles 1drv.ms short links and standard share links — just pass through as-is
+/* ══ DRIVE UTILS ══ */
+function extractId(url) {
+  let m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) return m[1];
+  m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m) return m[1];
   return null;
 }
-
-function drivePreviewUrl(link) {
-  // OneDrive: convert share link to embed preview
-  // Standard share links can be embedded by replacing the end with &action=embedview
-  if(link.includes('onedrive.live.com') || link.includes('1drv.ms') || link.includes('sharepoint.com')) {
-    // For OneDrive personal: append embed param
-    if(link.includes('?')) return link + '&action=embedview';
-    return link + '?action=embedview';
-  }
-  return link;
+function previewUrl(link) {
+  const id = extractId(link);
+  return id ? `https://drive.google.com/file/d/${id}/preview` : link;
+}
+function downloadUrl(link) {
+  const id = extractId(link);
+  return id ? `https://drive.google.com/uc?export=download&id=${id}` : link;
 }
 
-function driveDownloadUrl(link) {
-  // OneDrive: replace 'redir' or 'view' with 'download'
-  if(link.includes('onedrive.live.com')) {
-    return link.replace('redir?', 'download?').replace('view.aspx?', 'download.aspx?');
-  }
-  // SharePoint: append download=1
-  if(link.includes('sharepoint.com')) {
-    if(link.includes('?')) return link + '&download=1';
-    return link + '?download=1';
-  }
-  // Short link (1drv.ms) — just return as-is, browser will redirect
-  return link;
-}
-
-/* ══════════════════════════════════════
-   UPLOAD MODAL
-════════════════════════════════════════ */
-function openModal() {
-  document.getElementById('upload-modal').classList.add('open');
+/* ══ ADD TO PORTAL MODAL ══ */
+let addContext = {};
+function openAddModal(badgeCls, grade, track) {
+  addContext = { badgeCls, grade, track };
+  // Pre-fill dept from badgeCls
+  const deptMap = {'jhs':'jhs','ste':'ste','shs-a':'shs','shs-t':'shs'};
+  const dept = deptMap[badgeCls] || '';
+  document.getElementById('add-dept').value = dept;
+  updateAddGradeOptions();
+  document.getElementById('add-grade').value = grade;
+  updateAddTrack();
+  if(track) document.getElementById('add-track').value = track;
+  document.getElementById('add-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-function closeModal() {
-  document.getElementById('upload-modal').classList.remove('open');
+function closeAddModal() {
+  document.getElementById('add-modal').classList.remove('open');
   document.body.style.overflow = '';
-  resetModal();
-}
-function handleUploadOverlayClick(e) {
-  if(e.target === e.currentTarget) closeModal();
-}
-function resetModal() {
-  document.getElementById('dept-select').value = '';
-  document.getElementById('grade-select').value = '';
-  document.getElementById('track-select').value = 'Academics';
-  document.getElementById('subject-input').value = '';
-  document.getElementById('teacher-name').value = '';
-  document.getElementById('gdrive-file-link').value = '';
-  document.getElementById('grade-group').style.display = 'none';
-  document.getElementById('track-group').style.display = 'none';
-  document.getElementById('selected-file-info').classList.remove('show');
-  document.getElementById('success-msg').classList.remove('show');
-  document.getElementById('upload-error').classList.remove('show');
-  document.getElementById('progress-wrap').classList.remove('show');
-  document.getElementById('progress-bar').style.width = '0%';
-  document.getElementById('file-input').value = '';
-  document.getElementById('upload-btn').disabled = false;
-  document.getElementById('upload-btn-text').textContent = 'Upload Lesson Plan';
+  document.getElementById('add-teacher').value='';
+  document.getElementById('add-subject').value='';
+  document.getElementById('add-filename').value='';
+  document.getElementById('add-link').value='';
+  document.getElementById('add-success').classList.remove('show');
+  document.getElementById('add-error').classList.remove('show');
 }
 
-function updateGradeOptions() {
-  const dept = document.getElementById('dept-select').value;
-  const gradeSelect = document.getElementById('grade-select');
-  const gradeGroup = document.getElementById('grade-group');
-  const trackGroup = document.getElementById('track-group');
-
-  if(!dept) { gradeGroup.style.display='none'; trackGroup.style.display='none'; return; }
-  gradeGroup.style.display = 'block';
+function updateAddGradeOptions() {
+  const dept = document.getElementById('add-dept').value;
+  const gradeSelect = document.getElementById('add-grade');
+  document.getElementById('add-grade-group').style.display = dept ? 'block' : 'none';
+  document.getElementById('add-track-group').style.display = 'none';
   gradeSelect.innerHTML = '<option value="">– Select Grade –</option>';
-  const grades = (dept==='shs') ? [11,12] : [7,8,9,10];
+  const grades = dept==='shs' ? [11,12] : [7,8,9,10];
   grades.forEach(g => {
-    const opt = document.createElement('option');
-    opt.value = g; opt.textContent = 'Grade '+g;
-    gradeSelect.appendChild(opt);
+    const o = document.createElement('option');
+    o.value=g; o.textContent='Grade '+g; gradeSelect.appendChild(o);
   });
-  trackGroup.style.display = 'none';
+}
+function updateAddTrack() {
+  const dept = document.getElementById('add-dept').value;
+  const grade = document.getElementById('add-grade').value;
+  document.getElementById('add-track-group').style.display = (dept==='shs' && grade) ? 'block' : 'none';
 }
 
-function updateTrackVisibility() {
-  const dept = document.getElementById('dept-select').value;
-  document.getElementById('track-group').style.display =
-    (dept==='shs' && document.getElementById('grade-select').value) ? 'block' : 'none';
-}
-
-function handleFileSelect(input) {
-  if(input.files.length) {
-    document.getElementById('selected-file-name').textContent = input.files[0].name;
-    document.getElementById('selected-file-info').classList.add('show');
-  }
-}
-
-// Drag & drop
-const dz = document.getElementById('drop-zone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-dz.addEventListener('drop', e => {
-  e.preventDefault(); dz.classList.remove('dragover');
-  const files = e.dataTransfer.files;
-  if(files.length) {
-    document.getElementById('selected-file-name').textContent = files[0].name;
-    document.getElementById('selected-file-info').classList.add('show');
-  }
-});
-
-function handleUpload() {
-  const dept     = document.getElementById('dept-select').value;
-  const grade    = parseInt(document.getElementById('grade-select').value);
-  const track    = document.getElementById('track-select').value;
-  const subject  = document.getElementById('subject-input').value.trim();
-  const teacher  = document.getElementById('teacher-name').value.trim();
-  const fileName = document.getElementById('selected-file-name').textContent;
-  const driveLink = document.getElementById('gdrive-file-link').value.trim();
-
-  const errEl = document.getElementById('upload-error');
+function handleAddToPortal() {
+  const teacher  = document.getElementById('add-teacher').value.trim();
+  const subject  = document.getElementById('add-subject').value.trim();
+  const dept     = document.getElementById('add-dept').value;
+  const grade    = parseInt(document.getElementById('add-grade').value);
+  const track    = document.getElementById('add-track').value;
+  const filename = document.getElementById('add-filename').value.trim();
+  const link     = document.getElementById('add-link').value.trim();
+  const errEl    = document.getElementById('add-error');
   errEl.classList.remove('show');
 
-  if(!dept || !grade || !subject || !teacher) {
-    errEl.textContent = 'Please fill in Teacher Name, Department, Grade, and Subject.';
-    errEl.classList.add('show'); return;
+  if(!teacher||!subject||!dept||!grade||!filename||!link) {
+    errEl.textContent='Please fill in all fields.'; errEl.classList.add('show'); return;
   }
-  if(!fileName && !driveLink) {
-    errEl.textContent = 'Please select a file or paste a OneDrive link.';
-    errEl.classList.add('show'); return;
-  }
-  if(driveLink && !driveLink.includes('onedrive.live.com') && !driveLink.includes('sharepoint.com') && !driveLink.includes('1drv.ms')) {
-    errEl.textContent = 'That doesn\'t look like a valid OneDrive link.';
-    errEl.classList.add('show'); return;
+  if(!link.includes('drive.google.com')) {
+    errEl.textContent='Please paste a valid Google Drive file link.'; errEl.classList.add('show'); return;
   }
 
-  // Simulate upload progress
-  const btn = document.getElementById('upload-btn');
-  btn.disabled = true;
-  document.getElementById('upload-btn-text').textContent = 'Saving…';
-  document.getElementById('progress-wrap').classList.add('show');
-  let prog = 0;
-  const iv = setInterval(() => {
-    prog = Math.min(prog + Math.random()*20 + 5, 90);
-    document.getElementById('progress-bar').style.width = prog+'%';
-  }, 200);
+  const today = new Date().toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+  const entry = { grade, subject, teacher, file: filename, date: today, driveLink: link };
 
-  setTimeout(() => {
-    clearInterval(iv);
-    document.getElementById('progress-bar').style.width = '100%';
+  if(dept==='shs') { store.shs[grade][track].push(entry); }
+  else             { store[dept][grade].push(entry); }
 
-    const today = new Date().toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
-    const displayName = fileName || subject.replace(/\s/g,'_')+'_G'+grade+'.pdf';
-    const entry = {
-      grade, subject, teacher,
-      file: displayName,
-      date: today,
-      driveLink: driveLink || null
-    };
-
-    if(dept==='shs') {
-      store.shs[grade][track].push(entry);
-    } else {
-      store[dept][grade].push(entry);
-    }
-
-    saveStore();
-    renderAll();
-
-    document.getElementById('success-msg').classList.add('show');
-    document.getElementById('progress-wrap').classList.remove('show');
-    document.getElementById('upload-btn-text').textContent = '✓ Saved!';
-
-    setTimeout(() => {
-      closeModal();
-      switchTabBtn(dept);
-    }, 2000);
-  }, 1500);
+  saveStore(); renderAll();
+  document.getElementById('add-success').classList.add('show');
+  setTimeout(()=>{ closeAddModal(); switchTabBtn(dept); }, 2000);
 }
 
-/* ══════════════════════════════════════
-   VIEW FILE MODAL
-════════════════════════════════════════ */
+/* ══ VIEW FILE ══ */
 function viewFile(f) {
-  if(!f.driveLink) {
-    alert('No OneDrive link for this file. Ask the teacher to re-upload with a OneDrive link.');
-    return;
-  }
-
   document.getElementById('view-modal-title').textContent = f.file + ' · ' + f.teacher;
   document.getElementById('view-loading').style.display = 'flex';
-
   const iframe = document.getElementById('view-iframe');
-  iframe.style.opacity = '0';
-  iframe.src = '';
-
-  // Set download and open links
-  document.getElementById('view-download-btn').href = driveDownloadUrl(f.driveLink);
+  iframe.style.opacity = '0'; iframe.src = '';
+  document.getElementById('view-download-btn').href = downloadUrl(f.driveLink);
   document.getElementById('view-open-btn').href = f.driveLink;
-
-  // Use OneDrive preview embed
-      iframe.src = drivePreviewUrl(f.driveLink);
-
+  iframe.src = previewUrl(f.driveLink);
   document.getElementById('view-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-
 function onIframeLoad() {
   document.getElementById('view-loading').style.display = 'none';
   document.getElementById('view-iframe').style.opacity = '1';
 }
-
 function closeViewModal() {
   document.getElementById('view-modal').classList.remove('open');
   document.body.style.overflow = '';
   document.getElementById('view-iframe').src = '';
 }
 
-function handleViewOverlayClick(e) {
-  if(e.target === e.currentTarget) closeViewModal();
-}
-
-/* ══════════════════════════════════════
-   INIT
-════════════════════════════════════════ */
-checkSetupBanner();
+/* ══ INIT ══ */
 renderAll();
 </script>
 </body>
