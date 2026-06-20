@@ -36,6 +36,10 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .btn-gold:hover{background:var(--gold2);}
 .btn-ghost{background:rgba(255,255,255,0.12);color:#fff;border:1.5px solid rgba(255,255,255,0.3);padding:8px 16px;border-radius:var(--radius);font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;text-decoration:none;transition:background .15s;}
 .btn-ghost:hover{background:rgba(255,255,255,0.22);}
+#gdrive-status.connected{background:rgba(40,167,90,0.25);border-color:rgba(40,167,90,0.6);}
+.drive-banner{display:none;max-width:1100px;margin:1rem auto 0;padding:.9rem 1.25rem;border-radius:var(--radius);background:var(--gold);color:var(--navy);font-weight:700;font-size:13.5px;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.drive-banner.show{display:flex;}
+.drive-banner button{background:var(--navy);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;}
 
 /* HERO */
 .hero{background:linear-gradient(135deg,var(--navy) 0%,#2a4a8a 100%);color:#fff;padding:4rem 2rem 3rem;text-align:center;position:relative;overflow:hidden;}
@@ -242,7 +246,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   </div>
   <div class="nav-right">
     <button class="btn-gold" onclick="openUploadModal()">⬆ <span>Upload</span></button>
-    <a class="btn-ghost" href="https://drive.google.com/drive/folders/1do2sY8ntQ6oPyE7KPKFI9SErhtYgHk_eTF6FxQkg6Iy9S4h9f7F3HEmqQ5lvnKCHqAC9LfFO?usp=sharing" target="_blank">📂 <span>Drive</span></a>
+    <button class="btn-ghost" id="gdrive-status" onclick="connectDrive()">🔌 <span>Connect Drive</span></button>
   </div>
 </nav>
 
@@ -293,7 +297,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       <div class="quick-card" onclick="goPortal('term2')"><div class="qi">📅</div><div class="qt">Term 2</div><div class="qs">JHS · STE · SHS</div></div>
       <div class="quick-card" onclick="goPortal('term3')"><div class="qi">📅</div><div class="qt">Term 3</div><div class="qs">JHS · STE · SHS</div></div>
       <div class="quick-card" onclick="openUploadModal()"><div class="qi">⬆</div><div class="qt">Upload</div><div class="qs">Add a lesson plan</div></div>
-      <div class="quick-card" onclick="window.open('https://drive.google.com/drive/folders/1do2sY8ntQ6oPyE7KPKFI9SErhtYgHk_eTF6FxQkg6Iy9S4h9f7F3HEmqQ5lvnKCHqAC9LfFO?usp=sharing','_blank')"><div class="qi">📂</div><div class="qt">Google Drive</div><div class="qs">View all uploaded files</div></div>
+      <div class="quick-card" onclick="openDriveFolder()"><div class="qi">📂</div><div class="qt">Google Drive</div><div class="qs">View all uploaded files</div></div>
       <div class="quick-card" onclick="window.open('https://forms.gle/cyZWovrYtG9mgy4RA','_blank')"><div class="qi">📝</div><div class="qt">Google Form</div><div class="qs">Submit via form</div></div>
     </div>
   </div>
@@ -306,6 +310,11 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
     <div class="sy-tag" id="portal-sy-tag">SY 2026–2027</div>
     <h2>Lesson Plan Repository</h2>
     <p>Select a Term, then browse by Department and Grade Level</p>
+  </div>
+
+  <div class="drive-banner" id="drive-banner">
+    <span>🔌 Not connected to Google Drive — files won't load or save until you connect.</span>
+    <button onclick="connectDrive()">Connect Google Drive</button>
   </div>
 
   <!-- TERM TABS -->
@@ -409,7 +418,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   </div>
   <p>Alcantara, Romblon · Lesson Plan Management Portal</p>
   <p style="margin-top:6px;font-size:12px;">
-    📂 <a href="https://drive.google.com/drive/folders/1do2sY8ntQ6oPyE7KPKFI9SErhtYgHk_eTF6FxQkg6Iy9S4h9f7F3HEmqQ5lvnKCHqAC9LfFO?usp=sharing" target="_blank" style="color:var(--navy);font-weight:700;">Google Drive Folder</a>
+    📂 <a href="#" onclick="openDriveFolder();return false;" style="color:var(--navy);font-weight:700;">Google Drive Folder</a>
     &nbsp;·&nbsp;
     📝 <a href="https://forms.gle/cyZWovrYtG9mgy4RA" target="_blank" style="color:var(--navy);font-weight:700;">Google Form</a>
   </p>
@@ -513,9 +522,95 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   </div>
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async defer onload="gisLoad()"></script>
+<script src="https://apis.google.com/js/api.js?onload=gapiLoad" async defer></script>
+<script>
+/* ══ GOOGLE DRIVE CONFIG ══ */
+/* 1. Go to https://console.cloud.google.com/ and create a project.
+   2. Enable the "Google Drive API" and the "Google Picker API" (APIs & Services > Library).
+   3. APIs & Services > Credentials > Create Credentials > API key. Paste it below as GDRIVE_API_KEY.
+   4. APIs & Services > Credentials > Create Credentials > OAuth client ID > Web application.
+      Add your site's URL (e.g. https://yourschool.github.io) under "Authorized JavaScript origins".
+      Paste the resulting Client ID below as GDRIVE_CLIENT_ID.
+   5. APIs & Services > OAuth consent screen: set to "External", "Testing", and add each
+      teacher's Google account email under "Test users" (only listed accounts can sign in
+      while the app is in Testing mode — this doubles as access control). */
+const GDRIVE_CLIENT_ID='851897273406-j9ic13olpbhspevjmrtqjdjb3o996gg2.apps.googleusercontent.com';
+const GDRIVE_API_KEY='AIzaSyDNpLS5emhZQi5x72c1GNYDgK1huqbWoGI';
+const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive.file';
+
+let gToken=null,gTokenClient=null,gapiInited=false,gisInited=false;
+let gFolderId=localStorage.getItem('tnhs_drive_folder')||null;
+
+function gapiLoad(){
+  gapi.load('client:picker',async()=>{
+    try{
+      await gapi.client.init({apiKey:GDRIVE_API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
+      gapiInited=true;maybeSilentConnect();
+    }catch(e){console.error('gapi init failed',e);}
+  });
+}
+function gisLoad(){
+  gTokenClient=google.accounts.oauth2.initTokenClient({client_id:GDRIVE_CLIENT_ID,scope:GDRIVE_SCOPES,callback:''});
+  gisInited=true;maybeSilentConnect();
+}
+function maybeSilentConnect(){
+  if(gapiInited&&gisInited&&gFolderId&&!gToken){
+    gTokenClient.callback=(resp)=>{if(!resp.error){gToken=resp.access_token;setDriveStatus(true);refreshAll();}};
+    try{gTokenClient.requestAccessToken({prompt:''});}catch(e){}
+  }
+}
+function setDriveStatus(connected){
+  const b=document.getElementById('gdrive-status');
+  const banner=document.getElementById('drive-banner');
+  if(connected){
+    b.classList.add('connected');b.innerHTML='🟢 <span>Drive Connected</span>';
+    b.onclick=changeFolder;b.title='Click to change the target Drive folder';
+    banner.classList.remove('show');
+  }else{
+    b.classList.remove('connected');b.innerHTML='🔌 <span>Connect Drive</span>';
+    b.onclick=connectDrive;b.removeAttribute('title');
+    banner.classList.add('show');
+  }
+}
+function connectDrive(){
+  if(!gapiInited||!gisInited){alert('Google services are still loading — please wait a few seconds and try again.');return;}
+  if(!GDRIVE_CLIENT_ID||GDRIVE_CLIENT_ID.indexOf('PASTE_YOUR')===0){alert('Google Drive isn\'t configured yet. See the setup instructions in the SETUP guide / top of the script.');return;}
+  gTokenClient.callback=async(resp)=>{
+    if(resp.error){console.error(resp);alert('Google sign-in failed or was cancelled.');return;}
+    gToken=resp.access_token;
+    setDriveStatus(true);
+    if(!gFolderId){await pickFolder();}else{await refreshAll();}
+  };
+  gTokenClient.requestAccessToken({prompt:'consent'});
+}
+function pickFolder(){
+  return new Promise(resolve=>{
+    const view=new google.picker.DocsView(google.picker.ViewId.FOLDERS).setSelectFolderEnabled(true).setIncludeFolders(true).setMode(google.picker.DocsViewMode.LIST);
+    const picker=new google.picker.PickerBuilder()
+      .setOAuthToken(gToken)
+      .setDeveloperKey(GDRIVE_API_KEY)
+      .addView(view)
+      .setTitle('Select (or create) the shared Lesson Plans folder')
+      .setCallback(data=>{
+        if(data.action===google.picker.Action.PICKED){
+          gFolderId=data.docs[0].id;
+          localStorage.setItem('tnhs_drive_folder',gFolderId);
+          refreshAll();
+        }
+        resolve();
+      }).build();
+    picker.setVisible(true);
+  });
+}
+function changeFolder(){gFolderId=null;localStorage.removeItem('tnhs_drive_folder');pickFolder();}
+function openDriveFolder(){
+  if(gFolderId)window.open('https://drive.google.com/drive/folders/'+gFolderId,'_blank');
+  else connectDrive();
+}
+</script>
 <script>
 /* ══ DATA ══ */
-const STORE_KEY='tnhs_v6';
 const SYS=['2025-2026','2026-2027','2027-2028','2028-2029','2029-2030','2030-2031'];
 const TERMS=['term1','term2','term3'];
 
@@ -524,8 +619,40 @@ function newData(){
   SYS.forEach(sy=>{d[sy]={};TERMS.forEach(t=>{d[sy][t]={jhs:{7:[],8:[],9:[],10:[]},ste:{7:[],8:[],9:[],10:[]},shs:{11:{Academics:[],TechPro:[]},12:{Academics:[],TechPro:[]}}};});});
   return d;
 }
-function load(){try{const r=localStorage.getItem(STORE_KEY);if(r){const d=JSON.parse(r);SYS.forEach(sy=>{if(!d[sy]){d[sy]={};TERMS.forEach(t=>{d[sy][t]={jhs:{7:[],8:[],9:[],10:[]},ste:{7:[],8:[],9:[],10:[]},shs:{11:{Academics:[],TechPro:[]},12:{Academics:[],TechPro:[]}}};});}else{TERMS.forEach(t=>{if(!d[sy][t])d[sy][t]={jhs:{7:[],8:[],9:[],10:[]},ste:{7:[],8:[],9:[],10:[]},shs:{11:{Academics:[],TechPro:[]},12:{Academics:[],TechPro:[]}}};});}});return d;}}catch(e){}return newData();}
-function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(store));}catch(e){}}
+function load(){return newData();}
+let isRefreshing=false;
+async function refreshAll(){
+  if(!gToken||!gFolderId)return;
+  if(isRefreshing)return;
+  isRefreshing=true;
+  try{
+    const fresh=newData();
+    let pageToken=null;
+    do{
+      const resp=await gapi.client.drive.files.list({
+        q:"'"+gFolderId+"' in parents and trashed=false",
+        fields:'nextPageToken, files(id,name,size,createdTime,properties)',
+        pageSize:1000,
+        pageToken:pageToken||undefined
+      });
+      (resp.result.files||[]).forEach(f=>{
+        const p=f.properties||{};
+        const sy=p.sy,term=p.term,dept=p.dept,track=p.track||'';
+        const grade=parseInt(p.grade);
+        if(!sy||!fresh[sy]||!term||!fresh[sy][term]||!dept||!grade)return;
+        const entry={id:f.id,grade,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
+        if(dept==='shs'){if(fresh[sy][term].shs[grade]&&fresh[sy][term].shs[grade][track])fresh[sy][term].shs[grade][track].push(entry);}
+        else{if(fresh[sy][term][dept]&&fresh[sy][term][dept][grade])fresh[sy][term][dept][grade].push(entry);}
+      });
+      pageToken=resp.result.nextPageToken;
+    }while(pageToken);
+    store=fresh;
+    renderAll();updateStat();updateTermCounts();
+  }catch(e){
+    console.error('Drive refresh failed',e);
+    if(e&&e.status===401){gToken=null;setDriveStatus(false);}
+  }finally{isRefreshing=false;}
+}
 let store=load();
 let curSY='2026-2027';
 let curTerm='term1';
@@ -537,7 +664,7 @@ function showPage(id){
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
   document.querySelectorAll('.nav-links a')[id==='home'?0:1].classList.add('active');
-  if(id==='portal'){renderAll();updateTermCounts();}
+  if(id==='portal'){renderAll();updateTermCounts();if(gToken&&gFolderId)refreshAll();}
 }
 function goPortal(term){curTerm=term;showPage('portal');switchTerm(term);}
 
@@ -611,8 +738,8 @@ function makeCard(grade,files,dept,track,term){
           ${f.size?'<div class="fitem-size">'+x(f.size)+'</div>':''}
         </div>
         <div class="fitem-acts">
-          ${f.dataUrl?'<button class="fbtn" onclick=\'viewFile('+JSON.stringify({file:f.file,dataUrl:f.dataUrl,teacher:f.teacher})+')\'> 👁 View</button><a class="fbtn" href="'+x(f.dataUrl)+'" download="'+x(f.file)+'">⬇</a>':''}
-          <button class="fbtn del" onclick="askDel('${x(curSY)}','${x(term)}','${x(dept)}',${grade},'${x(track||'')}',${i},'${x(f.file)}')">🗑</button>
+          <button class="fbtn" onclick='viewFile(${JSON.stringify({id:f.id,file:f.file,teacher:f.teacher})})'>👁 View</button><a class="fbtn" href="https://drive.google.com/uc?export=download&amp;id=${x(f.id)}" target="_blank">⬇</a>
+          <button class="fbtn del" onclick="askDel('${x(f.id)}','${x(f.file)}')">🗑</button>
         </div>
       </li>`).join('');
 
@@ -714,24 +841,50 @@ function doUpload(){
   const err=document.getElementById('upload-err');err.classList.remove('show');
   if(!teacher||!subject||!dept||!grade){err.textContent='Please fill in all fields.';err.classList.add('show');return;}
   if(!selFile){err.textContent='Please select a file.';err.classList.add('show');return;}
+  if(!gToken||!gFolderId){err.textContent='Please connect Google Drive first (top right) before uploading.';err.classList.add('show');return;}
+  if(selFile.size>25*1024*1024){err.textContent='File is larger than 25MB. Please use a smaller file.';err.classList.add('show');return;}
   const btn=document.getElementById('upload-btn');btn.disabled=true;btn.textContent='Uploading…';
   document.getElementById('progwrap').classList.add('show');
+  document.getElementById('progbar').style.width='0%';document.getElementById('progpct').textContent='0%';
+
+  const metadata={name:selFile.name,parents:[gFolderId],properties:{sy,term,dept,grade:String(grade),track:track||'',teacher,subject}};
+  const boundary='-------tnhs'+Date.now();
   const reader=new FileReader();
-  reader.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*90);document.getElementById('progbar').style.width=p+'%';document.getElementById('progpct').textContent=p+'%';}};
-  reader.onload=e=>{
-    document.getElementById('progbar').style.width='100%';
-    document.getElementById('progpct').textContent='100%';
-    const today=new Date().toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
-    const entry={grade,subject,teacher,file:selFile.name,size:fmtSize(selFile.size),date:today,dataUrl:e.target.result};
-    if(dept==='shs')store[sy][term].shs[grade][track].push(entry);
-    else store[sy][term][dept][grade].push(entry);
-    save();
-    if(sy===curSY)renderAll();
-    updateStat();updateTermCounts();
-    document.getElementById('upload-ok').classList.add('show');
-    document.getElementById('progwrap').classList.remove('show');
-    btn.textContent='✓ Uploaded!';
-    setTimeout(()=>{closeUpload();showPage('portal');switchTerm(term);switchDept(term,dept);},2000);
+  reader.onload=function(e){
+    const base64Data=e.target.result.split(',')[1];
+    const body=
+      '--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+'\r\n'+
+      '--'+boundary+'\r\nContent-Type: '+(selFile.type||'application/octet-stream')+'\r\nContent-Transfer-Encoding: base64\r\n\r\n'+base64Data+'\r\n'+
+      '--'+boundary+'--';
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST','https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+    xhr.setRequestHeader('Authorization','Bearer '+gToken);
+    xhr.setRequestHeader('Content-Type','multipart/related; boundary='+boundary);
+    xhr.upload.onprogress=function(ev){if(ev.lengthComputable){const p=Math.round(ev.loaded/ev.total*100);document.getElementById('progbar').style.width=p+'%';document.getElementById('progpct').textContent=p+'%';}};
+    xhr.onload=async function(){
+      if(xhr.status>=200&&xhr.status<300){
+        document.getElementById('upload-ok').classList.add('show');
+        document.getElementById('progwrap').classList.remove('show');
+        btn.textContent='✓ Uploaded!';
+        await refreshAll();
+        setTimeout(()=>{closeUpload();showPage('portal');switchTerm(term);switchDept(term,dept);},1500);
+      }else{
+        let msg='Upload failed (status '+xhr.status+').';
+        try{const j=JSON.parse(xhr.responseText);if(j.error&&j.error.message)msg=j.error.message;}catch(ex){}
+        if(xhr.status===401){msg='Your Drive session expired. Click "Connect Drive" again, then retry.';gToken=null;setDriveStatus(false);}
+        document.getElementById('upload-err').textContent=msg;
+        document.getElementById('upload-err').classList.add('show');
+        btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';
+        document.getElementById('progwrap').classList.remove('show');
+      }
+    };
+    xhr.onerror=function(){
+      document.getElementById('upload-err').textContent='Network error during upload. Check your connection and try again.';
+      document.getElementById('upload-err').classList.add('show');
+      btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';
+      document.getElementById('progwrap').classList.remove('show');
+    };
+    xhr.send(body);
   };
   reader.onerror=()=>{document.getElementById('upload-err').textContent='Could not read file. Try again.';document.getElementById('upload-err').classList.add('show');btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';document.getElementById('progwrap').classList.remove('show');};
   reader.readAsDataURL(selFile);
@@ -739,18 +892,26 @@ function doUpload(){
 
 /* ══ DELETE ══ */
 let delTarget=null;
-function askDel(sy,term,dept,grade,track,idx,filename){
-  delTarget={sy,term,dept,grade,track,idx};
+function askDel(id,filename){
+  delTarget={id};
   document.getElementById('del-fname').textContent='"'+filename+'"';
   document.getElementById('m-delete').classList.add('open');document.body.style.overflow='hidden';
 }
 function closeDel(){document.getElementById('m-delete').classList.remove('open');document.body.style.overflow='';delTarget=null;}
-function confirmDel(){
+async function confirmDel(){
   if(!delTarget)return;
-  const{sy,term,dept,grade,track,idx}=delTarget;
-  if(dept==='shs')store[sy][term].shs[grade][track].splice(idx,1);
-  else store[sy][term][dept][grade].splice(idx,1);
-  save();renderAll();closeDel();
+  const{id}=delTarget;
+  const btn=document.querySelector('.btn-del');btn.disabled=true;btn.textContent='Deleting…';
+  try{
+    await gapi.client.drive.files.delete({fileId:id});
+    await refreshAll();
+  }catch(e){
+    console.error('Delete failed',e);
+    alert('Could not delete the file. It may have already been removed, or your session may have expired — try reconnecting Drive.');
+  }finally{
+    btn.disabled=false;btn.textContent='Yes, Delete';
+    closeDel();
+  }
 }
 
 /* ══ VIEW ══ */
@@ -759,8 +920,8 @@ function viewFile(f){
   document.getElementById('vload').style.display='flex';
   const iframe=document.getElementById('vframe-if');
   iframe.style.opacity='0';iframe.src='';
-  const dl=document.getElementById('vdl');dl.href=f.dataUrl;dl.download=f.file;
-  iframe.src=f.dataUrl;
+  const dl=document.getElementById('vdl');dl.href='https://drive.google.com/uc?export=download&id='+f.id;dl.removeAttribute('download');dl.target='_blank';
+  iframe.src='https://drive.google.com/file/d/'+f.id+'/preview';
   document.getElementById('m-view').classList.add('open');document.body.style.overflow='hidden';
 }
 function vLoaded(){document.getElementById('vload').style.display='none';document.getElementById('vframe-if').style.opacity='1';}
@@ -768,6 +929,7 @@ function closeView(){document.getElementById('m-view').classList.remove('open');
 
 /* ══ INIT ══ */
 renderAll();updateTermCounts();
+setDriveStatus(false);
 </script>
 </body>
 </html>
