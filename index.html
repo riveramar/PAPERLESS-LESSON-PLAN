@@ -28,7 +28,10 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .nav-logo img{width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;}
 .nav-logo-text .school{color:#fff;font-weight:800;font-size:14px;line-height:1.2;}
 .nav-logo-text .sub{color:rgba(255,255,255,0.55);font-size:11px;}
-.nav-links{display:flex;}
+.nav-links{display:flex;align-items:center;}
+.nav-sy-select{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:7px;padding:6px 10px;font-size:13px;font-weight:700;cursor:pointer;margin-left:10px;}
+.nav-sy-select:hover{background:rgba(255,255,255,0.2);}
+.nav-sy-select option{color:#1a2e5a;}
 .nav-links a{color:rgba(255,255,255,0.75);text-decoration:none;padding:0 15px;height:68px;display:flex;align-items:center;font-size:14px;font-weight:600;transition:all .15s;border-bottom:3px solid transparent;cursor:pointer;}
 .nav-links a:hover,.nav-links a.active{color:#fff;border-bottom-color:var(--gold);background:rgba(255,255,255,0.05);}
 .nav-right{display:flex;align-items:center;gap:8px;}
@@ -42,7 +45,7 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .hero{background:linear-gradient(135deg,var(--navy) 0%,#2a4a8a 100%);color:#fff;padding:4rem 2rem 3rem;text-align:center;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");}
 .hero-inner{position:relative;max-width:700px;margin:0 auto;}
-.hero-logo-img{width:110px;height:110px;border-radius:50%;border:4px solid var(--gold);object-fit:cover;margin-bottom:1.25rem;box-shadow:0 0 32px rgba(232,164,0,0.4);}
+.hero-logo-img{display:block;width:110px;height:110px;border-radius:50%;border:4px solid var(--gold);object-fit:cover;margin:0 auto 1.25rem;box-shadow:0 0 32px rgba(232,164,0,0.4);}
 .hero-tag{display:inline-block;background:var(--gold);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:1rem;}
 .hero h1{font-size:2.1rem;font-weight:800;line-height:1.2;margin-bottom:.4rem;}
 .hero .loc{color:rgba(255,255,255,0.55);font-size:13px;margin-bottom:.75rem;letter-spacing:.5px;}
@@ -76,6 +79,7 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .portal-hero p{color:rgba(255,255,255,0.7);font-size:13px;}
 
 /* TERM TABS — big prominent pills */
+.sy-nav{max-width:1100px;margin:0 auto;padding:1.5rem 2rem 0;}
 .term-nav{max-width:1100px;margin:0 auto;padding:1.5rem 2rem 0;}
 .term-tabs{display:flex;gap:10px;flex-wrap:wrap;}
 .term-tab{flex:1;min-width:140px;padding:14px 10px;border-radius:var(--radius);border:2px solid var(--gray-300);background:#fff;font-weight:700;font-size:15px;color:var(--gray-600);cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;}
@@ -98,6 +102,11 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 
 /* PANEL HEADER */
 .panel-header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;padding:1rem 1.25rem;border-radius:var(--radius);border-left:4px solid;}
+.dept-banner{width:100%;height:84px;border-radius:var(--radius);margin-bottom:1rem;display:flex;align-items:center;justify-content:center;}
+.dept-banner svg{height:48px;width:48px;}
+.dept-banner.jhs{background:linear-gradient(120deg,var(--blue) 0%,#2d6bb0 100%);}
+.dept-banner.ste{background:linear-gradient(120deg,var(--teal) 0%,#16a39b 100%);}
+.dept-banner.shs{background:linear-gradient(120deg,var(--purple) 0%,#6b2aad 100%);}
 .panel-header.jhs{background:var(--blue-light);border-color:var(--blue);}
 .panel-header.ste{background:var(--teal-light);border-color:var(--teal);}
 .panel-header.shs{background:var(--purple-light);border-color:var(--purple);}
@@ -218,6 +227,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 @media(max-width:640px){
   nav{padding:0 1rem;}
   .nav-links a{padding:0 8px;font-size:12px;}
+  .nav-sy-select{font-size:11px;padding:5px 6px;margin-left:6px;}
   .hero{padding:2.5rem 1rem 2rem;}
   .hero h1{font-size:1.5rem;}
   .portal-body,.term-nav{padding-left:1rem;padding-right:1rem;}
@@ -240,6 +250,14 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   <div class="nav-links">
     <a class="active" onclick="showPage('home')">🏠 Home</a>
     <a onclick="showPage('portal')">📚 Lesson Plans</a>
+    <select id="sy-portal" class="nav-sy-select" onchange="changeSY(this.value)">
+      <option value="2025-2026">SY 2025–2026</option>
+      <option value="2026-2027" selected>SY 2026–2027</option>
+      <option value="2027-2028">SY 2027–2028</option>
+      <option value="2028-2029">SY 2028–2029</option>
+      <option value="2029-2030">SY 2029–2030</option>
+      <option value="2030-2031">SY 2030–2031</option>
+    </select>
   </div>
   <div class="nav-right">
     <button class="btn-gold" onclick="openUploadModal()">⬆ <span>Upload</span></button>
@@ -256,46 +274,17 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       <h1>Tugdan National High School</h1>
       <p class="loc">📍 Alcantara, Romblon · Est. 1999</p>
       <p class="desc">Your centralized digital hub for accessing, uploading, and managing lesson plans across all departments and grade levels.</p>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="num" id="stat-total">0</div><div class="lbl">Lesson Plans</div></div>
-        <div class="hero-stat"><div class="num">3</div><div class="lbl">Departments</div></div>
-        <div class="hero-stat"><div class="num">3</div><div class="lbl">Terms</div></div>
-        <div class="hero-stat"><div class="num">8</div><div class="lbl">Grade Levels</div></div>
-      </div>
     </div>
   </div>
 
   <div class="home-wrap">
-    <!-- SY SELECTOR -->
-    <div class="sy-bar">
-      <label for="sy-home">📅 School Year:</label>
-      <select id="sy-home" onchange="changeSY(this.value)">
-        <option value="2025-2026">SY 2025–2026</option>
-        <option value="2026-2027" selected>SY 2026–2027</option>
-        <option value="2027-2028">SY 2027–2028</option>
-        <option value="2028-2029">SY 2028–2029</option>
-        <option value="2029-2030">SY 2029–2030</option>
-        <option value="2030-2031">SY 2030–2031</option>
-      </select>
-      <span class="sy-badge" id="sy-badge">SY 2026–2027</span>
-    </div>
-
     <!-- WELCOME -->
     <div class="welcome-card">
       <h2>👋 Welcome to the TNHS Lesson Plan Portal</h2>
       <p>This portal is the official digital repository for lesson plans of <strong>Tugdan National High School</strong>, Alcantara, Romblon. It is designed to help teachers organize, share, and access lesson plans efficiently across all grade levels and departments.</p>
       <p>Lesson plans are organized by <strong>School Year</strong> and divided into <strong>Term 1</strong>, <strong>Term 2</strong>, and <strong>Term 3</strong>. Inside each term you will find the three departments — <strong>Junior High School (JHS)</strong>, <strong>Science Technology &amp; Engineering (STE)</strong>, and <strong>Senior High School (SHS)</strong> — each with their respective grade level cards.</p>
-      <p>📌 <strong>How to use:</strong> Select the School Year above, click <em>Lesson Plans</em> in the navigation bar, choose a Term, then browse by Department and Grade Level. To upload, click the yellow <strong>Upload</strong> button at any time.</p>
-    </div>
-
-    <!-- QUICK ACCESS -->
-    <div class="quick-grid">
-      <div class="quick-card" onclick="goPortal('term1')"><div class="qi">📅</div><div class="qt">Term 1</div><div class="qs">JHS · STE · SHS</div></div>
-      <div class="quick-card" onclick="goPortal('term2')"><div class="qi">📅</div><div class="qt">Term 2</div><div class="qs">JHS · STE · SHS</div></div>
-      <div class="quick-card" onclick="goPortal('term3')"><div class="qi">📅</div><div class="qt">Term 3</div><div class="qs">JHS · STE · SHS</div></div>
-      <div class="quick-card" onclick="openUploadModal()"><div class="qi">⬆</div><div class="qt">Upload</div><div class="qs">Add a lesson plan</div></div>
-      <div class="quick-card" onclick="openDriveFolder()"><div class="qi">📂</div><div class="qt">Google Drive</div><div class="qs">View all uploaded files</div></div>
-      <div class="quick-card" onclick="window.open('https://forms.gle/cyZWovrYtG9mgy4RA','_blank')"><div class="qi">📝</div><div class="qt">Google Form</div><div class="qs">Submit via form</div></div>
+      <p>📌 <strong>How to use:</strong> Click <em>Lesson Plans</em> in the navigation bar, choose a School Year and Term at the top, then browse by Department and Grade Level. To upload, click the yellow <strong>Upload</strong> button at any time.</p>
+      <button class="btn-gold" style="margin-top:.5rem;" onclick="goPortal('term1')">View Lesson Plans →</button>
     </div>
   </div>
 </div>
@@ -304,9 +293,8 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 <div class="page" id="page-portal">
 
   <div class="portal-hero">
-    <div class="sy-tag" id="portal-sy-tag">SY 2026–2027</div>
     <h2>Lesson Plan Repository</h2>
-    <p>Select a Term, then browse by Department and Grade Level</p>
+    <p>Select a School Year and Term, then browse by Department and Grade Level</p>
   </div>
 
   <!-- TERM TABS -->
@@ -341,14 +329,17 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         <button class="dept-tab" id="t1-dtab-shs" onclick="switchDept('term1','shs')">🎓 Senior High School</button>
       </div>
       <div class="dept-panel active" id="t1-dp-jhs">
+        <div class="dept-banner jhs"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 20c-4-3.6-10-5-17-4.3v30c7-.7 13 .7 17 4.3 4-3.6 10-5 17-4.3v-30c-7-.7-13 .7-17 4.3z"/><path d="M32 20v30"/></svg></div>
         <div class="panel-header jhs"><div class="panel-icon jhs">📘</div><div><h2>Junior High School (JHS) — Term 1</h2><p>Grade 7 to Grade 10 · General Curriculum</p></div></div>
         <div class="grade-grid" id="t1-grid-jhs"></div>
       </div>
       <div class="dept-panel" id="t1-dp-ste">
+        <div class="dept-banner ste"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M27 10h10M28 10v14l-10 17a3.6 3.6 0 0 0 3.1 5.4h21.8A3.6 3.6 0 0 0 46 41l-10-17V10"/><circle cx="25" cy="40" r="1.8" fill="#fff" stroke="none"/><circle cx="34" cy="44" r="1.4" fill="#fff" stroke="none"/><circle cx="29" cy="34" r="1.2" fill="#fff" stroke="none"/></svg></div>
         <div class="panel-header ste"><div class="panel-icon ste">🔬</div><div><h2>Science, Technology &amp; Engineering (STE) — Term 1</h2><p>Grade 7 to Grade 10 · Advanced Science &amp; Technology</p></div></div>
         <div class="grade-grid" id="t1-grid-ste"></div>
       </div>
       <div class="dept-panel" id="t1-dp-shs">
+        <div class="dept-banner shs"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 16 12 26l20 10 20-10-20-10z"/><path d="M20 30v9c0 3.3 5.4 7 12 7s12-3.7 12-7v-9"/><path d="M48 27v11"/><circle cx="48" cy="40" r="2" fill="#fff" stroke="none"/></svg></div>
         <div class="panel-header shs"><div class="panel-icon shs">🎓</div><div><h2>Senior High School (SHS) — Term 1</h2><p>Grade 11 &amp; 12 · Academics and TechPro Tracks</p></div></div>
         <div class="track-sec"><div class="track-lbl"><span class="tdot acad"></span>Academics Track</div><div class="grade-grid" id="t1-grid-shs-a"></div></div>
         <div class="track-sec"><div class="track-lbl"><span class="tdot tech"></span>TechPro Track</div><div class="grade-grid" id="t1-grid-shs-t"></div></div>
@@ -363,14 +354,17 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         <button class="dept-tab" id="t2-dtab-shs" onclick="switchDept('term2','shs')">🎓 Senior High School</button>
       </div>
       <div class="dept-panel active" id="t2-dp-jhs">
+        <div class="dept-banner jhs"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 20c-4-3.6-10-5-17-4.3v30c7-.7 13 .7 17 4.3 4-3.6 10-5 17-4.3v-30c-7-.7-13 .7-17 4.3z"/><path d="M32 20v30"/></svg></div>
         <div class="panel-header jhs"><div class="panel-icon jhs">📘</div><div><h2>Junior High School (JHS) — Term 2</h2><p>Grade 7 to Grade 10 · General Curriculum</p></div></div>
         <div class="grade-grid" id="t2-grid-jhs"></div>
       </div>
       <div class="dept-panel" id="t2-dp-ste">
+        <div class="dept-banner ste"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M27 10h10M28 10v14l-10 17a3.6 3.6 0 0 0 3.1 5.4h21.8A3.6 3.6 0 0 0 46 41l-10-17V10"/><circle cx="25" cy="40" r="1.8" fill="#fff" stroke="none"/><circle cx="34" cy="44" r="1.4" fill="#fff" stroke="none"/><circle cx="29" cy="34" r="1.2" fill="#fff" stroke="none"/></svg></div>
         <div class="panel-header ste"><div class="panel-icon ste">🔬</div><div><h2>Science, Technology &amp; Engineering (STE) — Term 2</h2><p>Grade 7 to Grade 10 · Advanced Science &amp; Technology</p></div></div>
         <div class="grade-grid" id="t2-grid-ste"></div>
       </div>
       <div class="dept-panel" id="t2-dp-shs">
+        <div class="dept-banner shs"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 16 12 26l20 10 20-10-20-10z"/><path d="M20 30v9c0 3.3 5.4 7 12 7s12-3.7 12-7v-9"/><path d="M48 27v11"/><circle cx="48" cy="40" r="2" fill="#fff" stroke="none"/></svg></div>
         <div class="panel-header shs"><div class="panel-icon shs">🎓</div><div><h2>Senior High School (SHS) — Term 2</h2><p>Grade 11 &amp; 12 · Academics and TechPro Tracks</p></div></div>
         <div class="track-sec"><div class="track-lbl"><span class="tdot acad"></span>Academics Track</div><div class="grade-grid" id="t2-grid-shs-a"></div></div>
         <div class="track-sec"><div class="track-lbl"><span class="tdot tech"></span>TechPro Track</div><div class="grade-grid" id="t2-grid-shs-t"></div></div>
@@ -385,14 +379,17 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         <button class="dept-tab" id="t3-dtab-shs" onclick="switchDept('term3','shs')">🎓 Senior High School</button>
       </div>
       <div class="dept-panel active" id="t3-dp-jhs">
+        <div class="dept-banner jhs"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 20c-4-3.6-10-5-17-4.3v30c7-.7 13 .7 17 4.3 4-3.6 10-5 17-4.3v-30c-7-.7-13 .7-17 4.3z"/><path d="M32 20v30"/></svg></div>
         <div class="panel-header jhs"><div class="panel-icon jhs">📘</div><div><h2>Junior High School (JHS) — Term 3</h2><p>Grade 7 to Grade 10 · General Curriculum</p></div></div>
         <div class="grade-grid" id="t3-grid-jhs"></div>
       </div>
       <div class="dept-panel" id="t3-dp-ste">
+        <div class="dept-banner ste"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M27 10h10M28 10v14l-10 17a3.6 3.6 0 0 0 3.1 5.4h21.8A3.6 3.6 0 0 0 46 41l-10-17V10"/><circle cx="25" cy="40" r="1.8" fill="#fff" stroke="none"/><circle cx="34" cy="44" r="1.4" fill="#fff" stroke="none"/><circle cx="29" cy="34" r="1.2" fill="#fff" stroke="none"/></svg></div>
         <div class="panel-header ste"><div class="panel-icon ste">🔬</div><div><h2>Science, Technology &amp; Engineering (STE) — Term 3</h2><p>Grade 7 to Grade 10 · Advanced Science &amp; Technology</p></div></div>
         <div class="grade-grid" id="t3-grid-ste"></div>
       </div>
       <div class="dept-panel" id="t3-dp-shs">
+        <div class="dept-banner shs"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 16 12 26l20 10 20-10-20-10z"/><path d="M20 30v9c0 3.3 5.4 7 12 7s12-3.7 12-7v-9"/><path d="M48 27v11"/><circle cx="48" cy="40" r="2" fill="#fff" stroke="none"/></svg></div>
         <div class="panel-header shs"><div class="panel-icon shs">🎓</div><div><h2>Senior High School (SHS) — Term 3</h2><p>Grade 11 &amp; 12 · Academics and TechPro Tracks</p></div></div>
         <div class="track-sec"><div class="track-lbl"><span class="tdot acad"></span>Academics Track</div><div class="grade-grid" id="t3-grid-shs-a"></div></div>
         <div class="track-sec"><div class="track-lbl"><span class="tdot tech"></span>TechPro Track</div><div class="grade-grid" id="t3-grid-shs-t"></div></div>
@@ -651,9 +648,8 @@ function goPortal(term){curTerm=term;showPage('portal');switchTerm(term);}
 /* ══ SY ══ */
 function changeSY(sy){
   curSY=sy;
-  const label='SY '+sy.replace('-','–');
-  document.getElementById('sy-badge').textContent=label;
-  document.getElementById('portal-sy-tag').textContent=label;
+  const sel=document.getElementById('sy-portal');
+  if(sel)sel.value=sy;
   renderAll();updateStat();updateTermCounts();
 }
 
@@ -744,7 +740,8 @@ function ficon(n=''){
 function updateStat(){
   let t=0;
   TERMS.forEach(term=>{const d=store[curSY][term];[7,8,9,10].forEach(g=>{t+=d.jhs[g].length+d.ste[g].length;});[11,12].forEach(g=>{t+=d.shs[g].Academics.length+d.shs[g].TechPro.length;});});
-  document.getElementById('stat-total').textContent=t;
+  const el=document.getElementById('stat-total');
+  if(el)el.textContent=t;
 }
 function updateTermCounts(){
   TERMS.forEach(term=>{
