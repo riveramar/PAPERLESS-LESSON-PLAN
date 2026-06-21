@@ -37,9 +37,6 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .btn-ghost{background:rgba(255,255,255,0.12);color:#fff;border:1.5px solid rgba(255,255,255,0.3);padding:8px 16px;border-radius:var(--radius);font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;text-decoration:none;transition:background .15s;}
 .btn-ghost:hover{background:rgba(255,255,255,0.22);}
 #gdrive-status.connected{background:rgba(40,167,90,0.25);border-color:rgba(40,167,90,0.6);}
-.drive-banner{display:none;max-width:1100px;margin:1rem auto 0;padding:.9rem 1.25rem;border-radius:var(--radius);background:var(--gold);color:var(--navy);font-weight:700;font-size:13.5px;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
-.drive-banner.show{display:flex;}
-.drive-banner button{background:var(--navy);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;}
 
 /* HERO */
 .hero{background:linear-gradient(135deg,var(--navy) 0%,#2a4a8a 100%);color:#fff;padding:4rem 2rem 3rem;text-align:center;position:relative;overflow:hidden;}
@@ -246,7 +243,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   </div>
   <div class="nav-right">
     <button class="btn-gold" onclick="openUploadModal()">⬆ <span>Upload</span></button>
-    <button class="btn-ghost" id="gdrive-status" onclick="connectDrive()">🔌 <span>Connect Drive</span></button>
+    <button class="btn-ghost" id="gdrive-status" onclick="connectDrive()">🔌 <span>Sign In to Upload</span></button>
   </div>
 </nav>
 
@@ -271,7 +268,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   <div class="home-wrap">
     <!-- SY SELECTOR -->
     <div class="sy-bar">
-      <label>📅 School Year:</label>
+      <label for="sy-home">📅 School Year:</label>
       <select id="sy-home" onchange="changeSY(this.value)">
         <option value="2025-2026">SY 2025–2026</option>
         <option value="2026-2027" selected>SY 2026–2027</option>
@@ -310,11 +307,6 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
     <div class="sy-tag" id="portal-sy-tag">SY 2026–2027</div>
     <h2>Lesson Plan Repository</h2>
     <p>Select a Term, then browse by Department and Grade Level</p>
-  </div>
-
-  <div class="drive-banner" id="drive-banner">
-    <span>🔌 Not connected to Google Drive — files won't load or save until you connect.</span>
-    <button onclick="connectDrive()">Connect Google Drive</button>
   </div>
 
   <!-- TERM TABS -->
@@ -430,10 +422,11 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
     <button class="mclose" onclick="closeUpload()">✕</button>
     <h3>⬆ Upload Lesson Plan</h3>
     <p class="msub">Pick a file from your computer, fill in the details, and click Upload.</p>
-    <div class="fgrp"><label>Teacher Name</label><input type="text" id="u-teacher" placeholder="e.g. Maria Santos"></div>
-    <div class="fgrp"><label>Subject</label><input type="text" id="u-subject" placeholder="e.g. Mathematics, Science…"></div>
+    <p class="msub" id="upload-signin-note" style="display:none;background:#fff3cd;color:#7a5c00;padding:8px 12px;border-radius:8px;">🔌 You'll need to sign in with Google before uploading — click <strong>"Sign In to Upload"</strong> in the top right, then come back to this form.</p>
+    <div class="fgrp"><label for="u-teacher">Teacher Name</label><input type="text" id="u-teacher" placeholder="e.g. Maria Santos"></div>
+    <div class="fgrp"><label for="u-subject">Subject</label><input type="text" id="u-subject" placeholder="e.g. Mathematics, Science…"></div>
     <div class="fgrp">
-      <label>School Year</label>
+      <label for="u-sy">School Year</label>
       <select id="u-sy">
         <option value="2025-2026">SY 2025–2026</option>
         <option value="2026-2027" selected>SY 2026–2027</option>
@@ -444,7 +437,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       </select>
     </div>
     <div class="fgrp">
-      <label>Term</label>
+      <label for="u-term">Term</label>
       <select id="u-term">
         <option value="term1">Term 1</option>
         <option value="term2">Term 2</option>
@@ -452,7 +445,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       </select>
     </div>
     <div class="fgrp">
-      <label>Department</label>
+      <label for="u-dept">Department</label>
       <select id="u-dept" onchange="upGrade()">
         <option value="">– Select –</option>
         <option value="jhs">Junior High School (JHS)</option>
@@ -461,15 +454,15 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       </select>
     </div>
     <div class="fgrp" id="u-ggrp" style="display:none">
-      <label>Grade Level</label>
+      <label for="u-grade">Grade Level</label>
       <select id="u-grade" onchange="upTrack()"><option value="">– Select Grade –</option></select>
     </div>
     <div class="fgrp" id="u-tgrp" style="display:none">
-      <label>Track</label>
+      <label for="u-track">Track</label>
       <select id="u-track"><option value="Academics">Academics</option><option value="TechPro">TechPro</option></select>
     </div>
     <div class="fgrp">
-      <label>Lesson Plan File</label>
+      <label for="file-input">Lesson Plan File</label>
       <div class="dropzone" id="dropzone">
         <input type="file" id="file-input" accept=".pdf,.docx,.doc,.pptx,.ppt" onchange="filePick(this)">
         <div class="dz-icon">📁</div>
@@ -517,7 +510,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
     </div>
     <div class="vframe">
       <div class="vload" id="vload"><div class="spin"></div><span>Loading preview…</span></div>
-      <iframe id="vframe-if" src="" onload="vLoaded()" style="opacity:0;transition:opacity .3s;width:100%;height:100%;border:none;"></iframe>
+      <iframe id="vframe-if" src="" onload="if(typeof vLoaded==='function')vLoaded()" style="opacity:0;transition:opacity .3s;width:100%;height:100%;border:none;"></iframe>
     </div>
   </div>
 </div>
@@ -527,26 +520,34 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 <script>
 /* ══ GOOGLE DRIVE CONFIG ══ */
 /* 1. Go to https://console.cloud.google.com/ and create a project.
-   2. Enable the "Google Drive API" and the "Google Picker API" (APIs & Services > Library).
+   2. Enable the "Google Drive API" (APIs & Services > Library).
    3. APIs & Services > Credentials > Create Credentials > API key. Paste it below as GDRIVE_API_KEY.
    4. APIs & Services > Credentials > Create Credentials > OAuth client ID > Web application.
       Add your site's URL (e.g. https://yourschool.github.io) under "Authorized JavaScript origins".
       Paste the resulting Client ID below as GDRIVE_CLIENT_ID.
    5. APIs & Services > OAuth consent screen: set to "External", "Testing", and add each
       teacher's Google account email under "Test users" (only listed accounts can sign in
-      while the app is in Testing mode — this doubles as access control). */
+      to upload/delete; only those accounts will see the consent screen for full Drive access).
+   6. In Google Drive, create (or reuse) ONE folder for all lesson plans. Share it:
+      - "Anyone with the link" = Viewer  → so EVERYONE can browse/view files with no sign-in.
+      - Add each teacher's account individually as Editor → so they can upload/delete once signed in.
+      Copy the folder's ID from its URL (drive.google.com/drive/folders/THIS_PART) and paste it
+      below as GDRIVE_FOLDER_ID. */
 const GDRIVE_CLIENT_ID='331337727159-12bflbu3p5a8349cc84u734u4rh531v1.apps.googleusercontent.com';
-const GDRIVE_API_KEY='AIzaSyBkIP8HemXVSBrCGjUJ4fUd6xgcep93ySU ';
-const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive.file';
+const GDRIVE_API_KEY='AIzaSyBkIP8HemXVSBrCGjUJ4fUd6xgcep93ySU';
+const GDRIVE_FOLDER_ID='PASTE_YOUR_FOLDER_ID_HERE';
+const GDRIVE_SCOPES='https://https://drive.google.com/drive/folders/1G5Z5ji6zYFl3iV1IhE4uTAzQJAcdBHJ4?usp=drive_link';
 
 let gToken=null,gTokenClient=null,gapiInited=false,gisInited=false;
-let gFolderId=localStorage.getItem('tnhs_drive_folder')||null;
+const gFolderId=(GDRIVE_FOLDER_ID&&GDRIVE_FOLDER_ID.indexOf('PASTE_YOUR')!==0)?GDRIVE_FOLDER_ID:null;
 
 function gapiLoad(){
-  gapi.load('client:picker',async()=>{
+  gapi.load('client',async()=>{
     try{
       await gapi.client.init({apiKey:GDRIVE_API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
-      gapiInited=true;maybeSilentConnect();
+      gapiInited=true;
+      if(gFolderId)refreshAll(); // public read — works for every visitor, no sign-in needed
+      maybeSilentConnect();
     }catch(e){console.error('gapi init failed',e);}
   });
 }
@@ -555,58 +556,37 @@ function gisLoad(){
   gisInited=true;maybeSilentConnect();
 }
 function maybeSilentConnect(){
-  if(gapiInited&&gisInited&&gFolderId&&!gToken){
-    gTokenClient.callback=(resp)=>{if(!resp.error){gToken=resp.access_token;setDriveStatus(true);refreshAll();}};
+  if(gapiInited&&gisInited&&!gToken&&localStorage.getItem('tnhs_drive_ever_connected')){
+    gTokenClient.callback=(resp)=>{if(!resp.error){gToken=resp.access_token;gapi.client.setToken({access_token:gToken});setDriveStatus(true);refreshAll();}};
     try{gTokenClient.requestAccessToken({prompt:''});}catch(e){}
   }
 }
 function setDriveStatus(connected){
   const b=document.getElementById('gdrive-status');
-  const banner=document.getElementById('drive-banner');
   if(connected){
-    b.classList.add('connected');b.innerHTML='🟢 <span>Drive Connected</span>';
-    b.onclick=changeFolder;b.title='Click to change the target Drive folder';
-    banner.classList.remove('show');
+    b.classList.add('connected');b.innerHTML='🟢 <span>Signed In</span>';
+    b.onclick=()=>{};
   }else{
-    b.classList.remove('connected');b.innerHTML='🔌 <span>Connect Drive</span>';
-    b.onclick=connectDrive;b.removeAttribute('title');
-    banner.classList.add('show');
+    b.classList.remove('connected');b.innerHTML='🔌 <span>Sign In to Upload</span>';
+    b.onclick=connectDrive;
   }
 }
 function connectDrive(){
   if(!gapiInited||!gisInited){alert('Google services are still loading — please wait a few seconds and try again.');return;}
-  if(!GDRIVE_CLIENT_ID||GDRIVE_CLIENT_ID.indexOf('PASTE_YOUR')===0){alert('Google Drive isn\'t configured yet. See the setup instructions in the SETUP guide / top of the script.');return;}
+  if(!GDRIVE_CLIENT_ID||GDRIVE_CLIENT_ID.indexOf('PASTE_YOUR')===0||!gFolderId){alert('Google Drive isn\'t fully configured yet. See GOOGLE_DRIVE_SETUP.md.');return;}
   gTokenClient.callback=async(resp)=>{
     if(resp.error){console.error(resp);alert('Google sign-in failed or was cancelled.');return;}
     gToken=resp.access_token;
+    gapi.client.setToken({access_token:gToken});
+    localStorage.setItem('tnhs_drive_ever_connected','1');
     setDriveStatus(true);
-    if(!gFolderId){await pickFolder();}else{await refreshAll();}
+    await refreshAll();
   };
   gTokenClient.requestAccessToken({prompt:'consent'});
 }
-function pickFolder(){
-  return new Promise(resolve=>{
-    const view=new google.picker.DocsView(google.picker.ViewId.FOLDERS).setSelectFolderEnabled(true).setIncludeFolders(true).setMode(google.picker.DocsViewMode.LIST);
-    const picker=new google.picker.PickerBuilder()
-      .setOAuthToken(gToken)
-      .setDeveloperKey(GDRIVE_API_KEY)
-      .addView(view)
-      .setTitle('Select (or create) the shared Lesson Plans folder')
-      .setCallback(data=>{
-        if(data.action===google.picker.Action.PICKED){
-          gFolderId=data.docs[0].id;
-          localStorage.setItem('tnhs_drive_folder',gFolderId);
-          refreshAll();
-        }
-        resolve();
-      }).build();
-    picker.setVisible(true);
-  });
-}
-function changeFolder(){gFolderId=null;localStorage.removeItem('tnhs_drive_folder');pickFolder();}
 function openDriveFolder(){
   if(gFolderId)window.open('https://drive.google.com/drive/folders/'+gFolderId,'_blank');
-  else connectDrive();
+  else alert('Google Drive folder isn\'t configured yet.');
 }
 </script>
 <script>
@@ -622,7 +602,7 @@ function newData(){
 function load(){return newData();}
 let isRefreshing=false;
 async function refreshAll(){
-  if(!gToken||!gFolderId)return;
+  if(!gFolderId)return;
   if(isRefreshing)return;
   isRefreshing=true;
   try{
@@ -650,7 +630,7 @@ async function refreshAll(){
     renderAll();updateStat();updateTermCounts();
   }catch(e){
     console.error('Drive refresh failed',e);
-    if(e&&e.status===401){gToken=null;setDriveStatus(false);}
+    if(e&&e.status===401){gToken=null;try{gapi.client.setToken(null);}catch(ex){}setDriveStatus(false);}
   }finally{isRefreshing=false;}
 }
 let store=load();
@@ -664,7 +644,7 @@ function showPage(id){
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
   document.querySelectorAll('.nav-links a')[id==='home'?0:1].classList.add('active');
-  if(id==='portal'){renderAll();updateTermCounts();if(gToken&&gFolderId)refreshAll();}
+  if(id==='portal'){renderAll();updateTermCounts();if(gFolderId)refreshAll();}
 }
 function goPortal(term){curTerm=term;showPage('portal');switchTerm(term);}
 
@@ -779,13 +759,14 @@ function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1
 
 /* ══ UPLOAD ══ */
 let selFile=null;
-function openUploadModal(){resetUpload();document.getElementById('m-upload').classList.add('open');document.body.style.overflow='hidden';}
+function openUploadModal(){resetUpload();document.getElementById('upload-signin-note').style.display=gToken?'none':'block';document.getElementById('m-upload').classList.add('open');document.body.style.overflow='hidden';}
 function openUploadFor(dept,grade,track,term){
   resetUpload();
   document.getElementById('u-term').value=term;
   document.getElementById('u-dept').value=dept; upGrade();
   if(grade){document.getElementById('u-grade').value=grade;upTrack();}
   if(track)document.getElementById('u-track').value=track;
+  document.getElementById('upload-signin-note').style.display=gToken?'none':'block';
   document.getElementById('m-upload').classList.add('open');document.body.style.overflow='hidden';
 }
 function closeUpload(){document.getElementById('m-upload').classList.remove('open');document.body.style.overflow='';resetUpload();}
@@ -841,7 +822,7 @@ function doUpload(){
   const err=document.getElementById('upload-err');err.classList.remove('show');
   if(!teacher||!subject||!dept||!grade){err.textContent='Please fill in all fields.';err.classList.add('show');return;}
   if(!selFile){err.textContent='Please select a file.';err.classList.add('show');return;}
-  if(!gToken||!gFolderId){err.textContent='Please connect Google Drive first (top right) before uploading.';err.classList.add('show');return;}
+  if(!gToken||!gFolderId){err.textContent='Please sign in with Google first ("Sign In to Upload", top right) before uploading.';err.classList.add('show');return;}
   if(selFile.size>25*1024*1024){err.textContent='File is larger than 25MB. Please use a smaller file.';err.classList.add('show');return;}
   const btn=document.getElementById('upload-btn');btn.disabled=true;btn.textContent='Uploading…';
   document.getElementById('progwrap').classList.add('show');
@@ -871,7 +852,7 @@ function doUpload(){
       }else{
         let msg='Upload failed (status '+xhr.status+').';
         try{const j=JSON.parse(xhr.responseText);if(j.error&&j.error.message)msg=j.error.message;}catch(ex){}
-        if(xhr.status===401){msg='Your Drive session expired. Click "Connect Drive" again, then retry.';gToken=null;setDriveStatus(false);}
+        if(xhr.status===401){msg='Your sign-in session expired. Click "Sign In to Upload" again, then retry.';gToken=null;try{gapi.client.setToken(null);}catch(ex){}setDriveStatus(false);}
         document.getElementById('upload-err').textContent=msg;
         document.getElementById('upload-err').classList.add('show');
         btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';
