@@ -130,6 +130,8 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 
 /* FILE LIST */
 .flist{list-style:none;}
+.week-heading{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--navy);background:var(--gray-100);padding:4px 8px;border-radius:5px;margin:8px 0 3px;}
+.week-heading:first-child{margin-top:0;}
 .fitem{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
 .fitem:last-child{border-bottom:none;}
 .fitem-icon{font-size:18px;flex-shrink:0;}
@@ -459,6 +461,13 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       <select id="u-track"><option value="Academics">Academics</option><option value="TechPro">TechPro</option></select>
     </div>
     <div class="fgrp">
+      <label for="u-week">Week</label>
+      <select id="u-week">
+        <option value="">– Select Week –</option>
+        <option value="1">Week 1</option><option value="2">Week 2</option><option value="3">Week 3</option><option value="4">Week 4</option><option value="5">Week 5</option><option value="6">Week 6</option><option value="7">Week 7</option><option value="8">Week 8</option><option value="9">Week 9</option><option value="10">Week 10</option><option value="11">Week 11</option><option value="12">Week 12</option><option value="13">Week 13</option><option value="14">Week 14</option><option value="15">Week 15</option><option value="16">Week 16</option><option value="17">Week 17</option><option value="18">Week 18</option><option value="19">Week 19</option><option value="20">Week 20</option>
+      </select>
+    </div>
+    <div class="fgrp">
       <label for="file-input">Lesson Plan File</label>
       <div class="dropzone" id="dropzone">
         <input type="file" id="file-input" accept=".pdf,.docx,.doc,.pptx,.ppt" onchange="filePick(this)">
@@ -617,7 +626,7 @@ async function refreshAll(){
         const sy=p.sy,term=p.term,dept=p.dept,track=p.track||'';
         const grade=parseInt(p.grade);
         if(!sy||!fresh[sy]||!term||!fresh[sy][term]||!dept||!grade)return;
-        const entry={id:f.id,grade,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
+        const entry={id:f.id,grade,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),week:p.week?parseInt(p.week):null,date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
         if(dept==='shs'){if(fresh[sy][term].shs[grade]&&fresh[sy][term].shs[grade][track])fresh[sy][term].shs[grade][track].push(entry);}
         else{if(fresh[sy][term][dept]&&fresh[sy][term][dept][grade])fresh[sy][term][dept][grade].push(entry);}
       });
@@ -703,9 +712,20 @@ function makeCard(grade,files,dept,track,term){
   const lbl={jhs:'JHS',ste:'STE',shs:'SHS'};
   const tlbl={term1:'Term 1',term2:'Term 2',term3:'Term 3'};
   const trkLabel=track?' – '+track:'';
-  const rows=files.length===0
-    ?'<li class="empty-state">No lesson plans yet</li>'
-    :files.map((f,i)=>`
+
+  let rows;
+  if(files.length===0){
+    rows='<li class="empty-state">No lesson plans yet</li>';
+  }else{
+    const sorted=[...files].sort((a,b)=>(a.week||999)-(b.week||999));
+    let html='';let lastWeek='__none__';
+    sorted.forEach(f=>{
+      const wk=f.week||null;
+      if(wk!==lastWeek){
+        html+=`<li class="week-heading">${wk?'Week '+wk:'Unspecified Week'}</li>`;
+        lastWeek=wk;
+      }
+      html+=`
       <li class="fitem">
         <span class="fitem-icon">${ficon(f.file)}</span>
         <div class="fitem-info">
@@ -717,7 +737,10 @@ function makeCard(grade,files,dept,track,term){
           <button class="fbtn" onclick='viewFile(${JSON.stringify({id:f.id,file:f.file,teacher:f.teacher})})'>👁 View</button><a class="fbtn" href="https://drive.google.com/uc?export=download&amp;id=${x(f.id)}" target="_blank">⬇</a>
           <button class="fbtn del" onclick="askDel('${x(f.id)}','${x(f.file)}')">🗑</button>
         </div>
-      </li>`).join('');
+      </li>`;
+    });
+    rows=html;
+  }
 
   card.innerHTML=`
     <div class="gc-top">
@@ -771,6 +794,7 @@ function resetUpload(){
   selFile=null;
   ['u-teacher','u-subject'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('u-dept').value='';
+  document.getElementById('u-week').value='';
   document.getElementById('u-ggrp').style.display='none';
   document.getElementById('u-tgrp').style.display='none';
   document.getElementById('file-input').value='';
@@ -816,8 +840,10 @@ function doUpload(){
   const dept=document.getElementById('u-dept').value;
   const grade=parseInt(document.getElementById('u-grade').value);
   const track=document.getElementById('u-track').value;
+  const week=document.getElementById('u-week').value;
   const err=document.getElementById('upload-err');err.classList.remove('show');
   if(!teacher||!subject||!dept||!grade){err.textContent='Please fill in all fields.';err.classList.add('show');return;}
+  if(!week){err.textContent='Please select the Week.';err.classList.add('show');return;}
   if(!selFile){err.textContent='Please select a file.';err.classList.add('show');return;}
   if(!gToken||!gFolderId){err.textContent='Please sign in with Google first ("Sign In to Upload", top right) before uploading.';err.classList.add('show');return;}
   if(selFile.size>25*1024*1024){err.textContent='File is larger than 25MB. Please use a smaller file.';err.classList.add('show');return;}
@@ -825,7 +851,7 @@ function doUpload(){
   document.getElementById('progwrap').classList.add('show');
   document.getElementById('progbar').style.width='0%';document.getElementById('progpct').textContent='0%';
 
-  const metadata={name:selFile.name,parents:[gFolderId],properties:{sy,term,dept,grade:String(grade),track:track||'',teacher,subject}};
+  const metadata={name:selFile.name,parents:[gFolderId],properties:{sy,term,dept,grade:String(grade),track:track||'',week,teacher,subject}};
   const boundary='-------tnhs'+Date.now();
   const reader=new FileReader();
   reader.onload=function(e){
@@ -871,6 +897,10 @@ function doUpload(){
 /* ══ DELETE ══ */
 let delTarget=null;
 function askDel(id,filename){
+  if(!gToken){
+    alert('Please sign in first ("Sign In to Upload", top right) before deleting a file.');
+    return;
+  }
   delTarget={id};
   document.getElementById('del-fname').textContent='"'+filename+'"';
   document.getElementById('m-delete').classList.add('open');document.body.style.overflow='hidden';
@@ -879,6 +909,11 @@ function closeDel(){document.getElementById('m-delete').classList.remove('open')
 async function confirmDel(){
   if(!delTarget)return;
   const{id}=delTarget;
+  if(!gToken){
+    closeDel();
+    alert('Your sign-in session expired. Click "Sign In to Upload" again, then try deleting once more.');
+    return;
+  }
   const btn=document.querySelector('.btn-del');btn.disabled=true;btn.textContent='Deleting…';
   try{
     await gapi.client.drive.files.delete({fileId:id});
@@ -901,6 +936,7 @@ async function confirmDel(){
   }catch(e){
     console.error('Refresh after delete failed (delete itself succeeded)',e);
   }
+
 }
 
 /* ══ VIEW ══ */
