@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -533,10 +534,10 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       - Add each teacher's account individually as Editor → so they can upload/delete once signed in.
       Copy the folder's ID from its URL (drive.google.com/drive/folders/THIS_PART) and paste it
       below as GDRIVE_FOLDER_ID. */
-const GDRIVE_CLIENT_ID='331337727159-12bflbu3p5a8349cc84u734u4rh531v1.apps.googleusercontent.com';
+const GDRIVE_CLIENT_ID='331337727159-12bflbu3p5a8349cc84u734u4rh531v1.apps.googleusercontent.com;
 const GDRIVE_API_KEY='AIzaSyBkIP8HemXVSBrCGjUJ4fUd6xgcep93ySU';
-const GDRIVE_FOLDER_ID='https://drive.google.com/drive/folders/1G5Z5ji6zYFl3iV1IhE4uTAzQJAcdBHJ4?usp=drive_link';
-const GDRIVE_SCOPES='https://https://drive.google.com/drive/folders/1G5Z5ji6zYFl3iV1IhE4uTAzQJAcdBHJ4?usp=drive_link';
+const GDRIVE_FOLDER_ID='https://drive.google.com/drive/folders/1G5Z5ji6zYFl3iV1IhE4uTAzQJAcdBHJ4?usp=sharing';
+const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive.file';
 
 let gToken=null,gTokenClient=null,gapiInited=false,gisInited=false;
 const gFolderId=(GDRIVE_FOLDER_ID&&GDRIVE_FOLDER_ID.indexOf('PASTE_YOUR')!==0)?GDRIVE_FOLDER_ID:null;
