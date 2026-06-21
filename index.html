@@ -882,13 +882,24 @@ async function confirmDel(){
   const btn=document.querySelector('.btn-del');btn.disabled=true;btn.textContent='Deleting…';
   try{
     await gapi.client.drive.files.delete({fileId:id});
-    await refreshAll();
   }catch(e){
     console.error('Delete failed',e);
-    alert('Could not delete the file. It may have already been removed, or your session may have expired — try reconnecting Drive.');
-  }finally{
     btn.disabled=false;btn.textContent='Yes, Delete';
+    if(e&&e.status===401){
+      gToken=null;try{gapi.client.setToken(null);}catch(ex){}setDriveStatus(false);
+      alert('Your sign-in session expired before the delete went through. Click "Sign In to Upload" again, then try deleting once more.');
+    }else{
+      alert('Could not delete the file. It may have already been removed, or you may not have permission to delete it — try reconnecting Drive.');
+    }
     closeDel();
+    return;
+  }
+  btn.disabled=false;btn.textContent='Yes, Delete';
+  closeDel();
+  try{
+    await refreshAll();
+  }catch(e){
+    console.error('Refresh after delete failed (delete itself succeeded)',e);
   }
 }
 
