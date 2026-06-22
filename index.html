@@ -117,9 +117,18 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 
 /* GRADE GRID */
 .grade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem;margin-bottom:1.5rem;}
-.grade-card{background:#fff;border-radius:var(--radius);border:1.5px solid var(--gray-100);padding:1.2rem;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s;}
+.grade-card{background:#fff;border-radius:var(--radius);border:1.5px solid var(--gray-100);box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s;}
+.gc-header{padding:1rem 1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;border-radius:var(--radius);}
+.gc-header:hover{background:var(--gray-100);}
+.gc-header-left{display:flex;align-items:center;gap:10px;}
+.gc-toggle{font-size:12px;color:var(--gray-600);transition:transform .2s;display:inline-block;}
+.gc-toggle.open{transform:rotate(90deg);}
+.gc-body{display:none;padding:0 1.2rem 1.2rem;}
+.gc-body.open{display:block;}
+.flist{list-style:none;max-height:320px;overflow-y:auto;padding-right:4px;}
+.flist::-webkit-scrollbar{width:4px;}
+.flist::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px;}
 .grade-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,46,90,0.12);}
-.gc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
 .gbadge{font-size:11px;font-weight:700;text-transform:uppercase;padding:3px 10px;border-radius:20px;letter-spacing:.5px;}
 .gbadge.jhs{background:var(--blue-light);color:var(--blue);}
 .gbadge.ste{background:var(--teal-light);color:var(--teal);}
@@ -742,16 +751,35 @@ function makeCard(grade,files,dept,track,term){
     rows=html;
   }
 
+  const cardId='gc-'+dept+'-'+grade+(track?'-'+track:'')+'-'+term;
   card.innerHTML=`
-    <div class="gc-top">
-      <span class="gbadge ${dept}">${lbl[dept]}</span>
-      <span class="fcount">${files.length} file${files.length!==1?'s':''}</span>
+    <div class="gc-header" onclick="toggleCard('${cardId}')">
+      <div class="gc-header-left">
+        <span class="gbadge ${dept}">${lbl[dept]}</span>
+        <div>
+          <div class="gnum" style="margin:0;font-size:1.1rem;">G${grade}</div>
+          <div class="glabel" style="margin:0;font-size:11px;">Grade ${grade}${trkLabel} · ${tlbl[term]}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="fcount">${files.length} file${files.length!==1?'s':''}</span>
+        <span class="gc-toggle" id="${cardId}-arrow">▶</span>
+      </div>
     </div>
-    <div class="gnum">G${grade}</div>
-    <div class="glabel">Grade ${grade}${trkLabel} · ${tlbl[term]}</div>
-    <ul class="flist">${rows}</ul>
-    <button class="add-btn" onclick="openUploadFor('${dept}',${grade},'${track||''}','${term}')">+ Upload Lesson Plan Here</button>`;
+    <div class="gc-body" id="${cardId}">
+      <ul class="flist">${rows}</ul>
+      <button class="add-btn" onclick="openUploadFor('${dept}',${grade},'${track||''}','${term}')">+ Upload Lesson Plan Here</button>
+    </div>`;
   return card;
+}
+
+function toggleCard(id){
+  const body=document.getElementById(id);
+  const arrow=document.getElementById(id+'-arrow');
+  if(!body)return;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  if(arrow)arrow.classList.toggle('open',!isOpen);
 }
 
 function ficon(n=''){
