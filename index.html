@@ -143,6 +143,32 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .flist::-webkit-scrollbar-thumb:hover{background:var(--navy);}
 .week-heading{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--navy);background:var(--gray-100);padding:4px 8px;border-radius:5px;margin:8px 0 3px;}
 .week-heading:first-child{margin-top:0;}
+/* TRACKER */
+.tracker-wrap{max-width:1100px;margin:0 auto;padding:1.5rem 2rem 3rem;}
+.tracker-controls{display:flex;gap:1rem;flex-wrap:wrap;background:#fff;padding:1.2rem 1.5rem;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem;align-items:flex-end;}
+.tracker-ctrl-group{display:flex;flex-direction:column;gap:4px;}
+.tracker-ctrl-group label{font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;}
+.tracker-ctrl-group select{padding:7px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-size:13px;font-weight:600;color:var(--navy);background:#fff;cursor:pointer;}
+.tracker-summary{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.tr-stat{flex:1;min-width:140px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1rem 1.25rem;text-align:center;}
+.tr-stat .ts-num{font-size:2rem;font-weight:900;line-height:1;}
+.tr-stat .ts-lbl{font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:.5px;color:var(--gray-600);margin-top:4px;}
+.tr-stat.ontime .ts-num{color:#28a745;}
+.tr-stat.late .ts-num{color:#dc3545;}
+.tr-stat.pending .ts-num{color:var(--gray-600);}
+.tr-stat.total .ts-num{color:var(--navy);}
+.tracker-week-block{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.25rem;overflow:hidden;}
+.tracker-week-header{background:var(--navy);color:#fff;padding:.85rem 1.25rem;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:space-between;}
+.tracker-week-header span{font-size:12px;opacity:.75;font-weight:600;}
+.tr-table{width:100%;border-collapse:collapse;}
+.tr-table th{background:var(--gray-100);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-600);padding:8px 14px;text-align:left;}
+.tr-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+.tr-table tr:last-child td{border-bottom:none;}
+.tr-table tr:hover td{background:var(--gray-100);}
+.badge-ontime{background:#d4edda;color:#155724;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;}
+.badge-late{background:#f8d7da;color:#721c24;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;}
+.badge-pending{background:var(--gray-100);color:var(--gray-600);font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;}
+.tr-empty{text-align:center;padding:2rem;color:var(--gray-600);font-size:14px;}
 .fitem{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
 .fitem:last-child{border-bottom:none;}
 .fitem-icon{font-size:18px;flex-shrink:0;}
@@ -263,6 +289,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   <div class="nav-links">
     <a class="active" onclick="showPage('home')">🏠 Home</a>
     <a onclick="showPage('portal')">📚 Lesson Plans</a>
+    <a id="nav-tracker" onclick="showPage('tracker')" style="display:none">📋 Tracker</a>
     <select id="sy-portal" class="nav-sy-select" onchange="changeSY(this.value)">
       <option value="2025-2026">SY 2025–2026</option>
       <option value="2026-2027" selected>SY 2026–2027</option>
@@ -412,6 +439,53 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   </div><!-- /portal-body -->
 </div><!-- /page-portal -->
 
+<!-- ═══════════════ TRACKER PAGE ═══════════════ -->
+<div class="page" id="page-tracker">
+  <div class="portal-hero">
+    <h2>📋 Submission Tracker</h2>
+    <p>Monitor who has submitted their lesson plans per week</p>
+  </div>
+  <div class="tracker-wrap">
+    <div class="tracker-controls">
+      <div class="tracker-ctrl-group">
+        <label for="tr-sy">School Year</label>
+        <select id="tr-sy" onchange="renderTracker()">
+          <option value="2025-2026">SY 2025–2026</option>
+          <option value="2026-2027" selected>SY 2026–2027</option>
+          <option value="2027-2028">SY 2027–2028</option>
+          <option value="2028-2029">SY 2028–2029</option>
+        </select>
+      </div>
+      <div class="tracker-ctrl-group">
+        <label for="tr-term">Term</label>
+        <select id="tr-term" onchange="renderTracker()">
+          <option value="term1">Term 1</option>
+          <option value="term2">Term 2</option>
+          <option value="term3">Term 3</option>
+        </select>
+      </div>
+      <div class="tracker-ctrl-group">
+        <label for="tr-week">Week</label>
+        <select id="tr-week" onchange="renderTracker()">
+          <option value="all">All Weeks</option>
+          <option value="1">Week 1</option><option value="2">Week 2</option><option value="3">Week 3</option><option value="4">Week 4</option><option value="5">Week 5</option><option value="6">Week 6</option><option value="7">Week 7</option><option value="8">Week 8</option><option value="9">Week 9</option><option value="10">Week 10</option><option value="11">Week 11</option><option value="12">Week 12</option><option value="13">Week 13</option><option value="14">Week 14</option><option value="15">Week 15</option><option value="16">Week 16</option><option value="17">Week 17</option><option value="18">Week 18</option><option value="19">Week 19</option><option value="20">Week 20</option>
+        </select>
+      </div>
+      <div class="tracker-ctrl-group">
+        <label for="tr-dept">Department</label>
+        <select id="tr-dept" onchange="renderTracker()">
+          <option value="all">All</option>
+          <option value="jhs">JHS</option>
+          <option value="ste">STE</option>
+          <option value="shs">SHS</option>
+        </select>
+      </div>
+    </div>
+    <div class="tracker-summary" id="tracker-summary"></div>
+    <div id="tracker-body"></div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <div class="ftr-row">
@@ -550,12 +624,19 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       - Add each teacher's account individually as Editor → so they can upload/delete once signed in.
       Copy the folder's ID from its URL (drive.google.com/drive/folders/THIS_PART) and paste it
       below as GDRIVE_FOLDER_ID. */
+/* Set this to the Gmail address that should have access to the Tracker page.
+   Only this account will see the Tracker tab after signing in. */
+const ADMIN_EMAIL='findmetodeath@gmail.com'; // ← e.g. 'principal@gmail.com'
+
 const GDRIVE_CLIENT_ID='331337727159-12bflbu3p5a8349cc84u734u4rh531v1.apps.googleusercontent.com';
 const GDRIVE_API_KEY='AIzaSyBkIP8HemXVSBrCGjUJ4fUd6xgcep93ySU';
 const GDRIVE_FOLDER_ID='1kwStyZ4ZiP4PaYU3tristZ7GVnkj-7bT';
-const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive';
+const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive openid email profile';
+/* Set this to the first Monday of classes (YYYY-MM-DD).
+   Used by the Tracker to mark submissions On Time (Mon–Fri of that week) or Late. */
+const SCHOOL_START='2026-07-27'; // ← Change to actual first day of classes
 
-let gToken=null,gTokenClient=null,gapiInited=false,gisInited=false;
+let gToken=null,gTokenClient=null,gapiInited=false,gisInited=false,signedInEmail=null;
 const gFolderId=(GDRIVE_FOLDER_ID&&GDRIVE_FOLDER_ID.indexOf('PASTE_YOUR')!==0)?GDRIVE_FOLDER_ID:null;
 
 function gapiLoad(){
@@ -586,6 +667,7 @@ function setDriveStatus(connected){
   }else{
     b.classList.remove('connected');b.innerHTML='🔌 <span>Sign In to Upload</span>';
     b.onclick=connectDrive;
+    signedInEmail=null;updateTrackerVisibility();
   }
 }
 function connectDrive(){
@@ -596,7 +678,14 @@ function connectDrive(){
     gToken=resp.access_token;
     gapi.client.setToken({access_token:gToken});
     localStorage.setItem('tnhs_drive_ever_connected','1');
+    // fetch signed-in user's email to check admin access
+    try{
+      const r=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gToken}});
+      const u=await r.json();
+      signedInEmail=u.email||null;
+    }catch(e){signedInEmail=null;}
     setDriveStatus(true);
+    updateTrackerVisibility();
     await refreshAll();
   };
   gTokenClient.requestAccessToken({prompt:'consent'});
@@ -610,7 +699,6 @@ function openDriveFolder(){
 /* ══ DATA ══ */
 const SYS=['2025-2026','2026-2027','2027-2028','2028-2029','2029-2030','2030-2031'];
 const TERMS=['term1','term2','term3'];
-
 function newData(){
   const d={};
   SYS.forEach(sy=>{d[sy]={};TERMS.forEach(t=>{d[sy][t]={jhs:{7:[],8:[],9:[],10:[]},ste:{7:[],8:[],9:[],10:[]},shs:{11:{Academics:[],TechPro:[]},12:{Academics:[],TechPro:[]}}};});});
@@ -637,7 +725,7 @@ async function refreshAll(){
         const sy=p.sy,term=p.term,dept=p.dept,track=p.track||'';
         const grade=parseInt(p.grade);
         if(!sy||!fresh[sy]||!term||!fresh[sy][term]||!dept||!grade)return;
-        const entry={id:f.id,grade,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),week:p.week?parseInt(p.week):null,date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
+        const entry={id:f.id,grade,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),week:p.week?parseInt(p.week):null,rawDate:f.createdTime||null,date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
         if(dept==='shs'){if(fresh[sy][term].shs[grade]&&fresh[sy][term].shs[grade][track])fresh[sy][term].shs[grade][track].push(entry);}
         else{if(fresh[sy][term][dept]&&fresh[sy][term][dept][grade])fresh[sy][term][dept][grade].push(entry);}
       });
@@ -645,6 +733,7 @@ async function refreshAll(){
     }while(pageToken);
     store=fresh;
     renderAll();updateStat();updateTermCounts();
+    if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
   }catch(e){
     console.error('Drive refresh failed',e);
     if(e&&e.status===401){gToken=null;try{gapi.client.setToken(null);}catch(ex){}setDriveStatus(false);}
@@ -660,10 +749,20 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
-  document.querySelectorAll('.nav-links a')[id==='home'?0:1].classList.add('active');
+  const idx={home:0,portal:1,tracker:2}[id]??0;
+  document.querySelectorAll('.nav-links a')[idx].classList.add('active');
   if(id==='portal'){renderAll();updateTermCounts();if(gFolderId)refreshAll();}
+  if(id==='tracker'){renderTracker();}
 }
 function goPortal(term){curTerm=term;showPage('portal');switchTerm(term);}
+
+function updateTrackerVisibility(){
+  const trackerLink=document.getElementById('nav-tracker');
+  if(!trackerLink)return;
+  const isAdmin=signedInEmail&&ADMIN_EMAIL&&signedInEmail.toLowerCase()===ADMIN_EMAIL.toLowerCase();
+  trackerLink.style.display=isAdmin?'':'none';
+  if(!isAdmin&&document.getElementById('page-tracker').classList.contains('active')){showPage('home');}
+}
 
 /* ══ SY ══ */
 function changeSY(sy){
@@ -982,7 +1081,122 @@ function viewFile(f){
 function vLoaded(){document.getElementById('vload').style.display='none';document.getElementById('vframe-if').style.opacity='1';}
 function closeView(){document.getElementById('m-view').classList.remove('open');document.body.style.overflow='';document.getElementById('vframe-if').src='';}
 
-/* ══ INIT ══ */
+/* ══ TRACKER ══ */
+function getWeekWindow(weekNum){
+  const start=new Date(SCHOOL_START+'T00:00:00');
+  // adjust to nearest Monday on or before SCHOOL_START
+  const day=start.getDay(); // 0=Sun,1=Mon,...
+  const diff=day===0?-6:(1-day);
+  start.setDate(start.getDate()+diff);
+  // add (weekNum-1)*7 days to get the Monday of that week
+  const mon=new Date(start);
+  mon.setDate(mon.getDate()+(weekNum-1)*7);
+  const fri=new Date(mon);fri.setDate(mon.getDate()+4);fri.setHours(23,59,59,999);
+  return{mon,fri};
+}
+function getTimingBadge(dateStr,weekNum){
+  if(!dateStr)return'<span class="badge-pending">No Date</span>';
+  // Convert to Philippine time (UTC+8) before checking day of week
+  const uploaded=new Date(dateStr);
+  const phTime=new Date(uploaded.getTime()+8*60*60*1000);
+  const day=phTime.getUTCDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+  if(day===1)return'<span class="badge-ontime">✅ On Time</span>';
+  if(day>=2&&day<=5)return'<span class="badge-late">⚠️ Late</span>';
+  return'<span class="badge-pending">Weekend</span>';
+}
+function renderTracker(){
+  const sy=document.getElementById('tr-sy')?.value||curSY;
+  const term=document.getElementById('tr-term')?.value||'term1';
+  const weekFilter=document.getElementById('tr-week')?.value||'all';
+  const deptFilter=document.getElementById('tr-dept')?.value||'all';
+
+  // collect all submissions for selected sy+term
+  const d=store[sy]?.[term];
+  if(!d){document.getElementById('tracker-body').innerHTML='<div class="tr-empty">No data available.</div>';return;}
+
+  const allFiles=[];
+  ['jhs','ste','shs'].forEach(dept=>{
+    if(deptFilter!=='all'&&deptFilter!==dept)return;
+    if(dept==='shs'){
+      [11,12].forEach(g=>{
+        ['Academics','TechPro'].forEach(track=>{
+          (d.shs[g][track]||[]).forEach(f=>allFiles.push({...f,dept,track}));
+        });
+      });
+    }else{
+      [7,8,9,10].forEach(g=>{
+        (d[dept][g]||[]).forEach(f=>allFiles.push({...f,dept}));
+      });
+    }
+  });
+
+  // group by week
+  const byWeek={};
+  allFiles.forEach(f=>{
+    const w=f.week||'?';
+    if(!byWeek[w])byWeek[w]=[];
+    byWeek[w].push(f);
+  });
+
+  const weeks=weekFilter==='all'
+    ?Object.keys(byWeek).sort((a,b)=>(parseInt(a)||99)-(parseInt(b)||99))
+    :[weekFilter];
+
+  // summary counts
+  let totalOnTime=0,totalLate=0,totalFiles=allFiles.length;
+  allFiles.forEach(f=>{
+    if(!f.rawDate)return;
+    const phTime=new Date(new Date(f.rawDate).getTime()+8*60*60*1000);
+    const day=phTime.getUTCDay();
+    if(day===1)totalOnTime++;
+    else if(day>=2&&day<=5)totalLate++;
+  });
+
+  // summary cards
+  document.getElementById('tracker-summary').innerHTML=`
+    <div class="tr-stat total"><div class="ts-num">${totalFiles}</div><div class="ts-lbl">Total Submissions</div></div>
+    <div class="tr-stat ontime"><div class="ts-num">${totalOnTime}</div><div class="ts-lbl">On Time</div></div>
+    <div class="tr-stat late"><div class="ts-num">${totalLate}</div><div class="ts-lbl">Late</div></div>
+    <div class="tr-stat pending"><div class="ts-num">${totalFiles-totalOnTime-totalLate}</div><div class="ts-lbl">No Date Info</div></div>`;
+
+  if(allFiles.length===0){
+    document.getElementById('tracker-body').innerHTML='<div class="tr-empty">📭 No submissions found for the selected filters.</div>';
+    return;
+  }
+
+  let html='';
+  weeks.forEach(w=>{
+    const entries=byWeek[w]||[];
+    if(weekFilter!=='all'&&entries.length===0){
+      html+=`<div class="tracker-week-block"><div class="tracker-week-header">Week ${w}<span>0 submissions</span></div><div class="tr-empty">No submissions yet for this week.</div></div>`;
+      return;
+    }
+    if(entries.length===0)return;
+    const wNum=parseInt(w)||0;
+    const{mon,fri}=wNum?getWeekWindow(wNum):{mon:null,fri:null};
+    const window=mon?`Deadline: ${fri.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}`:'';
+    html+=`<div class="tracker-week-block">
+      <div class="tracker-week-header">${w==='?'?'Unspecified Week':'Week '+w} <span>${entries.length} submission${entries.length!==1?'s':''} · ${window}</span></div>
+      <table class="tr-table">
+        <thead><tr><th>#</th><th>Teacher</th><th>Subject</th><th>Dept / Grade</th><th>File</th><th>Date Submitted</th><th>Status</th></tr></thead>
+        <tbody>`;
+    entries.sort((a,b)=>a.teacher.localeCompare(b.teacher)).forEach((f,i)=>{
+      const deptLabel=f.dept==='jhs'?'JHS':f.dept==='ste'?'STE':'SHS';
+      const gradeLabel=`Grade ${f.grade}${f.track?' – '+f.track:''}`;
+      html+=`<tr>
+        <td>${i+1}</td>
+        <td><strong>${x(f.teacher)}</strong></td>
+        <td>${x(f.subject)}</td>
+        <td><span class="gbadge ${f.dept}" style="font-size:10px;padding:2px 8px;">${deptLabel}</span> ${gradeLabel}</td>
+        <td style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${x(f.file)}">${x(f.file)}</td>
+        <td>${x(f.date)||'—'}</td>
+        <td>${getTimingBadge(f.rawDate,wNum)}</td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  });
+  document.getElementById('tracker-body').innerHTML=html||'<div class="tr-empty">No submissions found.</div>';
+}
 renderAll();updateTermCounts();
 setDriveStatus(false);
 </script>
