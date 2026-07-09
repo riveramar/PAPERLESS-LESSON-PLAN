@@ -1037,61 +1037,55 @@ function doUpload(){
   if(!week){err.textContent='Please select the Week.';err.classList.add('show');return;}
   if(!selFile){err.textContent='Please select a file.';err.classList.add('show');return;}
   if(!gToken||!gFolderId){err.textContent='Please sign in with Google first ("Sign In to Upload", top right) before uploading.';err.classList.add('show');return;}
-  if(selFile.size>25*1024*1024){err.textContent='File is larger than 25MB. Please use a smaller file.';err.classList.add('show');return;}
+  if(selFile.size>50*1024*1024){err.textContent='File is larger than 50MB. Please use a smaller file.';err.classList.add('show');return;}
 
   // parse targets: each value is "dept|grade" or "dept|grade|track"
   const targets=checked.map(cb=>{const p=cb.value.split('|');return{dept:p[0],grade:p[1],track:p[2]||''};});
-
-  // store targets as JSON in a single property (uploaded once, appears in multiple slots)
   const targetsJson=JSON.stringify(targets);
 
   const btn=document.getElementById('upload-btn');btn.disabled=true;btn.textContent='Uploading…';
   document.getElementById('progwrap').classList.add('show');
   document.getElementById('progbar').style.width='0%';document.getElementById('progpct').textContent='0%';
 
-  // use first target's dept/grade as primary metadata; store all targets in a "targets" property
   const firstTarget=targets[0];
-  const metadata={name:selFile.name,parents:[gFolderId],properties:{sy,term,dept:firstTarget.dept,grade:firstTarget.grade,track:firstTarget.track,week,teacher,subject,targets:targetsJson}};
-  const boundary='-------tnhs'+Date.now();
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const base64Data=e.target.result.split(',')[1];
-    const body=
-      '--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+'\r\n'+
-      '--'+boundary+'\r\nContent-Type: '+(selFile.type||'application/octet-stream')+'\r\nContent-Transfer-Encoding: base64\r\n\r\n'+base64Data+'\r\n'+
-      '--'+boundary+'--';
-    const xhr=new XMLHttpRequest();
-    xhr.open('POST','https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
-    xhr.setRequestHeader('Authorization','Bearer '+gToken);
-    xhr.setRequestHeader('Content-Type','multipart/related; boundary='+boundary);
-    xhr.upload.onprogress=function(ev){if(ev.lengthComputable){const p=Math.round(ev.loaded/ev.total*100);document.getElementById('progbar').style.width=p+'%';document.getElementById('progpct').textContent=p+'%';}};
-    xhr.onload=async function(){
-      if(xhr.status>=200&&xhr.status<300){
-        document.getElementById('upload-ok').classList.add('show');
-        document.getElementById('progwrap').classList.remove('show');
-        btn.textContent='✓ Uploaded!';
-        await refreshAll();
-        setTimeout(()=>{closeUpload();showPage('portal');switchTerm(term);switchDept(term,dept);},1500);
-      }else{
-        let msg='Upload failed (status '+xhr.status+').';
-        try{const j=JSON.parse(xhr.responseText);if(j.error&&j.error.message)msg=j.error.message;}catch(ex){}
-        if(xhr.status===401){msg='Your sign-in session expired. Click "Sign In to Upload" again, then retry.';gToken=null;try{gapi.client.setToken(null);}catch(ex){}setDriveStatus(false);}
-        document.getElementById('upload-err').textContent=msg;
-        document.getElementById('upload-err').classList.add('show');
-        btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';
-        document.getElementById('progwrap').classList.remove('show');
-      }
-    };
-    xhr.onerror=function(){
-      document.getElementById('upload-err').textContent='Network error during upload. Check your connection and try again.';
+  const metadata={
+    name:selFile.name,
+    parents:[gFolderId],
+    properties:{sy,term,dept:firstTarget.dept,grade:firstTarget.grade,track:firstTarget.track||'',week,teacher,subject,targets:targetsJson}
+  };
+
+  const form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
+  form.append('file',selFile);
+
+  const xhr=new XMLHttpRequest();
+  xhr.open('POST','https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+  xhr.setRequestHeader('Authorization','Bearer '+gToken);
+  xhr.upload.onprogress=function(ev){if(ev.lengthComputable){const p=Math.round(ev.loaded/ev.total*100);document.getElementById('progbar').style.width=p+'%';document.getElementById('progpct').textContent=p+'%';}};
+  xhr.onload=async function(){
+    if(xhr.status>=200&&xhr.status<300){
+      document.getElementById('upload-ok').classList.add('show');
+      document.getElementById('progwrap').classList.remove('show');
+      btn.textContent='✓ Uploaded!';
+      await refreshAll();
+      setTimeout(()=>{closeUpload();showPage('portal');switchTerm(term);},1500);
+    }else{
+      let msg='Upload failed (status '+xhr.status+').';
+      try{const j=JSON.parse(xhr.responseText);if(j.error&&j.error.message)msg=j.error.message;}catch(ex){}
+      if(xhr.status===401){msg='Your sign-in session expired. Click "Sign In to Upload" again, then retry.';gToken=null;try{gapi.client.setToken(null);}catch(ex){}setDriveStatus(false);}
+      document.getElementById('upload-err').textContent=msg;
       document.getElementById('upload-err').classList.add('show');
       btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';
       document.getElementById('progwrap').classList.remove('show');
-    };
-    xhr.send(body);
+    }
   };
-  reader.onerror=()=>{document.getElementById('upload-err').textContent='Could not read file. Try again.';document.getElementById('upload-err').classList.add('show');btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';document.getElementById('progwrap').classList.remove('show');};
-  reader.readAsDataURL(selFile);
+  xhr.onerror=function(){
+    document.getElementById('upload-err').textContent='Network error during upload. Check your connection and try again.';
+    document.getElementById('upload-err').classList.add('show');
+    btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';
+    document.getElementById('progwrap').classList.remove('show');
+  };
+  xhr.send(form);
 }
 
 /* ══ DELETE ══ */
