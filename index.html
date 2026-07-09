@@ -964,42 +964,48 @@ function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1
 /* ══ UPLOAD ══ */
 let selFile=null;
 function openUploadModal(){resetUpload();document.getElementById('upload-signin-note').style.display=gToken?'none':'block';document.getElementById('m-upload').classList.add('open');document.body.style.overflow='hidden';}
+function toggleDgSection(dept){
+  const body=document.getElementById('dg-body-'+dept);
+  const arrow=document.getElementById('dg-arrow-'+dept);
+  if(!body)return;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  if(arrow)arrow.classList.toggle('open',!isOpen);
+}
+function openDgSection(dept){
+  const body=document.getElementById('dg-body-'+dept);
+  const arrow=document.getElementById('dg-arrow-'+dept);
+  if(body){body.classList.add('open');}
+  if(arrow){arrow.classList.add('open');}
+}
 function openUploadFor(dept,grade,track,term){
   resetUpload();
   document.getElementById('u-term').value=term;
-  document.getElementById('u-dept').value=dept; upGrade();
-  if(grade){document.getElementById('u-grade').value=grade;upTrack();}
-  if(track)document.getElementById('u-track').value=track;
+  openDgSection(dept);
+  const val=dept==='shs'&&track?dept+'|'+grade+'|'+track:dept+'|'+grade;
+  const cb=document.querySelector('input[name="dg"][value="'+val+'"]');
+  if(cb)cb.checked=true;
   document.getElementById('upload-signin-note').style.display=gToken?'none':'block';
-  document.getElementById('m-upload').classList.add('open');document.body.style.overflow='hidden';
+  document.getElementById('m-upload').classList.add('open');
+  document.body.style.overflow='hidden';
 }
 function closeUpload(){document.getElementById('m-upload').classList.remove('open');document.body.style.overflow='';resetUpload();}
 function resetUpload(){
   selFile=null;
   ['u-teacher','u-subject'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('input[name="dg"]').forEach(cb=>cb.checked=false);
+  // close all dg sections
+  ['jhs','ste','shs'].forEach(d=>{
+    const b=document.getElementById('dg-body-'+d);const a=document.getElementById('dg-arrow-'+d);
+    if(b)b.classList.remove('open');if(a)a.classList.remove('open');
+  });
   document.getElementById('u-week').value='';
-  document.getElementById('u-ggrp').style.display='none';
-  document.getElementById('u-tgrp').style.display='none';
   document.getElementById('file-input').value='';
   document.getElementById('fprev').classList.remove('show');
   ['upload-ok','upload-err'].forEach(id=>document.getElementById(id).classList.remove('show'));
   document.getElementById('progwrap').classList.remove('show');
   document.getElementById('progbar').style.width='0%';
   const btn=document.getElementById('upload-btn');btn.disabled=false;btn.textContent='⬆ Upload Lesson Plan';
-}
-function upGrade(){
-  const d=document.getElementById('u-dept').value;
-  const gs=document.getElementById('u-grade');
-  document.getElementById('u-ggrp').style.display=d?'block':'none';
-  document.getElementById('u-tgrp').style.display='none';
-  gs.innerHTML='<option value="">– Select Grade –</option>';
-  (d==='shs'?[11,12]:[7,8,9,10]).forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent='Grade '+g;gs.appendChild(o);});
-}
-function upTrack(){
-  const d=document.getElementById('u-dept').value;
-  const g=document.getElementById('u-grade').value;
-  document.getElementById('u-tgrp').style.display=(d==='shs'&&g)?'block':'none';
 }
 function filePick(inp){
   if(!inp.files.length)return;
