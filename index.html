@@ -206,7 +206,9 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 /* MODALS */
 .moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center;padding:1rem;}
 .moverlay.open{display:flex;}
-.modal{background:#fff;border-radius:14px;width:100%;max-width:500px;padding:2rem;box-shadow:0 24px 60px rgba(0,0,0,0.25);position:relative;max-height:92vh;overflow-y:auto;}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:500px;padding:0;box-shadow:0 24px 60px rgba(0,0,0,0.25);position:relative;max-height:92vh;display:flex;flex-direction:column;}
+.modal-body{padding:2rem;overflow-y:auto;flex:1;}
+.modal-footer{padding:1rem 2rem 1.5rem;border-top:1px solid var(--gray-100);background:#fff;border-radius:0 0 14px 14px;}
 .mclose{position:absolute;top:1rem;right:1rem;background:var(--gray-100);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--gray-600);}
 .mclose:hover{background:var(--gray-300);}
 .modal h3{font-size:1.1rem;font-weight:700;margin-bottom:4px;color:var(--navy);}
@@ -515,6 +517,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 <!-- ══ UPLOAD MODAL ══ -->
 <div class="moverlay" id="m-upload" onclick="if(event.target===this)closeUpload()">
   <div class="modal">
+    <div class="modal-body">
     <button class="mclose" onclick="closeUpload()">✕</button>
     <h3>⬆ Upload Lesson Plan</h3>
     <p class="msub">Pick a file from your computer, fill in the details, and click Upload.</p>
@@ -605,6 +608,8 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         <button class="fprev-rm" onclick="removeFile()">✕</button>
       </div>
     </div>
+    </div><!-- /modal-body -->
+    <div class="modal-footer">
     <button class="btn-sub" id="upload-btn" onclick="doUpload()">⬆ Upload Lesson Plan</button>
     <div class="progwrap" id="progwrap">
       <div class="proglbl"><span id="proglbl-txt">Uploading…</span><span id="progpct">0%</span></div>
@@ -612,6 +617,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
     </div>
     <div class="smsg" id="upload-ok">🎉 Uploaded! The lesson plan is now visible to everyone.</div>
     <div class="emsg" id="upload-err"></div>
+    </div><!-- /modal-footer -->
   </div>
 </div>
 
