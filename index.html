@@ -141,6 +141,18 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .flist::-webkit-scrollbar{width:5px;}
 .flist::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px;}
 .flist::-webkit-scrollbar-thumb:hover{background:var(--navy);}
+.deptgrade-wrap{border:1.5px solid var(--gray-300);border-radius:var(--radius);overflow:hidden;}
+.dg-section{border-bottom:1px solid var(--gray-100);}
+.dg-section:last-child{border-bottom:none;}
+.dg-header{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--navy);background:#fff;user-select:none;}
+.dg-header:hover{background:var(--gray-100);}
+.dg-arrow{font-size:10px;transition:transform .2s;color:var(--gray-600);}
+.dg-arrow.open{transform:rotate(90deg);}
+.dg-body{display:none;padding:6px 14px 10px 36px;background:var(--gray-100);}
+.dg-body.open{display:block;}
+.dg-check{display:block;font-size:13px;padding:4px 0;cursor:pointer;color:var(--navy);}
+.dg-check input{margin-right:8px;accent-color:var(--navy);}
+.dg-check:hover{color:var(--blue);}
 .week-heading{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--navy);background:var(--gray-100);padding:4px 8px;border-radius:5px;margin:8px 0 3px;}
 .week-heading:first-child{margin-top:0;}
 /* TRACKER */
@@ -529,21 +541,48 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       </select>
     </div>
     <div class="fgrp">
-      <label for="u-dept">Department</label>
-      <select id="u-dept" onchange="upGrade()">
-        <option value="">– Select –</option>
-        <option value="jhs">Junior High School (JHS)</option>
-        <option value="ste">Science &amp; Technology (STE)</option>
-        <option value="shs">Senior High School (SHS)</option>
-      </select>
-    </div>
-    <div class="fgrp" id="u-ggrp" style="display:none">
-      <label for="u-grade">Grade Level</label>
-      <select id="u-grade" onchange="upTrack()"><option value="">– Select Grade –</option></select>
-    </div>
-    <div class="fgrp" id="u-tgrp" style="display:none">
-      <label for="u-track">Track</label>
-      <select id="u-track"><option value="Academics">Academics</option><option value="TechPro">TechPro</option></select>
+      <label>Department &amp; Grade Level</label>
+      <div class="deptgrade-wrap" id="deptgrade-wrap">
+        <div class="dg-section">
+          <div class="dg-header" onclick="toggleDgSection('jhs')">
+            <span class="dg-arrow" id="dg-arrow-jhs">▶</span>
+            <span class="gbadge jhs" style="font-size:11px;padding:2px 8px;">JHS</span>
+            Junior High School
+          </div>
+          <div class="dg-body" id="dg-body-jhs">
+            <label class="dg-check"><input type="checkbox" name="dg" value="jhs|7"> Grade 7 – JHS</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="jhs|8"> Grade 8 – JHS</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="jhs|9"> Grade 9 – JHS</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="jhs|10"> Grade 10 – JHS</label>
+          </div>
+        </div>
+        <div class="dg-section">
+          <div class="dg-header" onclick="toggleDgSection('ste')">
+            <span class="dg-arrow" id="dg-arrow-ste">▶</span>
+            <span class="gbadge ste" style="font-size:11px;padding:2px 8px;">STE</span>
+            Science &amp; Technology
+          </div>
+          <div class="dg-body" id="dg-body-ste">
+            <label class="dg-check"><input type="checkbox" name="dg" value="ste|7"> Grade 7 – STE</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="ste|8"> Grade 8 – STE</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="ste|9"> Grade 9 – STE</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="ste|10"> Grade 10 – STE</label>
+          </div>
+        </div>
+        <div class="dg-section">
+          <div class="dg-header" onclick="toggleDgSection('shs')">
+            <span class="dg-arrow" id="dg-arrow-shs">▶</span>
+            <span class="gbadge shs" style="font-size:11px;padding:2px 8px;">SHS</span>
+            Senior High School
+          </div>
+          <div class="dg-body" id="dg-body-shs">
+            <label class="dg-check"><input type="checkbox" name="dg" value="shs|11|Academics"> Grade 11 – Academics</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="shs|11|TechPro"> Grade 11 – TechPro</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="shs|12|Academics"> Grade 12 – Academics</label>
+            <label class="dg-check"><input type="checkbox" name="dg" value="shs|12|TechPro"> Grade 12 – TechPro</label>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="fgrp">
       <label for="u-week">Week</label>
@@ -722,12 +761,22 @@ async function refreshAll(){
       });
       (resp.result.files||[]).forEach(f=>{
         const p=f.properties||{};
-        const sy=p.sy,term=p.term,dept=p.dept,track=p.track||'';
-        const grade=parseInt(p.grade);
-        if(!sy||!fresh[sy]||!term||!fresh[sy][term]||!dept||!grade)return;
-        const entry={id:f.id,grade,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),week:p.week?parseInt(p.week):null,rawDate:f.createdTime||null,date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
-        if(dept==='shs'){if(fresh[sy][term].shs[grade]&&fresh[sy][term].shs[grade][track])fresh[sy][term].shs[grade][track].push(entry);}
-        else{if(fresh[sy][term][dept]&&fresh[sy][term][dept][grade])fresh[sy][term][dept][grade].push(entry);}
+        const sy=p.sy,term=p.term;
+        if(!sy||!fresh[sy]||!term||!fresh[sy][term])return;
+
+        const baseEntry={id:f.id,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),week:p.week?parseInt(p.week):null,rawDate:f.createdTime||null,date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
+
+        let targets=[];
+        try{if(p.targets)targets=JSON.parse(p.targets);}catch(e){}
+        if(!targets.length&&p.dept&&p.grade){targets=[{dept:p.dept,grade:p.grade,track:p.track||''}];}
+
+        targets.forEach(t=>{
+          const dept=t.dept,grade=parseInt(t.grade),track=t.track||'';
+          if(!dept||!grade)return;
+          const entry={...baseEntry,grade};
+          if(dept==='shs'){if(fresh[sy][term].shs[grade]&&fresh[sy][term].shs[grade][track])fresh[sy][term].shs[grade][track].push(entry);}
+          else{if(fresh[sy][term][dept]&&fresh[sy][term][dept][grade])fresh[sy][term][dept][grade].push(entry);}
+        });
       });
       pageToken=resp.result.nextPageToken;
     }while(pageToken);
@@ -922,7 +971,7 @@ function closeUpload(){document.getElementById('m-upload').classList.remove('ope
 function resetUpload(){
   selFile=null;
   ['u-teacher','u-subject'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('u-dept').value='';
+  document.querySelectorAll('input[name="dg"]').forEach(cb=>cb.checked=false);
   document.getElementById('u-week').value='';
   document.getElementById('u-ggrp').style.display='none';
   document.getElementById('u-tgrp').style.display='none';
@@ -966,21 +1015,31 @@ function doUpload(){
   const subject=document.getElementById('u-subject').value.trim();
   const sy=document.getElementById('u-sy').value;
   const term=document.getElementById('u-term').value;
-  const dept=document.getElementById('u-dept').value;
-  const grade=parseInt(document.getElementById('u-grade').value);
-  const track=document.getElementById('u-track').value;
   const week=document.getElementById('u-week').value;
   const err=document.getElementById('upload-err');err.classList.remove('show');
-  if(!teacher||!subject||!dept||!grade){err.textContent='Please fill in all fields.';err.classList.add('show');return;}
+
+  // collect all checked dept/grade combinations
+  const checked=[...document.querySelectorAll('input[name="dg"]:checked')];
+  if(!teacher||!subject){err.textContent='Please fill in Teacher Name and Subject.';err.classList.add('show');return;}
+  if(checked.length===0){err.textContent='Please select at least one Department & Grade Level.';err.classList.add('show');return;}
   if(!week){err.textContent='Please select the Week.';err.classList.add('show');return;}
   if(!selFile){err.textContent='Please select a file.';err.classList.add('show');return;}
   if(!gToken||!gFolderId){err.textContent='Please sign in with Google first ("Sign In to Upload", top right) before uploading.';err.classList.add('show');return;}
   if(selFile.size>25*1024*1024){err.textContent='File is larger than 25MB. Please use a smaller file.';err.classList.add('show');return;}
+
+  // parse targets: each value is "dept|grade" or "dept|grade|track"
+  const targets=checked.map(cb=>{const p=cb.value.split('|');return{dept:p[0],grade:p[1],track:p[2]||''};});
+
+  // store targets as JSON in a single property (uploaded once, appears in multiple slots)
+  const targetsJson=JSON.stringify(targets);
+
   const btn=document.getElementById('upload-btn');btn.disabled=true;btn.textContent='Uploading…';
   document.getElementById('progwrap').classList.add('show');
   document.getElementById('progbar').style.width='0%';document.getElementById('progpct').textContent='0%';
 
-  const metadata={name:selFile.name,parents:[gFolderId],properties:{sy,term,dept,grade:String(grade),track:track||'',week,teacher,subject}};
+  // use first target's dept/grade as primary metadata; store all targets in a "targets" property
+  const firstTarget=targets[0];
+  const metadata={name:selFile.name,parents:[gFolderId],properties:{sy,term,dept:firstTarget.dept,grade:firstTarget.grade,track:firstTarget.track,week,teacher,subject,targets:targetsJson}};
   const boundary='-------tnhs'+Date.now();
   const reader=new FileReader();
   reader.onload=function(e){
