@@ -1484,116 +1484,121 @@ function renderILAWPreview(d){
 
 async function downloadILAWDocx(){
   if(!ilawData){alert('Please generate a lesson plan first.');return;}
-  if(!window.docx){alert('DOCX library is still loading. Please wait a moment and try again.');return;}
   const btn=document.getElementById('ilaw-docx-btn');
-  btn.disabled=true;btn.textContent='Building DOCX…';
+  btn.disabled=true;btn.textContent='Building…';
   try{
-    const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,
-      WidthType,AlignmentType,ShadingType,PageOrientation,
-      convertInchesToTwip,VerticalAlign}=window.docx;
     const d=ilawData;
     const sessions=['session1','session2','session3','session4'];
-    const sLabels=['Learning Session 1','Learning Session 2','Learning Session 3','Learning Session 4'];
-    const pgW=convertInchesToTwip(13);
-    const pgH=convertInchesToTwip(8.5);
-    const mg=convertInchesToTwip(0.5);
-    const tW=pgW-mg*2;
-    const colW=[1800,800,1700,1700,1700,1700];
+    const sLabels=['Session 1','Session 2','Session 3','Session 4'];
+    // Build a full HTML document that Word can open as .doc
+    const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const th=(t)=>`<th style="background:#1a2e5a;color:#fff;padding:8px;border:1px solid #666;font-size:11pt;">${esc(t)}</th>`;
+    const td=(t,opts={})=>`<td style="border:1px solid #ccc;padding:7px;font-size:10pt;vertical-align:top;${opts.bg?'background:'+opts.bg+';':''}${opts.bold?'font-weight:bold;':''}">${esc(t)}</td>`;
 
-    const mk=(text,opts={})=>new Paragraph({
-      children:[new TextRun({text:String(text||''),bold:opts.bold||false,size:opts.size||18,color:opts.color||'000000'})],
-      alignment:opts.align||AlignmentType.LEFT,
-      spacing:{after:opts.after||0,before:opts.before||0},
-    });
+    const html=`<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8">
+<style>
+  body{font-family:Arial,sans-serif;font-size:11pt;margin:1cm;}
+  table{border-collapse:collapse;width:100%;margin-bottom:12pt;}
+  td,th{border:1px solid #ccc;padding:6px;font-size:10pt;vertical-align:top;}
+  h1{font-size:16pt;text-align:center;margin:4pt 0;}
+  h2{font-size:13pt;text-align:center;margin:4pt 0;}
+  .info-label{font-weight:bold;background:#f5f7fa;width:180pt;}
+  .section-label{font-weight:bold;background:#eef2f8;font-size:10pt;}
+  .domain-label{font-weight:bold;background:#f5f7fa;font-size:9pt;}
+  .hdr{background:#1a2e5a;color:#fff;font-weight:bold;font-size:10pt;}
+  @page{size:landscape;margin:1cm;}
+  @media print{body{margin:0.5cm;}}
+</style>
+</head><body>
+<h2>Republic of the Philippines — Department of Education</h2>
+<h1>${esc(d.school||'Tugdan National High School')}</h1>
+<h2>ILAW DAILY LESSON LOG — ${esc(d.term)} SY 2026–2027</h2>
+<br>
+<table>
+  <tr><td class="info-label">Name of Lesson</td><td>${esc(d.lessonName)}</td></tr>
+  <tr><td class="info-label">Learning Area</td><td>${esc(d.learningArea)}</td></tr>
+  <tr><td class="info-label">Designed by Teacher/s</td><td>${esc(d.teacher||'')}</td></tr>
+  <tr><td class="info-label">Grade Level & Section</td><td>${esc(d.gradeSection)}</td></tr>
+  <tr><td class="info-label">No. of Sessions</td><td>${esc(d.numSessions)}</td></tr>
+  <tr><td class="info-label">Week</td><td>${esc(d.week)}</td></tr>
+  <tr><td class="info-label">References</td><td>${esc(d.references)}</td></tr>
+  <tr><td class="info-label">Declaration of AI Use</td><td>This lesson plan was developed using AI and subsequently reviewed for accuracy and alignment with curriculum standards.</td></tr>
+</table>
+<table>
+  <tr>
+    <th class="hdr" style="width:16%;">Section</th>
+    <th class="hdr" style="width:9%;">Domain</th>
+    ${sLabels.map(s=>`<th class="hdr">${esc(s)}</th>`).join('')}
+  </tr>
+  <tr>
+    <td class="section-label">INTENTIONS<br>Learning Competency</td>
+    <td class="domain-label"></td>
+    ${sessions.map(s=>`<td>${esc(d.learningCompetency[s])}</td>`).join('')}
+  </tr>
+  <tr>
+    <td class="section-label" rowspan="3">Learning Objectives</td>
+    <td class="domain-label">Cognitive</td>
+    ${sessions.map(s=>`<td>${esc(d.learningObjectives.cognitive[s])}</td>`).join('')}
+  </tr>
+  <tr>
+    <td class="domain-label">Psychomotor</td>
+    ${sessions.map(s=>`<td>${esc(d.learningObjectives.psychomotor[s])}</td>`).join('')}
+  </tr>
+  <tr>
+    <td class="domain-label">Affective</td>
+    ${sessions.map(s=>`<td>${esc(d.learningObjectives.affective[s])}</td>`).join('')}
+  </tr>
+  <tr>
+    <td class="section-label">LEARNING EXPERIENCES<br>Learning Tasks</td>
+    <td class="domain-label"></td>
+    ${sessions.map(s=>`<td>${esc(d.learningTasks[s])}</td>`).join('')}
+  </tr>
+  <tr>
+    <td class="section-label">ASSESSMENT<br>Formative Assessment</td>
+    <td class="domain-label"></td>
+    ${sessions.map(s=>`<td>${esc(d.formativeAssessment[s])}</td>`).join('')}
+  </tr>
+  <tr>
+    <td class="section-label">WAYS FORWARD</td>
+    <td class="domain-label"></td>
+    ${sessions.map(s=>`<td>${esc(d.waysForward[s])}</td>`).join('')}
+  </tr>
+  <tr>
+    <td class="section-label">Notes for Myself &amp; Peers</td>
+    <td class="domain-label"></td>
+    ${sessions.map(()=>`<td style="height:60pt;"></td>`).join('')}
+  </tr>
+  <tr>
+    <td colspan="6" style="font-size:9pt;"><b>Declaration of AI Use:</b> ${esc(d.aiDeclaration)}</td>
+  </tr>
+</table>
+<br>
+<table style="border:none;width:100%;">
+  <tr>
+    <td style="border:none;width:50%;padding-top:40pt;border-top:1px solid #333;text-align:center;font-weight:bold;">Subject Teacher</td>
+    <td style="border:none;width:50%;padding-top:40pt;border-top:1px solid #333;text-align:center;font-weight:bold;">School Head</td>
+  </tr>
+</table>
+</body></html>`;
 
-    const tc=(text,opts={})=>new TableCell({
-      children:[new Paragraph({children:[new TextRun({text:String(text||''),bold:opts.bold||false,size:16})],alignment:AlignmentType.LEFT})],
-      width:{size:opts.w||0,type:opts.w?WidthType.DXA:WidthType.AUTO},
-      shading:opts.fill?{type:ShadingType.CLEAR,fill:opts.fill}:undefined,
-      verticalAlign:VerticalAlign.TOP,
-      rowSpan:opts.rs||1,
-      columnSpan:opts.cs||1,
-      margins:{top:60,bottom:60,left:80,right:80},
-    });
-
-    const hc=(text)=>new TableCell({
-      children:[new Paragraph({children:[new TextRun({text,bold:true,color:'FFFFFF',size:18})],alignment:AlignmentType.CENTER})],
-      shading:{type:ShadingType.CLEAR,fill:'1a2e5a'},
-      margins:{top:80,bottom:80,left:80,right:80},
-    });
-
-    const tr=(...cells)=>new TableRow({children:cells,cantSplit:true});
-
-    const mainTbl=new Table({
-      width:{size:tW,type:WidthType.DXA},
-      columnWidths:colW,
-      rows:[
-        tr(hc('Section'),hc('Domain'),...sLabels.map(hc)),
-        tr(tc('INTENTIONS\nLearning Competency',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((s,i)=>tc(d.learningCompetency[s]||'',{w:colW[i+2]}))),
-        tr(tc('Learning Objectives',{bold:true,fill:'EEF2F8',w:colW[0],rs:3}),tc('Cognitive',{bold:true,fill:'F5F7FA',w:colW[1]}),...sessions.map((s,i)=>tc(d.learningObjectives.cognitive[s]||'',{w:colW[i+2]}))),
-        tr(tc('Psychomotor',{bold:true,fill:'F5F7FA',w:colW[1]}),...sessions.map((s,i)=>tc(d.learningObjectives.psychomotor[s]||'',{w:colW[i+2]}))),
-        tr(tc('Affective',{bold:true,fill:'F5F7FA',w:colW[1]}),...sessions.map((s,i)=>tc(d.learningObjectives.affective[s]||'',{w:colW[i+2]}))),
-        tr(tc('LEARNING EXPERIENCES\nLearning Tasks',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((s,i)=>tc(d.learningTasks[s]||'',{w:colW[i+2]}))),
-        tr(tc('ASSESSMENT\nFormative Assessment',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((s,i)=>tc(d.formativeAssessment[s]||'',{w:colW[i+2]}))),
-        tr(tc('WAYS FORWARD',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((s,i)=>tc(d.waysForward[s]||'',{w:colW[i+2]}))),
-        tr(tc('Reflecting on my Teaching Practice\nNotes for Myself and Peers',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((_,i)=>tc('',{w:colW[i+2]}))),
-        new TableRow({children:[new TableCell({children:[new Paragraph({children:[new TextRun({text:'Declaration of AI Use: ',bold:true,size:16}),new TextRun({text:d.aiDeclaration||'',size:16})]})],columnSpan:6,margins:{top:60,bottom:60,left:80,right:80}})]}),
-      ],
-    });
-
-    const infoTbl=new Table({
-      width:{size:tW,type:WidthType.DXA},
-      columnWidths:[2000,tW-2000],
-      rows:[
-        ['Name of Lesson',d.lessonName||''],
-        ['Learning Area',d.learningArea||''],
-        ['Designed by Teacher/s','[Teacher Name]'],
-        ['Designed for Grade Level & Section',d.gradeSection||''],
-        ['No. of Sessions',d.numSessions||'4'],
-        ['Week',d.week||''],
-        ['References',d.references||''],
-        ['Declaration of AI Use','This lesson plan was developed using AI and subsequently reviewed for accuracy and alignment with curriculum standards.'],
-        ['INTENTIONS','Meaningful learning experiences are anchored on how we frame them. Start by deciding what you want your learners to master by the end of the lesson — keep it clear and simple.'],
-      ].map(([k,v])=>new TableRow({children:[
-        new TableCell({children:[mk(k,{bold:true,size:18})],shading:{type:ShadingType.CLEAR,fill:'F5F7FA'},margins:{top:60,bottom:60,left:80,right:80},width:{size:2000,type:WidthType.DXA}}),
-        new TableCell({children:[mk(v,{size:18})],margins:{top:60,bottom:60,left:80,right:80},width:{size:tW-2000,type:WidthType.DXA}}),
-      ]})),
-    });
-
-    const doc=new Document({sections:[{
-      properties:{page:{size:{width:pgW,height:pgH,orientation:PageOrientation.LANDSCAPE},margin:{top:mg,bottom:mg,left:mg,right:mg}}},
-      children:[
-        mk('Republic of the Philippines',{bold:true,size:20,align:AlignmentType.CENTER}),
-        mk('Department of Education',{bold:true,size:20,align:AlignmentType.CENTER}),
-        mk(d.school||'Tugdan National High School',{bold:true,size:26,align:AlignmentType.CENTER}),
-        mk(`ILAW DAILY LESSON LOG — ${d.term} SY 2026–2027`,{bold:true,size:22,align:AlignmentType.CENTER,after:200}),
-        infoTbl,
-        mk('',{after:150}),
-        mainTbl,
-        mk('',{after:300}),
-        mk('Prepared by:',{size:18,after:400}),
-        mk('_'.repeat(50),{size:18}),
-        mk('Subject Teacher',{bold:true,size:18,after:300}),
-        mk('Checked by:',{size:18,after:400}),
-        mk('_'.repeat(40),{size:18}),
-        mk('School Head',{bold:true,size:18}),
-      ],
-    }]});
-
-    const blob=await Packer.toBlob(doc);
+    const blob=new Blob([html],{type:'application/msword'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;
-    a.download=`ILAW_${(d.lessonName||'LessonPlan').replace(/[^a-z0-9]/gi,'_')}.docx`;
+    a.download=`ILAW_${(d.lessonName||'LessonPlan').replace(/[^a-z0-9]/gi,'_')}.doc`;
     a.click();
     URL.revokeObjectURL(url);
   }catch(e){
-    alert('DOCX creation failed: '+e.message+'\n\nTry the Print or Copy button instead.');
+    alert('Download failed: '+e.message);
     console.error(e);
   }finally{
-    btn.disabled=false;btn.textContent='⬇ Download DOCX';
+    btn.disabled=false;btn.textContent='⬇ Download DOC';
   }
 }
+  const btn=document.getElementById('ilaw-docx-btn');
+  btn.disabled=true;btn.textContent='Building DOCX…';
 
 function copyILAW(){
   const el=document.getElementById('ilaw-output');
@@ -1612,6 +1617,5 @@ function printILAW(){
   win.document.close();
 }
 </script>
-<script src="https://unpkg.com/docx@8.5.0/build/index.js" defer></script>
 </body>
 </html>
