@@ -155,6 +155,20 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .dg-check:hover{color:var(--blue);}
 .week-heading{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--navy);background:var(--gray-100);padding:4px 8px;border-radius:5px;margin:8px 0 3px;}
 .week-heading:first-child{margin-top:0;}
+/* ILAW GENERATOR */
+.ilaw-wrap{max-width:900px;margin:0 auto;padding:1.5rem 2rem 3rem;}
+.ilaw-form-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.75rem;margin-bottom:1.5rem;}
+.ilaw-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.ilaw-full{grid-column:1/-1;}
+.ilaw-output-header{background:var(--navy);color:#fff;padding:.85rem 1.25rem;border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+.ilaw-output-header small{opacity:.75;font-size:12px;}
+.ilaw-output{background:#fff;border:1.5px solid var(--gray-100);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:1.5rem 1.75rem;font-size:14px;line-height:1.8;white-space:pre-wrap;font-family:'Segoe UI',sans-serif;min-height:300px;}
+.ilaw-disclaimer{background:#fff8e1;border-left:4px solid var(--gold);padding:1rem 1.25rem;border-radius:0 var(--radius) var(--radius) 0;font-size:12.5px;color:#5a4000;margin-top:.75rem;}
+.ilaw-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem;gap:1rem;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);}
+.ilaw-spinner{width:48px;height:48px;border:5px solid var(--gray-100);border-top-color:var(--navy);border-radius:50%;animation:spin .9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ilaw-section{margin-bottom:1.25rem;}
+.ilaw-section-title{font-weight:800;color:var(--navy);font-size:13px;text-transform:uppercase;letter-spacing:.6px;border-bottom:2px solid var(--gold);padding-bottom:4px;margin-bottom:.75rem;}
 /* TRACKER */
 .tracker-wrap{max-width:1100px;margin:0 auto;padding:1.5rem 2rem 3rem;}
 .tracker-controls{display:flex;gap:1rem;flex-wrap:wrap;background:#fff;padding:1.2rem 1.5rem;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem;align-items:flex-end;}
@@ -288,6 +302,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   .btn-gold span,.btn-ghost span{display:none;}
 }
 </style>
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
 </head>
 <body>
 
@@ -304,6 +319,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
     <a class="active" onclick="showPage('home')">🏠 Home</a>
     <a onclick="showPage('portal')">📚 Lesson Plans</a>
     <a id="nav-tracker" onclick="showPage('tracker')" style="display:none">📋 Tracker</a>
+    <a onclick="showPage('ilaw')">✏️ ILAW Generator</a>
     <select id="sy-portal" class="nav-sy-select" onchange="changeSY(this.value)">
       <option value="2025-2026">SY 2025–2026</option>
       <option value="2026-2027" selected>SY 2026–2027</option>
@@ -500,6 +516,92 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   </div>
 </div>
 
+<!-- ═══════════════ ILAW GENERATOR PAGE ═══════════════ -->
+<div class="page" id="page-ilaw">
+  <div class="portal-hero">
+    <h2>✏️ ILAW Lesson Plan Generator</h2>
+    <p>AI-powered · Based on DepEd Order No. 16, s. 2026 · MATATAG Curriculum</p>
+  </div>
+  <div class="ilaw-wrap">
+    <div class="ilaw-form-card">
+      <h3 style="margin:0 0 1.25rem;color:var(--navy);font-size:16px;">Fill in the details, then generate your lesson plan</h3>
+      <div class="ilaw-grid">
+        <div class="fgrp">
+          <label for="ilaw-teacher">Teacher Name</label>
+          <input type="text" id="ilaw-teacher" placeholder="e.g. Maria Santos">
+        </div>
+        <div class="fgrp">
+          <label for="ilaw-section">Section</label>
+          <input type="text" id="ilaw-section" placeholder="e.g. Mabini, Rizal…">
+        </div>
+        <div class="fgrp">
+          <label for="ilaw-grade">Grade Level</label>
+          <select id="ilaw-grade">
+            <option value="">– Select Grade –</option>
+            <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option>
+            <option>Grade 11</option><option>Grade 12</option>
+          </select>
+        </div>
+        <div class="fgrp">
+          <label for="ilaw-subject">Subject / Learning Area</label>
+          <input type="text" id="ilaw-subject" placeholder="e.g. Mathematics, Science, English…">
+        </div>
+        <div class="fgrp">
+          <label for="ilaw-quarter">Term / Quarter</label>
+          <select id="ilaw-quarter">
+            <option value="">– Select –</option>
+            <option>Term 1</option><option>Term 2</option><option>Term 3</option>
+          </select>
+        </div>
+        <div class="fgrp">
+          <label for="ilaw-week">Week</label>
+          <select id="ilaw-week">
+            <option value="">– Select –</option>
+            <option>Week 1</option><option>Week 2</option><option>Week 3</option><option>Week 4</option>
+            <option>Week 5</option><option>Week 6</option><option>Week 7</option><option>Week 8</option>
+            <option>Week 9</option><option>Week 10</option>
+          </select>
+        </div>
+        <div class="fgrp ilaw-full">
+          <label for="ilaw-topic">Topic / Lesson Title</label>
+          <input type="text" id="ilaw-topic" placeholder="e.g. Introduction to Fractions, Cell Structure and Function…">
+        </div>
+        <div class="fgrp ilaw-full">
+          <label for="ilaw-competency">Learning Competency / MELCs (optional)</label>
+          <input type="text" id="ilaw-competency" placeholder="e.g. The learner illustrates well-defined sets, subsets…">
+        </div>
+        <div class="fgrp ilaw-full">
+          <label for="ilaw-context">Learner Context (optional)</label>
+          <input type="text" id="ilaw-context" placeholder="e.g. Class of 40 students, mixed ability, rural community…">
+        </div>
+      </div>
+      <div style="margin-top:1.25rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn-sub" id="ilaw-generate-btn" onclick="generateILAW()">✨ Generate ILAW Lesson Plan</button>
+        <button class="btn-ghost" style="background:var(--gray-100);color:var(--navy);border:none;" onclick="copyILAW()">📋 Copy</button>
+        <button class="btn-ghost" style="background:var(--gray-100);color:var(--navy);border:none;" onclick="printILAW()">🖨️ Print</button>
+        <button class="btn-ghost" id="ilaw-docx-btn" style="background:var(--navy);color:#fff;border:none;display:none;" onclick="downloadILAWDocx()">⬇ Download DOCX</button>
+      </div>
+      <div class="emsg" id="ilaw-err" style="margin-top:.75rem;"></div>
+    </div>
+
+    <div id="ilaw-output-wrap" style="display:none;">
+      <div class="ilaw-output-header">
+        <span>📄 Generated ILAW Lesson Plan</span>
+        <small>Review and edit before submitting. Declare AI use per DepEd Order No. 3, s. 2026.</small>
+      </div>
+      <div id="ilaw-output" class="ilaw-output"></div>
+      <div class="ilaw-disclaimer">
+        ⚠️ <strong>AI Declaration (DepEd Order No. 3, s. 2026):</strong> This lesson plan was generated with AI assistance. The teacher must review, complete highlighted sections, adapt to actual learner context, and declare AI use before submission. Core instructional decisions remain the professional responsibility of the teacher.
+      </div>
+    </div>
+
+    <div id="ilaw-loading" style="display:none;" class="ilaw-loading">
+      <div class="ilaw-spinner"></div>
+      <p>Generating your ILAW lesson plan… This may take 15–30 seconds.</p>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <div class="ftr-row">
@@ -674,7 +776,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 const ADMIN_EMAIL='findmetodeath@gmail.com'; // ← e.g. 'principal@gmail.com'
 
 const GDRIVE_CLIENT_ID='331337727159-12bflbu3p5a8349cc84u734u4rh531v1.apps.googleusercontent.com';
-const GDRIVE_API_KEY='AIzaSyBkIP8HemXVSBrCGjUJ4fUd6xgcep93ySU';
+const GDRIVE_API_KEY='AIzaSyBkIP8HemXVSBrCGjUJ4fUd6xgcep93ySUE';
 const GDRIVE_FOLDER_ID='1kwStyZ4ZiP4PaYU3tristZ7GVnkj-7bT';
 const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive openid email profile';
 /* Set this to the first Monday of classes (YYYY-MM-DD).
@@ -804,7 +906,7 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
-  const idx={home:0,portal:1,tracker:2}[id]??0;
+  const idx={home:0,portal:1,tracker:3,ilaw:2}[id]??0;
   document.querySelectorAll('.nav-links a')[idx].classList.add('active');
   if(id==='portal'){renderAll();updateTermCounts();if(gFolderId)refreshAll();}
   if(id==='tracker'){renderTracker();}
@@ -1264,6 +1366,252 @@ function renderTracker(){
 }
 renderAll();updateTermCounts();
 setDriveStatus(false);
+
+/* ══ ILAW GENERATOR ══ */
+let ilawData=null;
+
+async function generateILAW(){
+  const grade=document.getElementById('ilaw-grade').value.trim();
+  const subject=document.getElementById('ilaw-subject').value.trim();
+  const quarter=document.getElementById('ilaw-quarter').value.trim();
+  const week=document.getElementById('ilaw-week').value.trim();
+  const topic=document.getElementById('ilaw-topic').value.trim();
+  const competency=document.getElementById('ilaw-competency').value.trim();
+  const context=document.getElementById('ilaw-context').value.trim();
+  const err=document.getElementById('ilaw-err');
+  err.classList.remove('show');err.textContent='';
+  if(!grade||!subject||!topic){err.textContent='Please fill in Grade Level, Subject, and Topic before generating.';err.classList.add('show');return;}
+  const btn=document.getElementById('ilaw-generate-btn');
+  btn.disabled=true;btn.textContent='Generating…';
+  document.getElementById('ilaw-output-wrap').style.display='none';
+  document.getElementById('ilaw-loading').style.display='flex';
+  document.getElementById('ilaw-docx-btn').style.display='none';
+
+  const prompt=`You are an expert Filipino teacher. Generate a COMPLETE ILAW lesson plan following DepEd Order No. 16, s. 2026 and MATATAG Curriculum. The plan covers 4 SESSIONS (each ~60 minutes).
+
+Details:
+- Grade: ${grade}
+- Subject: ${subject}
+- Term: ${quarter||'Term 1'}
+- Week: ${week||'Week 1'}
+- Topic: ${topic}
+- Competency: ${competency||'Infer from topic and grade level'}
+- Context: ${context||'Average public school class, Philippines'}
+
+Respond ONLY with valid JSON (no markdown, no backticks). Use this exact structure:
+{
+  "lessonName": "string",
+  "learningArea": "${subject}",
+  "gradeSection": "${grade} - [Section]",
+  "term": "${quarter||'Term 1'}",
+  "week": "${week||'Week 1'}",
+  "numSessions": "4",
+  "references": "string",
+  "learningCompetency": {"session1":"string","session2":"string","session3":"string","session4":"string"},
+  "learningObjectives": {
+    "cognitive": {"session1":"string","session2":"string","session3":"string","session4":"string"},
+    "psychomotor": {"session1":"string","session2":"string","session3":"string","session4":"string"},
+    "affective": {"session1":"string","session2":"string","session3":"string","session4":"string"}
+  },
+  "learningTasks": {"session1":"string","session2":"string","session3":"string","session4":"string"},
+  "formativeAssessment": {"session1":"string","session2":"string","session3":"string","session4":"string"},
+  "waysForward": {"session1":"string","session2":"string","session3":"string","session4":"string"},
+  "aiDeclaration": "This lesson plan was generated with AI assistance through the TNHS Lesson Plan Portal and reviewed for alignment with MATATAG curriculum standards. The teacher takes professional responsibility for all instructional decisions herein per DepEd Order No. 3, s. 2026.",
+  "school": "Tugdan National High School"
+}`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await resp.json();
+    if(data.error)throw new Error(data.error.message);
+    let text=data.content.map(c=>c.text||'').join('').replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    ilawData=JSON.parse(text);
+    renderILAWPreview(ilawData);
+    document.getElementById('ilaw-output-wrap').style.display='block';
+    document.getElementById('ilaw-docx-btn').style.display='inline-flex';
+  }catch(e){
+    err.textContent='Generation failed: '+e.message+'. Please try again.';
+    err.classList.add('show');
+    console.error(e);
+  }finally{
+    document.getElementById('ilaw-loading').style.display='none';
+    btn.disabled=false;btn.textContent='✨ Generate ILAW Lesson Plan';
+  }
+}
+
+function renderILAWPreview(d){
+  const sessions=['session1','session2','session3','session4'];
+  const sLabels=['Session 1','Session 2','Session 3','Session 4'];
+  let html=`<div style="font-family:'Segoe UI',sans-serif;font-size:13px;">`;
+  html+=`<div style="text-align:center;margin-bottom:1rem;">
+    <div style="font-weight:700;font-size:15px;">Republic of the Philippines — Department of Education</div>
+    <div style="font-weight:800;font-size:16px;">${d.school||'Tugdan National High School'}</div>
+    <div style="font-weight:700;">ILAW DAILY LESSON LOG — ${d.term} SY 2026–2027</div>
+  </div>`;
+  html+=`<table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">`;
+  [['Name of Lesson',d.lessonName],['Learning Area',d.learningArea],['Grade Level & Section',d.gradeSection],['No. of Sessions',d.numSessions],['Week',d.week],['References',d.references]].forEach(([k,v])=>{
+    html+=`<tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:700;background:#eef2f8;width:190px;">${k}</td><td style="border:1px solid #ccc;padding:6px 10px;">${v||''}</td></tr>`;
+  });
+  html+=`</table>`;
+  html+=`<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:800px;">`;
+  html+=`<tr style="background:#1a2e5a;color:#fff;"><th style="border:1px solid #666;padding:8px;width:16%;">Section</th><th style="border:1px solid #666;padding:8px;width:9%;">Domain</th>${sLabels.map(s=>`<th style="border:1px solid #666;padding:8px;">${s}</th>`).join('')}</tr>`;
+
+  const row=(section,domain,vals,shade='#fff')=>`<tr>
+    ${section?`<td style="border:1px solid #ccc;padding:8px;font-weight:700;background:#eef2f8;vertical-align:top;">${section}</td>`:''}
+    <td style="border:1px solid #ccc;padding:8px;font-weight:600;font-size:11px;background:#f5f7fa;vertical-align:top;">${domain}</td>
+    ${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;vertical-align:top;">${vals[s]||''}</td>`).join('')}
+  </tr>`;
+
+  html+=`<tr><td style="border:1px solid #ccc;padding:8px;font-weight:700;background:#eef2f8;" rowspan="1">INTENTIONS<br><small style="font-weight:400;">Learning Competency</small></td><td style="border:1px solid #ccc;padding:8px;background:#f5f7fa;"></td>${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;">${d.learningCompetency[s]||''}</td>`).join('')}</tr>`;
+  html+=`<tr><td style="border:1px solid #ccc;padding:8px;font-weight:700;background:#eef2f8;" rowspan="3">Learning Objectives</td><td style="border:1px solid #ccc;padding:8px;font-weight:600;font-size:11px;background:#f5f7fa;">Cognitive</td>${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;">${d.learningObjectives.cognitive[s]||''}</td>`).join('')}</tr>`;
+  html+=`<tr><td style="border:1px solid #ccc;padding:8px;font-weight:600;font-size:11px;background:#f5f7fa;">Psychomotor</td>${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;">${d.learningObjectives.psychomotor[s]||''}</td>`).join('')}</tr>`;
+  html+=`<tr><td style="border:1px solid #ccc;padding:8px;font-weight:600;font-size:11px;background:#f5f7fa;">Affective</td>${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;">${d.learningObjectives.affective[s]||''}</td>`).join('')}</tr>`;
+  html+=`<tr><td style="border:1px solid #ccc;padding:8px;font-weight:700;background:#eef2f8;">LEARNING EXPERIENCES<br><small style="font-weight:400;">Learning Tasks</small></td><td style="border:1px solid #ccc;padding:8px;background:#f5f7fa;"></td>${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;white-space:pre-line;">${d.learningTasks[s]||''}</td>`).join('')}</tr>`;
+  html+=`<tr><td style="border:1px solid #ccc;padding:8px;font-weight:700;background:#eef2f8;">ASSESSMENT<br><small style="font-weight:400;">Formative Assessment</small></td><td style="border:1px solid #ccc;padding:8px;background:#f5f7fa;"></td>${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;">${d.formativeAssessment[s]||''}</td>`).join('')}</tr>`;
+  html+=`<tr><td style="border:1px solid #ccc;padding:8px;font-weight:700;background:#eef2f8;">WAYS FORWARD</td><td style="border:1px solid #ccc;padding:8px;background:#f5f7fa;"></td>${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;">${d.waysForward[s]||''}</td>`).join('')}</tr>`;
+  html+=`<tr><td style="border:1px solid #ccc;padding:8px;font-weight:700;background:#eef2f8;">Notes for Myself &amp; Peers</td><td style="border:1px solid #ccc;padding:8px;background:#f5f7fa;"></td>${sessions.map(()=>`<td style="border:1px solid #ccc;padding:20px;height:60px;"></td>`).join('')}</tr>`;
+  html+=`<tr><td colspan="6" style="border:1px solid #ccc;padding:8px;font-size:11px;"><b>Declaration of AI Use:</b> ${d.aiDeclaration}</td></tr>`;
+  html+=`</table></div>`;
+  html+=`<div style="margin-top:1.5rem;display:flex;gap:4rem;padding-top:1rem;">
+    <div style="text-align:center;"><div style="margin-bottom:40px;"></div><div style="border-top:1px solid #333;width:200px;padding-top:4px;font-size:12px;">Subject Teacher</div></div>
+    <div style="text-align:center;"><div style="margin-bottom:40px;"></div><div style="border-top:1px solid #333;width:200px;padding-top:4px;font-size:12px;">School Head</div></div>
+  </div></div>`;
+  document.getElementById('ilaw-output').innerHTML=html;
+}
+
+async function downloadILAWDocx(){
+  if(!ilawData){alert('Please generate a lesson plan first.');return;}
+  if(!window.docx){alert('DOCX library is still loading. Please wait a moment and try again.');return;}
+  const btn=document.getElementById('ilaw-docx-btn');
+  btn.disabled=true;btn.textContent='Building DOCX…';
+  try{
+    const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,
+      WidthType,AlignmentType,ShadingType,PageOrientation,
+      convertInchesToTwip,VerticalAlign}=window.docx;
+    const d=ilawData;
+    const sessions=['session1','session2','session3','session4'];
+    const sLabels=['Learning Session 1','Learning Session 2','Learning Session 3','Learning Session 4'];
+    const pgW=convertInchesToTwip(13);
+    const pgH=convertInchesToTwip(8.5);
+    const mg=convertInchesToTwip(0.5);
+    const tW=pgW-mg*2;
+    const colW=[1800,800,1700,1700,1700,1700];
+
+    const mk=(text,opts={})=>new Paragraph({
+      children:[new TextRun({text:String(text||''),bold:opts.bold||false,size:opts.size||18,color:opts.color||'000000'})],
+      alignment:opts.align||AlignmentType.LEFT,
+      spacing:{after:opts.after||0,before:opts.before||0},
+    });
+
+    const tc=(text,opts={})=>new TableCell({
+      children:[new Paragraph({children:[new TextRun({text:String(text||''),bold:opts.bold||false,size:16})],alignment:AlignmentType.LEFT})],
+      width:{size:opts.w||0,type:opts.w?WidthType.DXA:WidthType.AUTO},
+      shading:opts.fill?{type:ShadingType.CLEAR,fill:opts.fill}:undefined,
+      verticalAlign:VerticalAlign.TOP,
+      rowSpan:opts.rs||1,
+      columnSpan:opts.cs||1,
+      margins:{top:60,bottom:60,left:80,right:80},
+    });
+
+    const hc=(text)=>new TableCell({
+      children:[new Paragraph({children:[new TextRun({text,bold:true,color:'FFFFFF',size:18})],alignment:AlignmentType.CENTER})],
+      shading:{type:ShadingType.CLEAR,fill:'1a2e5a'},
+      margins:{top:80,bottom:80,left:80,right:80},
+    });
+
+    const tr=(...cells)=>new TableRow({children:cells,cantSplit:true});
+
+    const mainTbl=new Table({
+      width:{size:tW,type:WidthType.DXA},
+      columnWidths:colW,
+      rows:[
+        tr(hc('Section'),hc('Domain'),...sLabels.map(hc)),
+        tr(tc('INTENTIONS\nLearning Competency',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((s,i)=>tc(d.learningCompetency[s]||'',{w:colW[i+2]}))),
+        tr(tc('Learning Objectives',{bold:true,fill:'EEF2F8',w:colW[0],rs:3}),tc('Cognitive',{bold:true,fill:'F5F7FA',w:colW[1]}),...sessions.map((s,i)=>tc(d.learningObjectives.cognitive[s]||'',{w:colW[i+2]}))),
+        tr(tc('Psychomotor',{bold:true,fill:'F5F7FA',w:colW[1]}),...sessions.map((s,i)=>tc(d.learningObjectives.psychomotor[s]||'',{w:colW[i+2]}))),
+        tr(tc('Affective',{bold:true,fill:'F5F7FA',w:colW[1]}),...sessions.map((s,i)=>tc(d.learningObjectives.affective[s]||'',{w:colW[i+2]}))),
+        tr(tc('LEARNING EXPERIENCES\nLearning Tasks',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((s,i)=>tc(d.learningTasks[s]||'',{w:colW[i+2]}))),
+        tr(tc('ASSESSMENT\nFormative Assessment',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((s,i)=>tc(d.formativeAssessment[s]||'',{w:colW[i+2]}))),
+        tr(tc('WAYS FORWARD',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((s,i)=>tc(d.waysForward[s]||'',{w:colW[i+2]}))),
+        tr(tc('Reflecting on my Teaching Practice\nNotes for Myself and Peers',{bold:true,fill:'EEF2F8',w:colW[0]}),tc('',{w:colW[1]}),...sessions.map((_,i)=>tc('',{w:colW[i+2]}))),
+        new TableRow({children:[new TableCell({children:[new Paragraph({children:[new TextRun({text:'Declaration of AI Use: ',bold:true,size:16}),new TextRun({text:d.aiDeclaration||'',size:16})]})],columnSpan:6,margins:{top:60,bottom:60,left:80,right:80}})]}),
+      ],
+    });
+
+    const infoTbl=new Table({
+      width:{size:tW,type:WidthType.DXA},
+      columnWidths:[2000,tW-2000],
+      rows:[
+        ['Name of Lesson',d.lessonName||''],
+        ['Learning Area',d.learningArea||''],
+        ['Designed by Teacher/s','[Teacher Name]'],
+        ['Designed for Grade Level & Section',d.gradeSection||''],
+        ['No. of Sessions',d.numSessions||'4'],
+        ['Week',d.week||''],
+        ['References',d.references||''],
+        ['Declaration of AI Use','This lesson plan was developed using AI and subsequently reviewed for accuracy and alignment with curriculum standards.'],
+        ['INTENTIONS','Meaningful learning experiences are anchored on how we frame them. Start by deciding what you want your learners to master by the end of the lesson — keep it clear and simple.'],
+      ].map(([k,v])=>new TableRow({children:[
+        new TableCell({children:[mk(k,{bold:true,size:18})],shading:{type:ShadingType.CLEAR,fill:'F5F7FA'},margins:{top:60,bottom:60,left:80,right:80},width:{size:2000,type:WidthType.DXA}}),
+        new TableCell({children:[mk(v,{size:18})],margins:{top:60,bottom:60,left:80,right:80},width:{size:tW-2000,type:WidthType.DXA}}),
+      ]})),
+    });
+
+    const doc=new Document({sections:[{
+      properties:{page:{size:{width:pgW,height:pgH,orientation:PageOrientation.LANDSCAPE},margin:{top:mg,bottom:mg,left:mg,right:mg}}},
+      children:[
+        mk('Republic of the Philippines',{bold:true,size:20,align:AlignmentType.CENTER}),
+        mk('Department of Education',{bold:true,size:20,align:AlignmentType.CENTER}),
+        mk(d.school||'Tugdan National High School',{bold:true,size:26,align:AlignmentType.CENTER}),
+        mk(`ILAW DAILY LESSON LOG — ${d.term} SY 2026–2027`,{bold:true,size:22,align:AlignmentType.CENTER,after:200}),
+        infoTbl,
+        mk('',{after:150}),
+        mainTbl,
+        mk('',{after:300}),
+        mk('Prepared by:',{size:18,after:400}),
+        mk('_'.repeat(50),{size:18}),
+        mk('Subject Teacher',{bold:true,size:18,after:300}),
+        mk('Checked by:',{size:18,after:400}),
+        mk('_'.repeat(40),{size:18}),
+        mk('School Head',{bold:true,size:18}),
+      ],
+    }]});
+
+    const blob=await Packer.toBlob(doc);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`ILAW_${(d.lessonName||'LessonPlan').replace(/[^a-z0-9]/gi,'_')}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }catch(e){
+    alert('DOCX creation failed: '+e.message+'\n\nTry the Print or Copy button instead.');
+    console.error(e);
+  }finally{
+    btn.disabled=false;btn.textContent='⬇ Download DOCX';
+  }
+}
+
+function copyILAW(){
+  const el=document.getElementById('ilaw-output');
+  if(!el||!el.innerText.trim())return;
+  navigator.clipboard.writeText(el.innerText).then(()=>{
+    const btn=document.querySelector('[onclick="copyILAW()"]');
+    const orig=btn.textContent;btn.textContent='✅ Copied!';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  }).catch(()=>alert('Please select the text manually and copy.'));
+}
+function printILAW(){
+  const el=document.getElementById('ilaw-output');
+  if(!el||!el.innerHTML.trim())return;
+  const win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><title>ILAW Lesson Plan</title><style>body{font-family:Segoe UI,sans-serif;font-size:11px;margin:1cm;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:5px;font-size:10px;vertical-align:top;}@page{size:landscape;margin:1cm;}</style></head><body>'+el.innerHTML+'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  win.document.close();
+}
 </script>
 </body>
 </html>
