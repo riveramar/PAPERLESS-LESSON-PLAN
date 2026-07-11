@@ -1438,12 +1438,20 @@ Respond ONLY with valid JSON (no markdown, no backticks). Use this exact structu
     const resp=await fetch(ANTHROPIC_PROXY_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
     });
-    const data=await resp.json();
-    if(data.error)throw new Error(data.error.message);
-    let text=data.content.map(c=>c.text||'').join('').replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    ilawData=JSON.parse(text);
+    const rawResp=await resp.text();
+    let text='';
+    try{
+      const data=JSON.parse(rawResp);
+      if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+      text=data.content?.[0]?.text||'';
+    }catch(parseErr){
+      // Worker returned non-JSON — show raw response for debugging
+      throw new Error('Worker response: '+rawResp.substring(0,200));
+    }
+    if(!text)throw new Error('Empty response from AI. Please try again.');
+    ilawData=JSON.parse(text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
     renderILAWPreview(ilawData);
     document.getElementById('ilaw-output-wrap').style.display='block';
     document.getElementById('ilaw-docx-btn').style.display='inline-flex';
