@@ -1401,117 +1401,101 @@ async function generateILAW(){
   document.getElementById('ilaw-loading').style.display='flex';
   document.getElementById('ilaw-docx-btn').style.display='none';
 
-  const prompt=`You are an expert Filipino teacher creating a WEEKLY LESSON PLAN following the ILAW format based on DepEd Order No. 16, s. 2026 and MATATAG Curriculum. The lesson plan covers ${d.numSessions||5} SESSIONS.
+  const prompt=`You are a Filipino teacher. Write a complete ILAW Weekly Lesson Plan in plain text (NOT JSON).
 
-Details:
-- Grade: ${grade}
-- Subject: ${subject}
-- Term: ${quarter||'Term 1'}
-- Week: ${week||'Week 1'}
-- Topic: ${topic}
-- Competency: ${competency||'Infer from topic and grade level'}
-- Context: ${context||'Average public school class, Philippines'}
+DETAILS:
+- School: Tugdan National High School
 - Teacher: ${teacher||'[Teacher Name]'}
-- Section: ${section||'[Section]'}
+- Grade & Section: ${grade} - ${section||'[Section]'}
+- Subject: ${subject}
+- Term/Week: ${quarter||'Term 1'} / ${week||'Week 1'}
+- Topic: ${topic}
+- Competency: ${competency||'Write appropriate competency based on MATATAG curriculum'}
+- Learner Context: ${context||'Average public school class in the Philippines'}
 
-Respond ONLY with valid JSON (no markdown, no backticks). Use this EXACT structure matching the ILAW Weekly Lesson Plan format:
+Write the lesson plan using this EXACT format with 5 sessions:
 
-{
-  "lessonName": "string - full lesson title",
-  "learningArea": "${subject}",
-  "gradeSection": "${grade} - ${section||'[Section]'}",
-  "term": "${quarter||'Term 1'}",
-  "week": "${week||'Week 1'}",
-  "numSessions": "5",
-  "references": "string - list of references used",
-  "aiDeclaration": "AI was utilized to organize the lesson plan using the ILAW format, refine session objectives, structure activities, and generate formative assessment questions. Final review, contextualization, and instructional decisions remain the responsibility of the teacher.",
-  "standards": "Content Standard: [write content standard]\\n\\nPerformance Standard: [write performance standard]\\n\\nLearning Competencies:\\n• [competency 1 with code]\\n• [competency 2 with code]",
-  "learnerContext": "string - describe learner characteristics, strengths, interests, and possible barriers",
-  "objectives": {
-    "session1": "1. Knowledge: [objective]\\n2. Skills: [objective]\\n3. Attitudes: [objective]",
-    "session2": "1. Knowledge: [objective]\\n2. Skills: [objective]\\n3. Attitudes: [objective]",
-    "session3": "1. Knowledge: [objective]\\n2. Skills: [objective]\\n3. Attitudes: [objective]",
-    "session4": "1. Knowledge: [objective]\\n2. Skills: [objective]\\n3. Attitudes: [objective]",
-    "session5": "1. Knowledge: [objective]\\n2. Skills: [objective]\\n3. Attitudes: [objective]"
-  },
-  "preLesson": {
-    "session1": "Engage: [short engaging activity to get learners ready]",
-    "session2": "Engage: [short engaging activity]",
-    "session3": "Engage: [short engaging activity]",
-    "session4": "Engage: [short engaging activity]",
-    "session5": "Engage: [short engaging activity]"
-  },
-  "flow": {
-    "session1": "Overarching Strategy: [strategy name] — [description]\\n• Engage: [activity]\\n• Explore: [activity]\\n• Experience: [activity]\\n• Empathize: [activity]",
-    "session2": "Overarching Strategy: [strategy name] — [description]\\n• Engage: [activity]\\n• Explore: [activity]\\n• Experience: [activity]\\n• Empathize: [activity]",
-    "session3": "Overarching Strategy: [strategy name] — [description]\\n• Engage: [activity]\\n• Explore: [activity]\\n• Experience: [activity]\\n• Empathize: [activity]",
-    "session4": "Overarching Strategy: [strategy name] — [description]\\n• Engage: [activity]\\n• Explore: [activity]\\n• Experience: [activity]\\n• Empathize: [activity]",
-    "session5": "Overarching Strategy: [strategy name] — [description]\\n• Engage: [activity]\\n• Explore: [activity]\\n• Experience: [activity]\\n• Empathize: [activity]"
-  },
-  "resources": {
-    "session1": "string - materials needed\\nAlternative: [backup option]",
-    "session2": "string",
-    "session3": "string",
-    "session4": "string",
-    "session5": "string"
-  },
-  "integration": {
-    "session1": "string - cross-curricular connections or N/A",
-    "session2": "string",
-    "session3": "string",
-    "session4": "string",
-    "session5": "string"
-  },
-  "assessment": {
-    "session1": {
-      "type": "string - e.g. Observation, Oral Questioning, Written Quiz, Performance Task, Portfolio, Exit Ticket, Peer Assessment, Self-Assessment",
-      "tool": "string - specific tool or instrument used (e.g. rubric, checklist, quiz, worksheet)",
-      "questions": "1. [question/task]\\n2. [question/task]\\n3. [question/task]\\n4. [question/task]\\n5. [question/task]",
-      "accommodation": "string - how to support learners who need additional help"
-    },
-    "session2": {
-      "type": "string",
-      "tool": "string",
-      "questions": "1. [question/task]\\n2. [question/task]\\n3. [question/task]\\n4. [question/task]\\n5. [question/task]",
-      "accommodation": "string"
-    },
-    "session3": {
-      "type": "string",
-      "tool": "string",
-      "questions": "1. [question/task]\\n2. [question/task]\\n3. [question/task]\\n4. [question/task]\\n5. [question/task]",
-      "accommodation": "string"
-    },
-    "session4": {
-      "type": "string",
-      "tool": "string",
-      "questions": "1. [question/task]\\n2. [question/task]\\n3. [question/task]\\n4. [question/task]\\n5. [question/task]",
-      "accommodation": "string"
-    },
-    "session5": {
-      "type": "string",
-      "tool": "string",
-      "questions": "1. [question/task]\\n2. [question/task]\\n3. [question/task]\\n4. [question/task]\\n5. [question/task]",
-      "accommodation": "string"
-    }
-  },
-  "extendedLearning": {
-    "session1": "string - home/outside class activity",
-    "session2": "string",
-    "session3": "string",
-    "session4": "string",
-    "session5": "string"
-  },
-  "reflectionPrompt": {
-    "session1": "string - teacher reflection question for after the lesson",
-    "session2": "string",
-    "session3": "string",
-    "session4": "string",
-    "session5": "string"
-  },
-  "teacher": "${teacher||''}",
-  "school": "Tugdan National High School",
-  "principal": "[School Head Name]"
-}`;
+WEEKLY LESSON PLAN (${week||'Week 1'})
+
+SCHOOL: Tugdan National High School
+TEACHER: ${teacher||'[Teacher Name]'}
+GRADE & SECTION: ${grade} - ${section||'[Section]'}
+SUBJECT: ${subject}
+TERM/WEEK: ${quarter||'Term 1'} / ${week||'Week 1'}
+NO. OF SESSIONS: 5
+
+REFERENCES: [list references]
+
+DECLARATION OF AI USE: AI was utilized to organize this lesson plan using the ILAW format. Final review and instructional decisions remain the responsibility of the teacher per DepEd Order No. 3, s. 2026.
+
+---INTENTIONS---
+STANDARDS AND COMPETENCY:
+Content Standard: [write]
+Performance Standard: [write]
+Learning Competency: [write with code]
+
+LEARNER CONTEXT: [describe learners]
+
+LEARNING OBJECTIVES:
+Session 1: 1.[knowledge] 2.[skills] 3.[attitude]
+Session 2: 1.[knowledge] 2.[skills] 3.[attitude]
+Session 3: 1.[knowledge] 2.[skills] 3.[attitude]
+Session 4: 1.[knowledge] 2.[skills] 3.[attitude]
+Session 5: 1.[knowledge] 2.[skills] 3.[attitude]
+
+---LEARNING EXPERIENCE---
+PRE-LESSON:
+Session 1: [activity]
+Session 2: [activity]
+Session 3: [activity]
+Session 4: [activity]
+Session 5: [activity]
+
+FLOW (Engage/Explore/Experience/Empathize):
+Session 1: [detailed activities]
+Session 2: [detailed activities]
+Session 3: [detailed activities]
+Session 4: [detailed activities]
+Session 5: [detailed activities]
+
+LEARNING RESOURCES:
+Session 1: [materials]
+Session 2: [materials]
+Session 3: [materials]
+Session 4: [materials]
+Session 5: [materials]
+
+OPPORTUNITIES FOR INTEGRATION:
+Session 1: [cross-curricular connection or N/A]
+Session 2: [cross-curricular connection or N/A]
+Session 3: [cross-curricular connection or N/A]
+Session 4: [cross-curricular connection or N/A]
+Session 5: [cross-curricular connection or N/A]
+
+---ASSESSMENT---
+Session 1: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
+Session 2: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
+Session 3: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
+Session 4: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
+Session 5: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
+
+---WAYS FORWARD---
+EXTENDED LEARNING:
+Session 1: [home/extension activity]
+Session 2: [home/extension activity]
+Session 3: [home/extension activity]
+Session 4: [home/extension activity]
+Session 5: [home/extension activity]
+
+REFLECTION PROMPTS:
+Session 1: [reflection question for teacher]
+Session 2: [reflection question for teacher]
+Session 3: [reflection question for teacher]
+Session 4: [reflection question for teacher]
+Session 5: [reflection question for teacher]
+
+Prepared by: ${teacher||'[Teacher Name]'}, Subject Teacher
+Checked by: [School Head Name], School Head`;
 
   try{
     const controller=new AbortController();
@@ -1534,7 +1518,7 @@ Respond ONLY with valid JSON (no markdown, no backticks). Use this EXACT structu
       throw new Error('Worker response: '+rawResp.substring(0,200));
     }
     if(!text)throw new Error('Empty response from AI. Please try again.');
-    ilawData=JSON.parse(text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
+    ilawData={raw:text};
     renderILAWPreview(ilawData);
     document.getElementById('ilaw-output-wrap').style.display='block';
     document.getElementById('ilaw-docx-btn').style.display='inline-flex';
@@ -1553,231 +1537,44 @@ Respond ONLY with valid JSON (no markdown, no backticks). Use this EXACT structu
 }
 
 function renderILAWPreview(d){
-  const sessions=['session1','session2','session3','session4','session5'];
-  const sLabels=['Session 1','Session 2','Session 3','Session 4','Session 5'];
-  const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-  let html=`<div style="font-family:'Segoe UI',sans-serif;font-size:12px;">`;
-
-  // Header
-  html+=`<div style="text-align:center;margin-bottom:.75rem;">
-    <div style="font-weight:900;font-size:16px;letter-spacing:1px;">WEEKLY LESSON PLAN</div>
-    <div style="font-size:13px;">(${d.week||'Week 1'})</div>
-  </div>`;
-
-  // Info table
-  html+=`<table style="width:100%;border-collapse:collapse;margin-bottom:.75rem;font-size:11px;">`;
-  const infoRows=[
-    ['Name of Lesson',d.lessonName,''],
-    ['Learning Area/s',d.learningArea,''],
-    ['Designed by Teacher/s',d.teacher||'[Teacher Name]',''],
-    ['Designed for which Grade Level and Section',d.gradeSection,''],
-    ['No. of Sessions',d.numSessions||'5',''],
-    ['References',d.references,''],
-    ['Declaration of AI use',d.aiDeclaration,''],
-  ];
-  infoRows.forEach(([k,v])=>{
-    html+=`<tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#f5f7fa;width:200px;vertical-align:top;">${k}</td><td style="border:1px solid #ccc;padding:5px 8px;" colspan="5">${esc(v)}</td></tr>`;
-  });
-  html+=`</table>`;
-
-  // Helper function for section tables
-  const sectionTable=(title,subtitle,rowLabel,data,bg='#eef2f8')=>{
-    let t=`<table style="width:100%;border-collapse:collapse;margin-bottom:.5rem;font-size:11px;">`;
-    t+=`<tr><td colspan="6" style="border:1px solid #ccc;padding:6px 8px;font-weight:900;background:#1a2e5a;color:#fff;">${title}</td></tr>`;
-    if(subtitle)t+=`<tr><td colspan="6" style="border:1px solid #ccc;padding:5px 8px;font-style:italic;background:#f5f7fa;font-size:10px;">${subtitle}</td></tr>`;
-    t+=`<tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:${bg};width:15%;vertical-align:top;">${rowLabel}</td>`;
-    sessions.forEach((s,i)=>{t+=`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;width:17%;"><b>${sLabels[i]}</b><br>${esc(data?.[s]||'')}</td>`;});
-    t+=`</tr></table>`;
-    return t;
-  };
-
-  // INTENTIONS section
-  html+=`<table style="width:100%;border-collapse:collapse;margin-bottom:.5rem;font-size:11px;">
-    <tr><td colspan="6" style="border:1px solid #ccc;padding:6px 8px;font-weight:900;background:#1a2e5a;color:#fff;">Intentions.</td></tr>
-    <tr><td colspan="6" style="border:1px solid #ccc;padding:5px 8px;font-style:italic;background:#f5f7fa;font-size:10px;">Meaningful learning experiences are anchored in how we frame them. Start by deciding what you want learners to master by the end of the lesson — keep it clear and simple.</td></tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;width:15%;vertical-align:top;">Standards and Competency</td>
-    <td colspan="5" style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;">${esc(d.standards||'')}</td></tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;vertical-align:top;">Learning Objectives</td>
-    ${sessions.map((s,i)=>`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;"><b>${sLabels[i]}</b><br>${esc(d.objectives?.[s]||'')}</td>`).join('')}</tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;vertical-align:top;">Learner Context</td>
-    <td colspan="5" style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;">${esc(d.learnerContext||'')}</td></tr>
-  </table>`;
-
-  // LEARNING EXPERIENCE section
-  html+=`<table style="width:100%;border-collapse:collapse;margin-bottom:.5rem;font-size:11px;">
-    <tr><td colspan="6" style="border:1px solid #ccc;padding:6px 8px;font-weight:900;background:#1a2e5a;color:#fff;">Learning Experience.</td></tr>
-    <tr><td colspan="6" style="border:1px solid #ccc;padding:5px 8px;font-style:italic;background:#f5f7fa;font-size:10px;">A learning experience is like a thoughtfully designed journey. Each activity and interaction builds toward meaningful understanding and growth.</td></tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;width:15%;vertical-align:top;">Pre-Lesson</td>
-    ${sessions.map((s,i)=>`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;"><b>${sLabels[i]}</b><br>${esc(d.preLesson?.[s]||'')}</td>`).join('')}</tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;vertical-align:top;">Flow</td>
-    ${sessions.map((s,i)=>`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;"><b>${sLabels[i]}</b><br>${esc(d.flow?.[s]||'')}</td>`).join('')}</tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;vertical-align:top;">Learning Resources</td>
-    ${sessions.map((s,i)=>`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;">${esc(d.resources?.[s]||'')}</td>`).join('')}</tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;vertical-align:top;">Opportunities for Integration</td>
-    ${sessions.map((s,i)=>`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;">${esc(d.integration?.[s]||'')}</td>`).join('')}</tr>
-  </table>`;
-
-  // ASSESSMENT section
-  html+=`<table style="width:100%;border-collapse:collapse;margin-bottom:.5rem;font-size:11px;">
-    <tr><td colspan="6" style="border:1px solid #ccc;padding:6px 8px;font-weight:900;background:#1a2e5a;color:#fff;">Assessment.</td></tr>
-    <tr><td colspan="6" style="border:1px solid #ccc;padding:5px 8px;font-style:italic;background:#f5f7fa;font-size:10px;">Assessments reveal what learners have gained and what they still need help with.</td></tr>
-    <tr>
-      <td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;width:15%;vertical-align:top;">Assessment</td>
-      ${sessions.map((s,i)=>`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;">
-        <b>${sLabels[i]}</b><br>
-        <b>Type:</b> ${esc(d.assessment?.[s]?.type||d.formativeAssessment?.[s]||'')}<br>
-        <b>Tool:</b> ${esc(d.assessment?.[s]?.tool||'')}<br>
-        <b>Tasks/Questions:</b><br>${esc(d.assessment?.[s]?.questions||'')}<br>
-        <b>Accommodation:</b> ${esc(d.assessment?.[s]?.accommodation||'')}
-      </td>`).join('')}
-    </tr>
-  </table>`;
-
-  // WAYS FORWARD section
-  html+=`<table style="width:100%;border-collapse:collapse;margin-bottom:.5rem;font-size:11px;">
-    <tr><td colspan="6" style="border:1px solid #ccc;padding:6px 8px;font-weight:900;background:#1a2e5a;color:#fff;">Ways Forward.</td></tr>
-    <tr><td colspan="6" style="border:1px solid #ccc;padding:5px 8px;font-style:italic;background:#f5f7fa;font-size:10px;">Meaningful learning can also happen beyond the classroom — for both the learners and the teacher.</td></tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;width:15%;vertical-align:top;">Extended Learning Opportunities</td>
-    ${sessions.map((s,i)=>`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;">${esc(d.extendedLearning?.[s]||'')}</td>`).join('')}</tr>
-    <tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:700;background:#eef2f8;vertical-align:top;">Reflections</td>
-    ${sessions.map((s,i)=>`<td style="border:1px solid #ccc;padding:5px 8px;vertical-align:top;">(To be filled out after the lesson)<br><i>Reflection Prompt: ${esc(d.reflectionPrompt?.[s]||'')}</i></td>`).join('')}</tr>
-  </table>`;
-
-  // Signature
-  html+=`<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:1rem;">
-    <tr>
-      <td style="border:none;width:50%;padding:8px;"><b>Prepared by:</b><br><br><b>${esc(d.teacher||'[Teacher Name]')}</b><br>Subject Teacher</td>
-      <td style="border:none;width:50%;padding:8px;"><b>Checked by:</b><br><br><b>${esc(d.principal||'[Principal Name]')}</b><br>School Head</td>
-    </tr>
-  </table>`;
-
-  html+=`</div>`;
-  document.getElementById('ilaw-output').innerHTML=html;
+  const el=document.getElementById('ilaw-output');
+  if(d.raw){
+    el.innerHTML=`<pre style="white-space:pre-wrap;font-family:'Segoe UI',sans-serif;font-size:13px;line-height:1.7;">${d.raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`;
+  }
 }
-  let html=`<div style="font-family:'Segoe UI',sans-serif;font-size:13px;">`;
-  html+=`<div style="text-align:center;margin-bottom:1rem;">
-    <div style="font-weight:700;font-size:15px;">Republic of the Philippines — Department of Education</div>
-    <div style="font-weight:800;font-size:16px;">${d.school||'Tugdan National High School'}</div>
-    <div style="font-weight:700;">ILAW DAILY LESSON LOG — ${d.term} SY 2026–2027</div>
-  </div>`;
-  html+=`<table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">`;
-  [['Name of Lesson',d.lessonName],['Learning Area',d.learningArea],['Grade Level & Section',d.gradeSection],['No. of Sessions',d.numSessions],['Week',d.week],['References',d.references]].forEach(([k,v])=>{
-    html+=`<tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:700;background:#eef2f8;width:190px;">${k}</td><td style="border:1px solid #ccc;padding:6px 10px;">${v||''}</td></tr>`;
-  });
-  html+=`</table>`;
-  html+=`<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:800px;">`;
-  html+=`<tr style="background:#1a2e5a;color:#fff;"><th style="border:1px solid #666;padding:8px;width:16%;">Section</th><th style="border:1px solid #666;padding:8px;width:9%;">Domain</th>${sLabels.map(s=>`<th style="border:1px solid #666;padding:8px;">${s}</th>`).join('')}</tr>`;
-
-  const row=(section,domain,vals,shade='#fff')=>`<tr>
-    ${section?`<td style="border:1px solid #ccc;padding:8px;font-weight:700;background:#eef2f8;vertical-align:top;">${section}</td>`:''}
-    <td style="border:1px solid #ccc;padding:8px;font-weight:600;font-size:11px;background:#f5f7fa;vertical-align:top;">${domain}</td>
-    ${sessions.map(s=>`<td style="border:1px solid #ccc;padding:8px;vertical-align:top;">${vals[s]||''}</td>`).join('')}
-  </tr>`;
 
 async function downloadILAWDocx(){
-  if(!ilawData){alert('Please generate a lesson plan first.');return;}
+  if(!ilawData||!ilawData.raw){alert('Please generate a lesson plan first.');return;}
   const btn=document.getElementById('ilaw-docx-btn');
   btn.disabled=true;btn.textContent='Building…';
   try{
-    const d=ilawData;
-    const sessions=['session1','session2','session3','session4','session5'];
-    const sLabels=['Session 1','Session 2','Session 3','Session 4','Session 5'];
-    const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-
-    const hdrRow=`<tr>${['Section/Activity',...sLabels].map(h=>`<th style="background:#1a2e5a;color:#fff;padding:6px;border:1px solid #666;font-size:10pt;">${h}</th>`).join('')}</tr>`;
-
-    const dataRow=(label,data,bg='#eef2f8')=>`<tr>
-      <td style="border:1px solid #ccc;padding:6px;font-weight:bold;background:${bg};width:15%;vertical-align:top;font-size:10pt;">${label}</td>
-      ${sessions.map(s=>`<td style="border:1px solid #ccc;padding:6px;vertical-align:top;font-size:10pt;">${esc(data?.[s]||'')}</td>`).join('')}
-    </tr>`;
-
-    const sectionHeader=(title,subtitle='')=>`
-      <tr><td colspan="6" style="background:#1a2e5a;color:#fff;font-weight:bold;padding:7px;font-size:11pt;">${title}</td></tr>
-      ${subtitle?`<tr><td colspan="6" style="background:#f5f7fa;padding:6px;font-style:italic;font-size:9pt;">${subtitle}</td></tr>`:''}`;
-
+    const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const docHtml=`<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="utf-8">
 <style>
-body{font-family:Arial,sans-serif;font-size:10pt;margin:1cm;}
-table{border-collapse:collapse;width:100%;margin-bottom:10pt;}
-td,th{border:1px solid #ccc;padding:5px;font-size:10pt;vertical-align:top;}
-h1{font-size:14pt;text-align:center;margin:3pt 0;}
-h2{font-size:11pt;text-align:center;margin:2pt 0;}
-@page{size:landscape;margin:1cm;}
+body{font-family:Arial,sans-serif;font-size:11pt;margin:2cm;line-height:1.6;}
+pre{white-space:pre-wrap;font-family:Arial,sans-serif;font-size:11pt;}
+h1{font-size:14pt;text-align:center;}
+@page{margin:2cm;}
 </style>
 </head><body>
-<h1>WEEKLY LESSON PLAN</h1>
-<h2>(${d.week||'Week 1'})</h2>
-<br>
-<table>
-  <tr><td style="font-weight:bold;background:#f5f7fa;width:180pt;">Name of Lesson</td><td colspan="5">${esc(d.lessonName)}</td></tr>
-  <tr><td style="font-weight:bold;background:#f5f7fa;">Learning Area/s</td><td colspan="5">${esc(d.learningArea)}</td></tr>
-  <tr><td style="font-weight:bold;background:#f5f7fa;">Designed by Teacher/s</td><td colspan="5">${esc(d.teacher||'')}</td></tr>
-  <tr><td style="font-weight:bold;background:#f5f7fa;">Grade Level and Section</td><td colspan="5">${esc(d.gradeSection)}</td></tr>
-  <tr><td style="font-weight:bold;background:#f5f7fa;">No. of Sessions</td><td colspan="5">${esc(d.numSessions||'5')}</td></tr>
-  <tr><td style="font-weight:bold;background:#f5f7fa;">References</td><td colspan="5">${esc(d.references)}</td></tr>
-  <tr><td style="font-weight:bold;background:#f5f7fa;">Declaration of AI use</td><td colspan="5">${esc(d.aiDeclaration)}</td></tr>
-</table>
-
-<table>
-  ${sectionHeader('Intentions.','Meaningful learning experiences are anchored in how we frame them. Start by deciding what you want learners to master by the end of the lesson — keep it clear and simple.')}
-  <tr><td style="font-weight:bold;background:#eef2f8;width:15%;">Standards and Competency</td><td colspan="5">${esc(d.standards)}</td></tr>
-  <tr><td style="font-weight:bold;background:#eef2f8;">Learning Objectives</td>${sessions.map(s=>`<td><b>${sLabels[sessions.indexOf(s)]}</b><br>${esc(d.objectives?.[s]||'')}</td>`).join('')}</tr>
-  <tr><td style="font-weight:bold;background:#eef2f8;">Learner Context</td><td colspan="5">${esc(d.learnerContext)}</td></tr>
-</table>
-
-<table>
-  ${sectionHeader('Learning Experience.','A learning experience is like a thoughtfully designed journey. Each activity and interaction builds toward meaningful understanding and growth.')}
-  ${hdrRow}
-  ${dataRow('Pre-Lesson',d.preLesson)}
-  ${dataRow('Flow',d.flow)}
-  ${dataRow('Learning Resources',d.resources)}
-  ${dataRow('Opportunities for Integration',d.integration)}
-</table>
-
-<table>
-  ${sectionHeader('Assessment.','Assessments reveal what learners have gained and what they still need help with.')}
-  ${hdrRow}
-  <tr><td style="font-weight:bold;background:#eef2f8;width:15%;vertical-align:top;">Assessment</td>
-  ${sessions.map(s=>`<td style="border:1px solid #ccc;padding:5px;vertical-align:top;font-size:10pt;">
-    <b>Type:</b> ${esc(d.assessment?.[s]?.type||d.formativeAssessment?.[s]||'')}<br>
-    <b>Tool:</b> ${esc(d.assessment?.[s]?.tool||'')}<br>
-    <b>Tasks/Questions:</b><br>${esc(d.assessment?.[s]?.questions||'')}<br>
-    <b>Accommodation:</b> ${esc(d.assessment?.[s]?.accommodation||'')}
-  </td>`).join('')}</tr>
-</table>
-
-<table>
-  ${sectionHeader('Ways Forward.','Meaningful learning can also happen beyond the classroom — for both the learners and the teacher.')}
-  ${hdrRow}
-  ${dataRow('Extended Learning Opportunities',d.extendedLearning)}
-  ${dataRow('Reflections',d.reflectionPrompt)}
-</table>
-
-<br>
-<table style="border:none;">
-  <tr>
-    <td style="border:none;width:50%;padding-top:40pt;"><b>Prepared by:</b><br><br><b>${esc(d.teacher||'[Teacher Name]')}</b><br>Subject Teacher</td>
-    <td style="border:none;width:50%;padding-top:40pt;"><b>Checked by:</b><br><br><b>${esc(d.principal||'[Principal Name]')}</b><br>School Head</td>
-  </tr>
-</table>
+<pre>${esc(ilawData.raw)}</pre>
 </body></html>`;
-
     const blob=new Blob([docHtml],{type:'application/msword'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;
-    a.download=`ILAW_${(d.lessonName||'LessonPlan').replace(/[^a-z0-9]/gi,'_')}.doc`;
+    a.download=`ILAW_Lesson_Plan.doc`;
     a.click();
     URL.revokeObjectURL(url);
   }catch(e){
     alert('Download failed: '+e.message);
-    console.error(e);
   }finally{
     btn.disabled=false;btn.textContent='⬇ Download DOC';
   }
 }
+
 
 function copyILAW(){
   const el=document.getElementById('ilaw-output');
