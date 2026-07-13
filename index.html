@@ -596,7 +596,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 
     <div id="ilaw-loading" style="display:none;" class="ilaw-loading">
       <div class="ilaw-spinner"></div>
-      <p>Generating your ILAW lesson plan… This may take 15–30 seconds.</p>
+      <p>Generating your ILAW lesson plan… This may take 20–40 seconds. Please wait.</p>
     </div>
   </div>
 </div>
@@ -1514,11 +1514,15 @@ Respond ONLY with valid JSON (no markdown, no backticks). Use this EXACT structu
 }`;
 
   try{
+    const controller=new AbortController();
+    const timeoutId=setTimeout(()=>controller.abort(),60000);
     const resp=await fetch(ANTHROPIC_PROXY_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]}),
+      signal:controller.signal
     });
+    clearTimeout(timeoutId);
     const rawResp=await resp.text();
     let text='';
     try{
@@ -1535,7 +1539,11 @@ Respond ONLY with valid JSON (no markdown, no backticks). Use this EXACT structu
     document.getElementById('ilaw-output-wrap').style.display='block';
     document.getElementById('ilaw-docx-btn').style.display='inline-flex';
   }catch(e){
-    err.textContent='Generation failed: '+e.message+'. Please try again.';
+    if(e.name==='AbortError'){
+      err.textContent='Generation timed out after 60 seconds. Please try again — the AI may be busy.';
+    }else{
+      err.textContent='Generation failed: '+e.message+'. Please try again.';
+    }
     err.classList.add('show');
     console.error(e);
   }finally{
