@@ -1497,35 +1497,22 @@ function renderILAWPreview(d){
 }
 
 async function downloadILAWDocx(){
-  if(!ilawData||!ilawData.raw){alert('Please generate a lesson plan first.');return;}
+  const rawText=ilawData?.raw||document.getElementById('ilaw-output')?.innerText||'';
+  if(!rawText){alert('Please generate a lesson plan first.');return;}
   const btn=document.getElementById('ilaw-docx-btn');
   btn.disabled=true;btn.textContent='Building…';
   try{
     const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    const docHtml=`<!DOCTYPE html>
-<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="utf-8">
-<style>
-body{font-family:Arial,sans-serif;font-size:11pt;margin:2cm;line-height:1.6;}
-pre{white-space:pre-wrap;font-family:Arial,sans-serif;font-size:11pt;}
-h1{font-size:14pt;text-align:center;}
-@page{margin:2cm;}
-</style>
-</head><body>
-<pre>${esc(ilawData.raw)}</pre>
-</body></html>`;
+    const docHtml=`<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;font-size:11pt;margin:2cm;line-height:1.6;}pre{white-space:pre-wrap;font-family:Arial,sans-serif;font-size:11pt;}@page{margin:2cm;}</style></head><body><pre>${esc(rawText)}</pre></body></html>`;
     const blob=new Blob([docHtml],{type:'application/msword'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;
-    a.download=`ILAW_Lesson_Plan.doc`;
+    a.download='ILAW_Lesson_Plan.doc';
     a.click();
     URL.revokeObjectURL(url);
-  }catch(e){
-    alert('Download failed: '+e.message);
-  }finally{
-    btn.disabled=false;btn.textContent='⬇ Download DOC';
-  }
+  }catch(e){alert('Download failed: '+e.message);}
+  finally{btn.disabled=false;btn.textContent='⬇ Download DOC';}
 }
 
 
