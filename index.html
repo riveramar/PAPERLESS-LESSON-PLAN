@@ -1401,101 +1401,59 @@ async function generateILAW(){
   document.getElementById('ilaw-loading').style.display='flex';
   document.getElementById('ilaw-docx-btn').style.display='none';
 
-  const prompt=`You are a Filipino teacher. Write a complete ILAW Weekly Lesson Plan in plain text (NOT JSON).
+  const prompt=`Write an ILAW Weekly Lesson Plan for Filipino teachers. Be concise but complete.
 
-DETAILS:
-- School: Tugdan National High School
-- Teacher: ${teacher||'[Teacher Name]'}
-- Grade & Section: ${grade} - ${section||'[Section]'}
-- Subject: ${subject}
-- Term/Week: ${quarter||'Term 1'} / ${week||'Week 1'}
-- Topic: ${topic}
-- Competency: ${competency||'Write appropriate competency based on MATATAG curriculum'}
-- Learner Context: ${context||'Average public school class in the Philippines'}
+Grade: ${grade} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'}
+Topic: ${topic}
+Competency: ${competency||'Write appropriate MATATAG competency'}
+Teacher: ${teacher||'[Teacher]'} | Section: ${section||'[Section]'}
+Context: ${context||'Average public school class'}
 
-Write the lesson plan using this EXACT format with 5 sessions:
+Format it exactly like this (5 sessions):
 
 WEEKLY LESSON PLAN (${week||'Week 1'})
+School: Tugdan National High School | Teacher: ${teacher||'[Teacher]'} | Grade: ${grade}-${section||'[Section]'} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'}
+References: [list]
+AI Declaration: AI assisted in organizing this lesson plan per DepEd Order No. 3, s. 2026. Teacher reviewed and takes responsibility.
 
-SCHOOL: Tugdan National High School
-TEACHER: ${teacher||'[Teacher Name]'}
-GRADE & SECTION: ${grade} - ${section||'[Section]'}
-SUBJECT: ${subject}
-TERM/WEEK: ${quarter||'Term 1'} / ${week||'Week 1'}
-NO. OF SESSIONS: 5
+INTENTIONS
+Standard: [content standard]
+Performance: [performance standard]
+Competency: [competency + code]
+Learner Context: [brief description]
 
-REFERENCES: [list references]
+Objectives (Session 1-5, one line each):
+S1: K-[knowledge] Sk-[skill] A-[attitude]
+S2: K-[knowledge] Sk-[skill] A-[attitude]
+S3: K-[knowledge] Sk-[skill] A-[attitude]
+S4: K-[knowledge] Sk-[skill] A-[attitude]
+S5: K-[knowledge] Sk-[skill] A-[attitude]
 
-DECLARATION OF AI USE: AI was utilized to organize this lesson plan using the ILAW format. Final review and instructional decisions remain the responsibility of the teacher per DepEd Order No. 3, s. 2026.
+LEARNING EXPERIENCE
+Pre-Lesson: S1:[activity] S2:[activity] S3:[activity] S4:[activity] S5:[activity]
 
----INTENTIONS---
-STANDARDS AND COMPETENCY:
-Content Standard: [write]
-Performance Standard: [write]
-Learning Competency: [write with code]
+Flow:
+S1: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
+S2: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
+S3: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
+S4: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
+S5: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
 
-LEARNER CONTEXT: [describe learners]
+Resources: S1:[materials] S2:[materials] S3:[materials] S4:[materials] S5:[materials]
+Integration: S1:[connection] S2:[connection] S3:[connection] S4:[connection] S5:[connection]
 
-LEARNING OBJECTIVES:
-Session 1: 1.[knowledge] 2.[skills] 3.[attitude]
-Session 2: 1.[knowledge] 2.[skills] 3.[attitude]
-Session 3: 1.[knowledge] 2.[skills] 3.[attitude]
-Session 4: 1.[knowledge] 2.[skills] 3.[attitude]
-Session 5: 1.[knowledge] 2.[skills] 3.[attitude]
+ASSESSMENT
+S1: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
+S2: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
+S3: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
+S4: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
+S5: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
 
----LEARNING EXPERIENCE---
-PRE-LESSON:
-Session 1: [activity]
-Session 2: [activity]
-Session 3: [activity]
-Session 4: [activity]
-Session 5: [activity]
+WAYS FORWARD
+Extended Learning: S1:[activity] S2:[activity] S3:[activity] S4:[activity] S5:[activity]
+Reflection: S1:[prompt] S2:[prompt] S3:[prompt] S4:[prompt] S5:[prompt]
 
-FLOW (Engage/Explore/Experience/Empathize):
-Session 1: [detailed activities]
-Session 2: [detailed activities]
-Session 3: [detailed activities]
-Session 4: [detailed activities]
-Session 5: [detailed activities]
-
-LEARNING RESOURCES:
-Session 1: [materials]
-Session 2: [materials]
-Session 3: [materials]
-Session 4: [materials]
-Session 5: [materials]
-
-OPPORTUNITIES FOR INTEGRATION:
-Session 1: [cross-curricular connection or N/A]
-Session 2: [cross-curricular connection or N/A]
-Session 3: [cross-curricular connection or N/A]
-Session 4: [cross-curricular connection or N/A]
-Session 5: [cross-curricular connection or N/A]
-
----ASSESSMENT---
-Session 1: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
-Session 2: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
-Session 3: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
-Session 4: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
-Session 5: Type: [assessment type] | Tool: [tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation: [support]
-
----WAYS FORWARD---
-EXTENDED LEARNING:
-Session 1: [home/extension activity]
-Session 2: [home/extension activity]
-Session 3: [home/extension activity]
-Session 4: [home/extension activity]
-Session 5: [home/extension activity]
-
-REFLECTION PROMPTS:
-Session 1: [reflection question for teacher]
-Session 2: [reflection question for teacher]
-Session 3: [reflection question for teacher]
-Session 4: [reflection question for teacher]
-Session 5: [reflection question for teacher]
-
-Prepared by: ${teacher||'[Teacher Name]'}, Subject Teacher
-Checked by: [School Head Name], School Head`;
+Prepared by: ${teacher||'[Teacher]'} | Checked by: [School Head]`;
 
   try{
     const controller=new AbortController();
