@@ -1388,6 +1388,8 @@ async function generateILAW(){
   const topic=document.getElementById('ilaw-topic').value.trim();
   const competency=document.getElementById('ilaw-competency').value.trim();
   const context=document.getElementById('ilaw-context').value.trim();
+  const teacher=document.getElementById('ilaw-teacher')?document.getElementById('ilaw-teacher').value.trim():'';
+  const section=document.getElementById('ilaw-section')?document.getElementById('ilaw-section').value.trim():'';
   const err=document.getElementById('ilaw-err');
   err.classList.remove('show');err.textContent='';
   if(!grade||!subject||!topic){err.textContent='Please fill in Grade Level, Subject, and Topic before generating.';err.classList.add('show');return;}
@@ -1401,59 +1403,52 @@ async function generateILAW(){
   document.getElementById('ilaw-loading').style.display='flex';
   document.getElementById('ilaw-docx-btn').style.display='none';
 
-  const prompt=`Write an ILAW Weekly Lesson Plan for Filipino teachers. Be concise but complete.
+  const prompt=`Write a short ILAW Lesson Plan for a Filipino teacher. Be brief.
 
 Grade: ${grade} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'}
-Topic: ${topic}
+Topic: ${topic} | Teacher: ${teacher||'[Teacher]'} | Section: ${section||'[Section]'}
 Competency: ${competency||'Write appropriate MATATAG competency'}
-Teacher: ${teacher||'[Teacher]'} | Section: ${section||'[Section]'}
 Context: ${context||'Average public school class'}
 
-Format it exactly like this (5 sessions):
+Use this format (3 sessions only):
 
-WEEKLY LESSON PLAN (${week||'Week 1'})
-School: Tugdan National High School | Teacher: ${teacher||'[Teacher]'} | Grade: ${grade}-${section||'[Section]'} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'}
-References: [list]
-AI Declaration: AI assisted in organizing this lesson plan per DepEd Order No. 3, s. 2026. Teacher reviewed and takes responsibility.
+WEEKLY LESSON PLAN
+School: Tugdan NHS | Teacher: ${teacher||'[Teacher]'} | Grade: ${grade} | Subject: ${subject} | ${week||'Week 1'}
 
-INTENTIONS
-Standard: [content standard]
-Performance: [performance standard]
-Competency: [competency + code]
-Learner Context: [brief description]
+CONTENT STANDARD: [write]
+PERFORMANCE STANDARD: [write]
+COMPETENCY: [write]
 
-Objectives (Session 1-5, one line each):
-S1: K-[knowledge] Sk-[skill] A-[attitude]
-S2: K-[knowledge] Sk-[skill] A-[attitude]
-S3: K-[knowledge] Sk-[skill] A-[attitude]
-S4: K-[knowledge] Sk-[skill] A-[attitude]
-S5: K-[knowledge] Sk-[skill] A-[attitude]
+OBJECTIVES:
+S1: [knowledge objective] | [skill] | [attitude]
+S2: [knowledge objective] | [skill] | [attitude]
+S3: [knowledge objective] | [skill] | [attitude]
 
-LEARNING EXPERIENCE
-Pre-Lesson: S1:[activity] S2:[activity] S3:[activity] S4:[activity] S5:[activity]
+LEARNING EXPERIENCE:
+S1 Pre-lesson: [activity]
+S1 Flow: Engage-[act] Explore-[act] Experience-[act] Empathize-[act]
+S1 Resources: [materials]
 
-Flow:
-S1: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
-S2: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
-S3: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
-S4: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
-S5: Engage-[activity] Explore-[activity] Experience-[activity] Empathize-[activity]
+S2 Pre-lesson: [activity]
+S2 Flow: Engage-[act] Explore-[act] Experience-[act] Empathize-[act]
+S2 Resources: [materials]
 
-Resources: S1:[materials] S2:[materials] S3:[materials] S4:[materials] S5:[materials]
-Integration: S1:[connection] S2:[connection] S3:[connection] S4:[connection] S5:[connection]
+S3 Pre-lesson: [activity]
+S3 Flow: Engage-[act] Explore-[act] Experience-[act] Empathize-[act]
+S3 Resources: [materials]
 
-ASSESSMENT
-S1: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
-S2: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
-S3: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
-S4: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
-S5: Type:[type] Tool:[tool] Tasks:1.[task] 2.[task] 3.[task] Accommodation:[support]
+ASSESSMENT:
+S1: Type:[type] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation:[support]
+S2: Type:[type] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation:[support]
+S3: Type:[type] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation:[support]
 
-WAYS FORWARD
-Extended Learning: S1:[activity] S2:[activity] S3:[activity] S4:[activity] S5:[activity]
-Reflection: S1:[prompt] S2:[prompt] S3:[prompt] S4:[prompt] S5:[prompt]
+WAYS FORWARD:
+S1: Extended-[activity] | Reflection-[prompt]
+S2: Extended-[activity] | Reflection-[prompt]
+S3: Extended-[activity] | Reflection-[prompt]
 
-Prepared by: ${teacher||'[Teacher]'} | Checked by: [School Head]`;
+Prepared by: ${teacher||'[Teacher]'} | Checked by: [School Head]
+AI Declaration: AI assisted per DepEd Order No. 3, s. 2026.`;
 
   try{
     const controller=new AbortController();
