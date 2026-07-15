@@ -561,6 +561,18 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
             <option>Week 9</option><option>Week 10</option>
           </select>
         </div>
+        <div class="fgrp">
+          <label for="ilaw-sessions">Number of Sessions</label>
+          <select id="ilaw-sessions">
+            <option value="3">3 Sessions</option>
+            <option value="4">4 Sessions</option>
+            <option value="5" selected>5 Sessions</option>
+          </select>
+        </div>
+        <div class="fgrp ilaw-full">
+          <label for="ilaw-bow">Budget of Work / BOW (optional)</label>
+          <input type="text" id="ilaw-bow" placeholder="e.g. Week 1: Introduction to CSS — Roles and Responsibilities of a CSS Technician…">
+        </div>
         <div class="fgrp ilaw-full">
           <label for="ilaw-topic">Topic / Lesson Title</label>
           <input type="text" id="ilaw-topic" placeholder="e.g. Introduction to Fractions, Cell Structure and Function…">
@@ -1390,6 +1402,8 @@ async function generateILAW(){
   const context=document.getElementById('ilaw-context').value.trim();
   const teacher=document.getElementById('ilaw-teacher')?document.getElementById('ilaw-teacher').value.trim():'';
   const section=document.getElementById('ilaw-section')?document.getElementById('ilaw-section').value.trim():'';
+  const sessions=document.getElementById('ilaw-sessions')?document.getElementById('ilaw-sessions').value:'5';
+  const bow=document.getElementById('ilaw-bow')?document.getElementById('ilaw-bow').value.trim():'';
   const err=document.getElementById('ilaw-err');
   err.classList.remove('show');err.textContent='';
   if(!grade||!subject||!topic){err.textContent='Please fill in Grade Level, Subject, and Topic before generating.';err.classList.add('show');return;}
@@ -1403,52 +1417,40 @@ async function generateILAW(){
   document.getElementById('ilaw-loading').style.display='flex';
   document.getElementById('ilaw-docx-btn').style.display='none';
 
-  const prompt=`Write a short ILAW Lesson Plan for a Filipino teacher. Be brief.
+  const prompt=`Write a concise ILAW Lesson Plan for a Filipino teacher. Follow the format exactly.
 
-Grade: ${grade} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'}
+Grade: ${grade} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'} | Sessions: ${sessions||'5'}
 Topic: ${topic} | Teacher: ${teacher||'[Teacher]'} | Section: ${section||'[Section]'}
 Competency: ${competency||'Write appropriate MATATAG competency'}
+${bow?'Budget of Work: '+bow:''}
 Context: ${context||'Average public school class'}
 
-Use this format (3 sessions only):
+Generate ${sessions||'5'} sessions. Use this EXACT format:
 
-WEEKLY LESSON PLAN
-School: Tugdan NHS | Teacher: ${teacher||'[Teacher]'} | Grade: ${grade} | Subject: ${subject} | ${week||'Week 1'}
+WEEKLY LESSON PLAN (${week||'Week 1'})
+School: Tugdan National High School | Teacher: ${teacher||'[Teacher]'} | Grade: ${grade}-${section||'[Section]'} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'} | No. of Sessions: ${sessions||'5'}
+References: [list textbook and curriculum guide]
+Budget of Work: ${bow||'[based on competency]'}
+AI Declaration: AI assisted per DepEd Order No. 3, s. 2026. Teacher reviewed and takes responsibility.
 
 CONTENT STANDARD: [write]
 PERFORMANCE STANDARD: [write]
-COMPETENCY: [write]
+COMPETENCY: ${competency||'[write competency with code]'}
+LEARNER CONTEXT: ${context||'[describe learners]'}
 
-OBJECTIVES:
-S1: [knowledge objective] | [skill] | [attitude]
-S2: [knowledge objective] | [skill] | [attitude]
-S3: [knowledge objective] | [skill] | [attitude]
+OBJECTIVES (per session):
+${Array.from({length:parseInt(sessions||5)},(_,i)=>'S'+(i+1)+': K-[knowledge] | Sk-[skill] | A-[attitude]').join('\n')}
 
 LEARNING EXPERIENCE:
-S1 Pre-lesson: [activity]
-S1 Flow: Engage-[act] Explore-[act] Experience-[act] Empathize-[act]
-S1 Resources: [materials]
-
-S2 Pre-lesson: [activity]
-S2 Flow: Engage-[act] Explore-[act] Experience-[act] Empathize-[act]
-S2 Resources: [materials]
-
-S3 Pre-lesson: [activity]
-S3 Flow: Engage-[act] Explore-[act] Experience-[act] Empathize-[act]
-S3 Resources: [materials]
+${Array.from({length:parseInt(sessions||5)},(_,i)=>'S'+(i+1)+' Pre-lesson: [activity]\nS'+(i+1)+' Flow: Engage-[act] Explore-[act] Experience-[act] Empathize-[act]\nS'+(i+1)+' Resources: [materials]\nS'+(i+1)+' Integration: [cross-curricular or N/A]').join('\n\n')}
 
 ASSESSMENT:
-S1: Type:[type] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation:[support]
-S2: Type:[type] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation:[support]
-S3: Type:[type] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation:[support]
+${Array.from({length:parseInt(sessions||5)},(_,i)=>'S'+(i+1)+': Type:[assessment type] | Tool:[tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation:[support]').join('\n')}
 
 WAYS FORWARD:
-S1: Extended-[activity] | Reflection-[prompt]
-S2: Extended-[activity] | Reflection-[prompt]
-S3: Extended-[activity] | Reflection-[prompt]
+${Array.from({length:parseInt(sessions||5)},(_,i)=>'S'+(i+1)+': Extended-[home activity] | Reflection-[teacher prompt]').join('\n')}
 
-Prepared by: ${teacher||'[Teacher]'} | Checked by: [School Head]
-AI Declaration: AI assisted per DepEd Order No. 3, s. 2026.`;
+Prepared by: ${teacher||'[Teacher]'} | Checked by: [School Head]`;
 
   try{
     const controller=new AbortController();
