@@ -1430,6 +1430,8 @@ Competency: ${competency||'Write appropriate MATATAG curriculum competency with 
 ${bow?'Budget of Work: '+bow:''}
 Context: ${context||'Average Filipino public school class'}
 
+IMPORTANT: For each session's assessment, choose the TYPE that best matches that session's objective — do NOT repeat the same type for every session. Vary across: Observation, Oral Questioning, Written Quiz, Performance Task, Portfolio, Exit Ticket, Peer Assessment, Self-Assessment, Demonstration, Project, Rubric-based Output. Match the assessment to what the objective actually asks the learner to do (e.g. a "demonstrate" objective needs Performance Task/Demonstration, a "recall/identify" objective needs Written Quiz/Oral Questioning, a "reflect" objective needs Self-Assessment/Journal).
+
 Return ONLY this JSON structure with ${numSessions} sessions (session1 to session${numSessions}):
 {
   "lessonName": "${topic}",
@@ -1451,7 +1453,7 @@ Return ONLY this JSON structure with ${numSessions} sessions (session1 to sessio
   "flow": {${sessionList.map(s=>'"'+s+'":"Engage:[act] Explore:[act] Experience:[act] Empathize:[act]"').join(',')}},
   "resources": {${sessionList.map(s=>'"'+s+'":" [materials]"').join(',')}},
   "integration": {${sessionList.map(s=>'"'+s+'":" [connection or N/A]"').join(',')}},
-  "assessment": {${sessionList.map(s=>'"'+s+'":{"type":"[type]","tool":"[tool]","tasks":"1.[task] 2.[task] 3.[task]","accommodation":"[support]"}').join(',')}},
+  "assessment": {${sessionList.map(s=>'"'+s+'":{"type":"[choose the assessment type that best matches this session objective — vary it, do not repeat the same type across sessions]","tool":"[specific tool matching the type, e.g. rubric, checklist, quiz sheet, observation sheet]","tasks":"1.[task] 2.[task] 3.[task]","accommodation":"[support]"}').join(',')}},
   "extendedLearning": {${sessionList.map(s=>'"'+s+'":" [home activity]"').join(',')}},
   "reflection": {${sessionList.map(s=>'"'+s+'":" [reflection prompt]"').join(',')}}
 }`;
