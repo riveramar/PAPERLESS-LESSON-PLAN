@@ -1417,48 +1417,52 @@ async function generateILAW(){
   document.getElementById('ilaw-loading').style.display='flex';
   document.getElementById('ilaw-docx-btn').style.display='none';
 
-  const prompt=`Write a concise ILAW Lesson Plan for a Filipino teacher. Follow the format exactly.
+  const numSessions = parseInt(sessions||'5');
+  const sessionList = Array.from({length:numSessions},(_,i)=>'session'+(i+1));
+  const sNums = Array.from({length:numSessions},(_,i)=>'Session '+(i+1));
 
-Grade: ${grade} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'} | Sessions: ${sessions||'5'}
+  const prompt=`You are a Filipino teacher. Generate an ILAW Weekly Lesson Plan as valid JSON only. No markdown, no explanation.
+
+Details:
+Grade: ${grade} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'} | Sessions: ${numSessions}
 Topic: ${topic} | Teacher: ${teacher||'[Teacher]'} | Section: ${section||'[Section]'}
-Competency: ${competency||'Write appropriate MATATAG competency'}
+Competency: ${competency||'Write appropriate MATATAG curriculum competency with code'}
 ${bow?'Budget of Work: '+bow:''}
-Context: ${context||'Average public school class'}
+Context: ${context||'Average Filipino public school class'}
 
-Generate ${sessions||'5'} sessions. Use this EXACT format:
-
-WEEKLY LESSON PLAN (${week||'Week 1'})
-School: Tugdan National High School | Teacher: ${teacher||'[Teacher]'} | Grade: ${grade}-${section||'[Section]'} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'} | No. of Sessions: ${sessions||'5'}
-References: [list textbook and curriculum guide]
-Budget of Work: ${bow||'[based on competency]'}
-AI Declaration: AI assisted per DepEd Order No. 3, s. 2026. Teacher reviewed and takes responsibility.
-
-CONTENT STANDARD: [write]
-PERFORMANCE STANDARD: [write]
-COMPETENCY: ${competency||'[write competency with code]'}
-LEARNER CONTEXT: ${context||'[describe learners]'}
-
-OBJECTIVES (per session):
-${Array.from({length:parseInt(sessions||5)},(_,i)=>'S'+(i+1)+': K-[knowledge] | Sk-[skill] | A-[attitude]').join('\n')}
-
-LEARNING EXPERIENCE:
-${Array.from({length:parseInt(sessions||5)},(_,i)=>'S'+(i+1)+' Pre-lesson: [activity]\nS'+(i+1)+' Flow: Engage-[act] Explore-[act] Experience-[act] Empathize-[act]\nS'+(i+1)+' Resources: [materials]\nS'+(i+1)+' Integration: [cross-curricular or N/A]').join('\n\n')}
-
-ASSESSMENT:
-${Array.from({length:parseInt(sessions||5)},(_,i)=>'S'+(i+1)+': Type:[assessment type] | Tool:[tool] | Tasks: 1.[task] 2.[task] 3.[task] | Accommodation:[support]').join('\n')}
-
-WAYS FORWARD:
-${Array.from({length:parseInt(sessions||5)},(_,i)=>'S'+(i+1)+': Extended-[home activity] | Reflection-[teacher prompt]').join('\n')}
-
-Prepared by: ${teacher||'[Teacher]'} | Checked by: [School Head]`;
+Return ONLY this JSON structure with ${numSessions} sessions (session1 to session${numSessions}):
+{
+  "lessonName": "${topic}",
+  "learningArea": "${subject}",
+  "gradeSection": "${grade} - ${section||'[Section]'}",
+  "term": "${quarter||'Term 1'}",
+  "week": "${week||'Week 1'}",
+  "numSessions": "${numSessions}",
+  "teacher": "${teacher||'[Teacher]'}",
+  "school": "Tugdan National High School",
+  "references": "DepEd MATATAG Curriculum Guide, Learner's Material",
+  "bow": "${bow||''}",
+  "aiDeclaration": "AI assisted per DepEd Order No. 3, s. 2026. Teacher reviewed.",
+  "standard": "Content Standard: [write] | Performance Standard: [write]",
+  "competency": "${competency||'[write competency]'}",
+  "learnerContext": "${context||'[describe learners]'}",
+  "objectives": {${sessionList.map(s=>'"'+s+'":"K:[objective] Sk:[objective] A:[objective]"').join(',')}},
+  "preLesson": {${sessionList.map(s=>'"'+s+'":" [activity]"').join(',')}},
+  "flow": {${sessionList.map(s=>'"'+s+'":"Engage:[act] Explore:[act] Experience:[act] Empathize:[act]"').join(',')}},
+  "resources": {${sessionList.map(s=>'"'+s+'":" [materials]"').join(',')}},
+  "integration": {${sessionList.map(s=>'"'+s+'":" [connection or N/A]"').join(',')}},
+  "assessment": {${sessionList.map(s=>'"'+s+'":{"type":"[type]","tool":"[tool]","tasks":"1.[task] 2.[task] 3.[task]","accommodation":"[support]"}').join(',')}},
+  "extendedLearning": {${sessionList.map(s=>'"'+s+'":" [home activity]"').join(',')}},
+  "reflection": {${sessionList.map(s=>'"'+s+'":" [reflection prompt]"').join(',')}}
+}`;
 
   try{
     const controller=new AbortController();
-    const timeoutId=setTimeout(()=>controller.abort(),60000);
+    const timeoutId=setTimeout(()=>controller.abort(),55000);
     const resp=await fetch(ANTHROPIC_PROXY_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]}),
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2500,messages:[{role:'user',content:prompt}]}),
       signal:controller.signal
     });
     clearTimeout(timeoutId);
@@ -1469,19 +1473,32 @@ Prepared by: ${teacher||'[Teacher]'} | Checked by: [School Head]`;
       if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
       text=data.content?.[0]?.text||'';
     }catch(parseErr){
-      // Worker returned non-JSON — show raw response for debugging
-      throw new Error('Worker response: '+rawResp.substring(0,200));
+      throw new Error('Worker error: '+rawResp.substring(0,200));
     }
-    if(!text)throw new Error('Empty response from AI. Please try again.');
-    ilawData={raw:text};
-    renderILAWPreview(ilawData);
+    if(!text)throw new Error('Empty response. Please try again.');
+    // parse JSON from AI response
+    let parsed;
+    try{
+      const clean=text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+      parsed=JSON.parse(clean);
+    }catch(e){
+      // fallback: show raw
+      ilawData={raw:text,numSessions};
+      document.getElementById('ilaw-output').innerHTML=`<pre style="white-space:pre-wrap;font-size:13px;line-height:1.7;">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre>`;
+      document.getElementById('ilaw-output-wrap').style.display='block';
+      document.getElementById('ilaw-docx-btn').style.display='inline-flex';
+      return;
+    }
+    parsed.numSessions=numSessions;
+    ilawData=parsed;
+    renderILAWPreview(parsed,sessionList,sNums);
     document.getElementById('ilaw-output-wrap').style.display='block';
     document.getElementById('ilaw-docx-btn').style.display='inline-flex';
   }catch(e){
     if(e.name==='AbortError'){
-      err.textContent='Generation timed out after 60 seconds. Please try again — the AI may be busy.';
+      err.textContent='Timed out. Please try again.';
     }else{
-      err.textContent='Generation failed: '+e.message+'. Please try again.';
+      err.textContent='Generation failed: '+e.message;
     }
     err.classList.add('show');
     console.error(e);
@@ -1491,33 +1508,105 @@ Prepared by: ${teacher||'[Teacher]'} | Checked by: [School Head]`;
   }
 }
 
-function renderILAWPreview(d){
-  const el=document.getElementById('ilaw-output');
-  if(d.raw){
-    el.innerHTML=`<pre style="white-space:pre-wrap;font-family:'Segoe UI',sans-serif;font-size:13px;line-height:1.7;">${d.raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`;
-  }
+function renderILAWPreview(d,sessionList,sNums){
+  if(!sessionList)sessionList=Array.from({length:d.numSessions||5},(_,i)=>'session'+(i+1));
+  if(!sNums)sNums=Array.from({length:d.numSessions||5},(_,i)=>'Session '+(i+1));
+  const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const thStyle='border:1px solid #999;padding:6px;background:#1a2e5a;color:#fff;font-size:10pt;text-align:center;';
+  const tdStyle='border:1px solid #ccc;padding:6px;font-size:10pt;vertical-align:top;';
+  const lblStyle='border:1px solid #ccc;padding:6px;font-size:10pt;vertical-align:top;background:#eef2f8;font-weight:bold;width:15%;';
+  const hdrStyle='border:1px solid #999;padding:7px;background:#1a2e5a;color:#fff;font-weight:bold;font-size:11pt;';
+
+  const sessionHeaders=sNums.map(s=>`<th style="${thStyle}">${s}</th>`).join('');
+  const row=(label,data)=>`<tr><td style="${lblStyle}">${label}</td>${sessionList.map(s=>`<td style="${tdStyle}">${esc(typeof data==='object'?data[s]||'':data)}</td>`).join('')}</tr>`;
+  const rowAssess=(label)=>`<tr><td style="${lblStyle}">${label}</td>${sessionList.map(s=>{const a=d.assessment?.[s]||{};return`<td style="${tdStyle}"><b>Type:</b> ${esc(a.type)}<br><b>Tool:</b> ${esc(a.tool)}<br><b>Tasks:</b> ${esc(a.tasks)}<br><b>Accommodation:</b> ${esc(a.accommodation)}</td>`;}).join('')}</tr>`;
+
+  let html=`<div style="font-family:Arial,sans-serif;font-size:11pt;">
+  <div style="text-align:center;margin-bottom:8px;">
+    <div style="font-weight:900;font-size:15pt;">WEEKLY LESSON PLAN</div>
+    <div style="font-size:11pt;">(${esc(d.week||'Week 1')})</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+    <tr><td style="${lblStyle}">Name of Lesson</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.lessonName)}</td></tr>
+    <tr><td style="${lblStyle}">Learning Area</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.learningArea)}</td></tr>
+    <tr><td style="${lblStyle}">Teacher</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.teacher)}</td></tr>
+    <tr><td style="${lblStyle}">Grade & Section</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.gradeSection)}</td></tr>
+    <tr><td style="${lblStyle}">No. of Sessions</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.numSessions)}</td></tr>
+    ${d.bow?`<tr><td style="${lblStyle}">Budget of Work</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.bow)}</td></tr>`:''}
+    <tr><td style="${lblStyle}">References</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.references)}</td></tr>
+    <tr><td style="${lblStyle}">AI Declaration</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.aiDeclaration)}</td></tr>
+  </table>
+
+  <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+    <tr><td style="${hdrStyle}" colspan="${(d.numSessions||5)+1}">INTENTIONS</td></tr>
+    <tr><td style="${lblStyle}">Standard</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.standard)}</td></tr>
+    <tr><td style="${lblStyle}">Competency</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.competency)}</td></tr>
+    <tr><td style="${lblStyle}">Learner Context</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.learnerContext)}</td></tr>
+    <tr><th style="${thStyle}">Objectives</th>${sessionHeaders}</tr>
+    ${row('',d.objectives)}
+  </table>
+
+  <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+    <tr><td style="${hdrStyle}" colspan="${(d.numSessions||5)+1}">LEARNING EXPERIENCE</td></tr>
+    <tr><th style="${thStyle}">Section</th>${sessionHeaders}</tr>
+    ${row('Pre-Lesson',d.preLesson)}
+    ${row('Flow',d.flow)}
+    ${row('Resources',d.resources)}
+    ${row('Integration',d.integration)}
+  </table>
+
+  <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+    <tr><td style="${hdrStyle}" colspan="${(d.numSessions||5)+1}">ASSESSMENT</td></tr>
+    <tr><th style="${thStyle}">Assessment</th>${sessionHeaders}</tr>
+    ${rowAssess('')}
+  </table>
+
+  <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+    <tr><td style="${hdrStyle}" colspan="${(d.numSessions||5)+1}">WAYS FORWARD</td></tr>
+    <tr><th style="${thStyle}">Section</th>${sessionHeaders}</tr>
+    ${row('Extended Learning',d.extendedLearning)}
+    ${row('Reflection',d.reflection)}
+  </table>
+
+  <table style="width:100%;border-collapse:collapse;border:none;margin-top:16px;">
+    <tr>
+      <td style="border:none;width:50%;padding-top:36px;"><b>Prepared by:</b><br><br><b>${esc(d.teacher||'[Teacher]')}</b><br>Subject Teacher</td>
+      <td style="border:none;width:50%;padding-top:36px;"><b>Checked by:</b><br><br><b>[School Head]</b><br>School Head</td>
+    </tr>
+  </table>
+  </div>`;
+  document.getElementById('ilaw-output').innerHTML=html;
 }
 
 async function downloadILAWDocx(){
-  const rawText=ilawData?.raw||document.getElementById('ilaw-output')?.innerText||'';
-  if(!rawText){alert('Please generate a lesson plan first.');return;}
+  if(!ilawData){alert('Please generate a lesson plan first.');return;}
   const btn=document.getElementById('ilaw-docx-btn');
   btn.disabled=true;btn.textContent='Building…';
   try{
-    const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    const docHtml=`<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;font-size:11pt;margin:2cm;line-height:1.6;}pre{white-space:pre-wrap;font-family:Arial,sans-serif;font-size:11pt;}@page{margin:2cm;}</style></head><body><pre>${esc(rawText)}</pre></body></html>`;
+    const preview=document.getElementById('ilaw-output').innerHTML;
+    const docHtml=`<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8">
+<style>
+body{font-family:Arial,sans-serif;font-size:10pt;margin:1cm;}
+table{border-collapse:collapse;width:100%;margin-bottom:8pt;}
+td,th{border:1px solid #ccc;padding:5px;font-size:9pt;vertical-align:top;}
+@page{size:landscape;margin:1cm;}
+</style>
+</head><body>${preview}</body></html>`;
     const blob=new Blob([docHtml],{type:'application/msword'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;
-    a.download='ILAW_Lesson_Plan.doc';
+    a.download=`ILAW_${(ilawData.lessonName||'LessonPlan').replace(/[^a-z0-9]/gi,'_')}.doc`;
     a.click();
     URL.revokeObjectURL(url);
-  }catch(e){alert('Download failed: '+e.message);}
-  finally{btn.disabled=false;btn.textContent='⬇ Download DOC';}
+  }catch(e){
+    alert('Download failed: '+e.message);
+  }finally{
+    btn.disabled=false;btn.textContent='⬇ Download DOC';
+  }
 }
-
-
 function copyILAW(){
   const el=document.getElementById('ilaw-output');
   if(!el||!el.innerText.trim())return;
