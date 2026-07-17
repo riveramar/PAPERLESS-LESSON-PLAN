@@ -158,6 +158,8 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 /* ILAW GENERATOR */
 .ilaw-wrap{max-width:900px;margin:0 auto;padding:1.5rem 2rem 3rem;}
 .ilaw-form-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.75rem;margin-bottom:1.5rem;}
+.ilaw-draft-warning{background:#fff3cd;border:1.5px solid #e8a400;border-left:5px solid #b8860b;color:#5a4000;padding:1rem 1.25rem;border-radius:var(--radius);font-size:13px;line-height:1.6;margin-bottom:1.5rem;}
+.ilaw-draft-warning strong{color:#3a2900;}
 .ilaw-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
 .ilaw-full{grid-column:1/-1;}
 .ilaw-output-header{background:var(--navy);color:#fff;padding:.85rem 1.25rem;border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
@@ -519,9 +521,12 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 <div class="page" id="page-ilaw">
   <div class="portal-hero">
     <h2>✏️ ILAW Lesson Plan Generator</h2>
-    <p>AI-powered · Based on DepEd Order No. 16, s. 2026 · MATATAG Curriculum</p>
+    <p>AI-assisted drafting tool · Based on DepEd Order No. 16, s. 2026 · MATATAG Curriculum</p>
   </div>
   <div class="ilaw-wrap">
+    <div class="ilaw-draft-warning">
+      ⚠️ <strong>DRAFT ONLY — NOT A COMPLIANT LESSON PLAN AS-IS.</strong> Per DepEd Order No. 016, s. 2026 (Section V-C, Item 23), <u>fully AI-generated lesson plans are not allowed</u>. This tool produces a <strong>starting draft</strong> to save you time on formatting — you must personally review, revise, and take ownership of the Learning Competencies, Objectives, Learning Experience design, and Assessment before this becomes your official lesson plan. Declare your AI use category (Limited/Guided) per DepEd Order No. 003, s. 2026, Annex A when you submit.
+    </div>
     <div class="ilaw-form-card">
       <h3 style="margin:0 0 1.25rem;color:var(--navy);font-size:16px;">Fill in the details, then generate your lesson plan</h3>
       <div class="ilaw-grid">
@@ -601,12 +606,14 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 
     <div id="ilaw-output-wrap" style="display:none;">
       <div class="ilaw-output-header">
-        <span>📄 Generated ILAW Lesson Plan</span>
-        <small>Review and edit before submitting. Declare AI use per DepEd Order No. 3, s. 2026.</small>
+        <span>📄 Generated ILAW Lesson Plan (DRAFT)</span>
+        <small>This is a starting draft — not yet a compliant lesson plan. See warning below.</small>
       </div>
       <div id="ilaw-output" class="ilaw-output"></div>
       <div class="ilaw-disclaimer">
-        ⚠️ <strong>AI Declaration (DepEd Order No. 3, s. 2026):</strong> This lesson plan was generated with AI assistance. The teacher must review, complete highlighted sections, adapt to actual learner context, and declare AI use before submission. Core instructional decisions remain the professional responsibility of the teacher.
+        ⚠️ <strong>Required before submission — DepEd Order No. 016, s. 2026 (Section V-C, Item 23):</strong> "Fully AI-generated lesson plans shall not be allowed." This output is a formatting draft only. You must personally review and finalize the Learning Competencies, Learning Objectives, Learning Experience/Flow, and Assessment so that they reflect your own professional instructional decisions and your actual learners' context — not just accept the AI's suggestions as-is.
+        <br><br>
+        <strong>AI Use Declaration (DepEd Order No. 003, s. 2026, Annex A):</strong> Indicate on your final submitted lesson plan which category applies — e.g. <em>"Limited AI Use: AI assisted in organizing/formatting this lesson plan after I made the core instructional decisions (competencies, objectives, learning experience design, assessment)"</em> or <em>"Guided AI Use: AI assisted with grammar, clarity, and formatting only."</em> Do not declare this as unassisted personal work if AI contributed to its structure or content.
       </div>
     </div>
 
@@ -1426,7 +1433,7 @@ async function generateILAW(){
   const sessionList = Array.from({length:numSessions},(_,i)=>'session'+(i+1));
   const sNums = Array.from({length:numSessions},(_,i)=>'Session '+(i+1));
 
-  const prompt=`You are a Filipino teacher. Generate an ILAW Weekly Lesson Plan as valid JSON only. No markdown, no explanation.
+  const prompt=`You are helping a Filipino teacher draft an ILAW Weekly Lesson Plan, strictly following DepEd Order No. 016, s. 2026 (Guidelines on Lesson Planning and Learning Design) and the MATATAG Curriculum. Output valid JSON only. No markdown, no explanation.
 
 Details:
 Grade: ${grade} | Subject: ${subject} | ${quarter||'Term 1'} / ${week||'Week 1'} | Sessions: ${numSessions}
@@ -1436,7 +1443,13 @@ ${bow?'Budget of Work: '+bow:''}
 Context: ${context||'Average Filipino public school class'}
 ${localContext?'Local Context: '+localContext+' — CONTEXTUALIZE the lesson: use this local setting, industries, culture, or references in your examples, motivation activities, and application tasks so the lesson feels relevant to these specific learners.':''}
 
-IMPORTANT: For each session's assessment, choose the TYPE that best matches that session's objective — do NOT repeat the same type for every session. Vary across: Observation, Oral Questioning, Written Quiz, Performance Task, Portfolio, Exit Ticket, Peer Assessment, Self-Assessment, Demonstration, Project, Rubric-based Output. Match the assessment to what the objective actually asks the learner to do (e.g. a "demonstrate" objective needs Performance Task/Demonstration, a "recall/identify" objective needs Written Quiz/Oral Questioning, a "reflect" objective needs Self-Assessment/Journal).
+Follow the ILAW Framework exactly as defined in DO 016, s. 2026:
+- INTENTIONS: learning competencies, learning objectives (unpacked/clustered from competency), learner context.
+- LEARNING EXPERIENCE: Pre-Lesson (routines/checks that activate prior knowledge and prepare learners), Flow (the sequence of activities — apply relevant Learning Design Principles: Clear Goals and Teaching, Scaffolding, Checks for Understanding, Active Retrieval and Spacing, Self-awareness and Metacognition, Social Learning, Values and Purpose Integration, Inclusion — do not force all 8 into every session, apply what fits naturally), Learning Resources (with an alternative/backup option noted), Opportunities for Integration and Contextualization (cross-curricular or local links, or state N/A).
+- ASSESSING LEARNING: Formative Assessment only — a task/activity/questions to check understanding during the session, plus how learners can ask for guidance, plus reasonable accommodations so all learners can demonstrate understanding (e.g. varied response formats, small group options, visual/auditory supports).
+- WAYS FORWARD: Extended Learning Opportunities (optional take-home/outside-class activities), Reflection prompts for the teacher (what to change next session, what to share with co-teachers or instructional coach).
+
+For each session's Formative Assessment, choose the type/format that best matches that session's objective — do NOT repeat the same type for every session. Vary across: Observation, Oral Questioning, Written Quiz, Performance Task, Portfolio, Exit Ticket, Peer Assessment, Self-Assessment, Demonstration, Project. Match the assessment to what the objective actually asks the learner to do (e.g. a "demonstrate" objective needs Performance Task/Demonstration, a "recall/identify" objective needs Written Quiz/Oral Questioning, a "reflect" objective needs Self-Assessment/Journal).
 
 Return ONLY this JSON structure with ${numSessions} sessions (session1 to session${numSessions}):
 {
@@ -1450,17 +1463,17 @@ Return ONLY this JSON structure with ${numSessions} sessions (session1 to sessio
   "school": "Tugdan National High School",
   "references": "DepEd MATATAG Curriculum Guide, Learner's Material",
   "bow": "${bow||''}",
-  "aiDeclaration": "AI assisted per DepEd Order No. 3, s. 2026. Teacher reviewed.",
+  "aiDeclaration": "DRAFT ONLY \u2014 AI-assisted formatting per DepEd Order No. 003, s. 2026, Annex A. This draft requires teacher review, revision, and finalization of all instructional decisions before use, per DepEd Order No. 016, s. 2026, Sec. V-C (23): fully AI-generated lesson plans are not allowed.",
   "standard": "Content Standard: [write] | Performance Standard: [write]",
   "competency": "${competency||'[write competency]'}",
   "learnerContext": "${context||'[describe learners]'}",
   "localContext": "${localContext||''}",
   "objectives": {${sessionList.map(s=>'"'+s+'":"K:[objective] Sk:[objective] A:[objective]"').join(',')}},
   "preLesson": {${sessionList.map(s=>'"'+s+'":" [activity]"').join(',')}},
-  "flow": {${sessionList.map(s=>'"'+s+'":"Engage:[act] Explore:[act] Experience:[act] Empathize:[act]"').join(',')}},
+  "flow": {${sessionList.map(s=>'"'+s+'":"[sequence of activities for this session, naturally applying relevant Learning Design Principles \u2014 note in brackets which principle(s) are applied, e.g. (Scaffolding), (Checks for Understanding)]"').join(',')}},
   "resources": {${sessionList.map(s=>'"'+s+'":" [materials]"').join(',')}},
   "integration": {${sessionList.map(s=>'"'+s+'":" [connection or N/A]"').join(',')}},
-  "assessment": {${sessionList.map(s=>'"'+s+'":{"type":"[choose the assessment type that best matches this session objective — vary it, do not repeat the same type across sessions]","tool":"[specific tool matching the type, e.g. rubric, checklist, quiz sheet, observation sheet]","tasks":"1.[task] 2.[task] 3.[task]","accommodation":"[support]"}').join(',')}},
+  "assessment": {${sessionList.map(s=>'"'+s+'":{"type":"[choose the formative assessment type that best matches this session objective — vary it, do not repeat the same type across sessions]","tool":"[specific tool matching the type, e.g. rubric, checklist, quiz sheet, observation sheet]","tasks":"1.[task] 2.[task] 3.[task]","accommodation":"[reasonable accommodation so all learners, including those with disabilities or barriers, can demonstrate understanding \u2014 e.g. varied response formats, small group options, visual/auditory supports]"}').join(',')}},
   "extendedLearning": {${sessionList.map(s=>'"'+s+'":" [home activity]"').join(',')}},
   "reflection": {${sessionList.map(s=>'"'+s+'":" [reflection prompt]"').join(',')}}
 }`;
@@ -1561,13 +1574,13 @@ function renderILAWPreview(d,sessionList,sNums){
     <tr><th style="${thStyle}">Section</th>${sessionHeaders}</tr>
     ${row('Pre-Lesson',d.preLesson)}
     ${row('Flow',d.flow)}
-    ${row('Resources',d.resources)}
-    ${row('Integration',d.integration)}
+    ${row('Learning Resources',d.resources)}
+    ${row('Opportunities for Integration & Contextualization',d.integration)}
   </table>
 
   <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
-    <tr><td style="${hdrStyle}" colspan="${(d.numSessions||5)+1}">ASSESSMENT</td></tr>
-    <tr><th style="${thStyle}">Assessment</th>${sessionHeaders}</tr>
+    <tr><td style="${hdrStyle}" colspan="${(d.numSessions||5)+1}">ASSESSING LEARNING</td></tr>
+    <tr><th style="${thStyle}">Formative Assessment</th>${sessionHeaders}</tr>
     ${rowAssess('')}
   </table>
 
