@@ -583,7 +583,11 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         </div>
         <div class="fgrp ilaw-full">
           <label for="ilaw-context">Learner Context (optional)</label>
-          <input type="text" id="ilaw-context" placeholder="e.g. Class of 40 students, mixed ability, rural community…">
+          <input type="text" id="ilaw-context" placeholder="e.g. Class of 40 students, mixed ability, some struggle with reading comprehension, mostly visual learners…">
+        </div>
+        <div class="fgrp ilaw-full">
+          <label for="ilaw-localcontext">Local Context / Contextualization (optional)</label>
+          <input type="text" id="ilaw-localcontext" placeholder="e.g. Alcantara, Romblon — coastal/fishing community, marble industry, local dialect, nearby landmarks or livelihoods to reference in examples…">
         </div>
       </div>
       <div style="margin-top:1.25rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
@@ -1400,6 +1404,7 @@ async function generateILAW(){
   const topic=document.getElementById('ilaw-topic').value.trim();
   const competency=document.getElementById('ilaw-competency').value.trim();
   const context=document.getElementById('ilaw-context').value.trim();
+  const localContext=document.getElementById('ilaw-localcontext')?document.getElementById('ilaw-localcontext').value.trim():'';
   const teacher=document.getElementById('ilaw-teacher')?document.getElementById('ilaw-teacher').value.trim():'';
   const section=document.getElementById('ilaw-section')?document.getElementById('ilaw-section').value.trim():'';
   const sessions=document.getElementById('ilaw-sessions')?document.getElementById('ilaw-sessions').value:'5';
@@ -1429,6 +1434,7 @@ Topic: ${topic} | Teacher: ${teacher||'[Teacher]'} | Section: ${section||'[Secti
 Competency: ${competency||'Write appropriate MATATAG curriculum competency with code'}
 ${bow?'Budget of Work: '+bow:''}
 Context: ${context||'Average Filipino public school class'}
+${localContext?'Local Context: '+localContext+' — CONTEXTUALIZE the lesson: use this local setting, industries, culture, or references in your examples, motivation activities, and application tasks so the lesson feels relevant to these specific learners.':''}
 
 IMPORTANT: For each session's assessment, choose the TYPE that best matches that session's objective — do NOT repeat the same type for every session. Vary across: Observation, Oral Questioning, Written Quiz, Performance Task, Portfolio, Exit Ticket, Peer Assessment, Self-Assessment, Demonstration, Project, Rubric-based Output. Match the assessment to what the objective actually asks the learner to do (e.g. a "demonstrate" objective needs Performance Task/Demonstration, a "recall/identify" objective needs Written Quiz/Oral Questioning, a "reflect" objective needs Self-Assessment/Journal).
 
@@ -1448,6 +1454,7 @@ Return ONLY this JSON structure with ${numSessions} sessions (session1 to sessio
   "standard": "Content Standard: [write] | Performance Standard: [write]",
   "competency": "${competency||'[write competency]'}",
   "learnerContext": "${context||'[describe learners]'}",
+  "localContext": "${localContext||''}",
   "objectives": {${sessionList.map(s=>'"'+s+'":"K:[objective] Sk:[objective] A:[objective]"').join(',')}},
   "preLesson": {${sessionList.map(s=>'"'+s+'":" [activity]"').join(',')}},
   "flow": {${sessionList.map(s=>'"'+s+'":"Engage:[act] Explore:[act] Experience:[act] Empathize:[act]"').join(',')}},
@@ -1544,6 +1551,7 @@ function renderILAWPreview(d,sessionList,sNums){
     <tr><td style="${lblStyle}">Standard</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.standard)}</td></tr>
     <tr><td style="${lblStyle}">Competency</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.competency)}</td></tr>
     <tr><td style="${lblStyle}">Learner Context</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.learnerContext)}</td></tr>
+    ${d.localContext?`<tr><td style="${lblStyle}">Local Context</td><td style="${tdStyle}" colspan="${d.numSessions||5}">${esc(d.localContext)}</td></tr>`:''}
     <tr><th style="${thStyle}">Objectives</th>${sessionHeaders}</tr>
     ${row('',d.objectives)}
   </table>
