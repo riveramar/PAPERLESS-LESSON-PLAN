@@ -160,6 +160,15 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .ilaw-form-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.75rem;margin-bottom:1.5rem;}
 .ilaw-draft-warning{background:#fff3cd;border:1.5px solid #e8a400;border-left:5px solid #b8860b;color:#5a4000;padding:1rem 1.25rem;border-radius:var(--radius);font-size:13px;line-height:1.6;margin-bottom:1.5rem;}
 .ilaw-draft-warning strong{color:#3a2900;}
+.ilaw-slides-panel{background:#fff;border:1.5px solid var(--gray-100);border-top:none;padding:1.25rem 1.75rem 1.5rem;}
+.ilaw-slides-panel h4{margin:0 0 4px;color:var(--navy);font-size:14px;}
+.ilaw-slides-panel p{margin:0 0 12px;font-size:12px;color:var(--gray-600);}
+.ilaw-session-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.ilaw-session-btn{background:var(--gold);color:var(--navy);border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;}
+.ilaw-session-btn:hover{background:#d19400;}
+.ilaw-session-btn:disabled{opacity:.6;cursor:wait;}
+.ilaw-resource-link{background:var(--gray-100);color:var(--navy);border:1.5px solid var(--gray-300);padding:8px 14px;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.ilaw-resource-link:hover{background:var(--navy);color:#fff;border-color:var(--navy);}
 .ilaw-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
 .ilaw-full{grid-column:1/-1;}
 .ilaw-output-header{background:var(--navy);color:#fff;padding:.85rem 1.25rem;border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
@@ -614,6 +623,16 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         ⚠️ <strong>Required before submission — DepEd Order No. 016, s. 2026 (Section V-C, Item 23):</strong> "Fully AI-generated lesson plans shall not be allowed." This output is a formatting draft only. You must personally review and finalize the Learning Competencies, Learning Objectives, Learning Experience/Flow, and Assessment so that they reflect your own professional instructional decisions and your actual learners' context — not just accept the AI's suggestions as-is.
         <br><br>
         <strong>AI Use Declaration (DepEd Order No. 003, s. 2026, Annex A):</strong> Indicate on your final submitted lesson plan which category applies — e.g. <em>"Limited AI Use: AI assisted in organizing/formatting this lesson plan after I made the core instructional decisions (competencies, objectives, learning experience design, assessment)"</em> or <em>"Guided AI Use: AI assisted with grammar, clarity, and formatting only."</em> Do not declare this as unassisted personal work if AI contributed to its structure or content.
+      </div>
+      <div class="ilaw-slides-panel">
+        <h4>🖥️ Download Ready-to-Teach Slides per Session</h4>
+        <p>Generates an actual teaching deck for the session you pick — title, objective, warm-up, discussion content, activity, check-up questions, and summary — so you don't have to build slides from scratch. Takes about 20–40 seconds since it writes fresh content. Review before presenting.</p>
+        <div id="ilaw-session-btns" class="ilaw-session-btns"></div>
+      </div>
+      <div class="ilaw-slides-panel" style="border-top:1.5px solid var(--gray-100);">
+        <h4>🔗 Find Teaching Resources on This Topic</h4>
+        <p>One click opens a search for videos, images, and articles on your topic — pick what's useful and link, download, or screenshot it into your own slides.</p>
+        <div id="ilaw-resource-links" class="ilaw-session-btns"></div>
       </div>
     </div>
 
@@ -1509,11 +1528,14 @@ Return ONLY this JSON structure with ${numSessions} sessions (session1 to sessio
       document.getElementById('ilaw-output').innerHTML=`<pre style="white-space:pre-wrap;font-size:13px;line-height:1.7;">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre>`;
       document.getElementById('ilaw-output-wrap').style.display='block';
       document.getElementById('ilaw-docx-btn').style.display='inline-flex';
+      document.getElementById('ilaw-session-btns').innerHTML='<span style="font-size:12px;color:var(--gray-600);">Slide export isn\'t available for this output — try generating again.</span>';
       return;
     }
     parsed.numSessions=numSessions;
     ilawData=parsed;
     renderILAWPreview(parsed,sessionList,sNums);
+    renderSessionButtons();
+    renderResourceLinks();
     document.getElementById('ilaw-output-wrap').style.display='block';
     document.getElementById('ilaw-docx-btn').style.display='inline-flex';
   }catch(e){
@@ -1630,6 +1652,198 @@ td,th{border:1px solid #ccc;padding:5px;font-size:9pt;vertical-align:top;}
     btn.disabled=false;btn.textContent='⬇ Download DOC';
   }
 }
+
+/* ══ PER-SESSION SLIDES (PPTX) ══ */
+let pptxLibPromise=null;
+function loadPptxGenJS(){
+  if(window.PptxGenJS)return Promise.resolve();
+  if(pptxLibPromise)return pptxLibPromise;
+  pptxLibPromise=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
+    s.onload=()=>resolve();
+    s.onerror=()=>{pptxLibPromise=null;reject(new Error('Could not load the slide-building library. Check your internet connection and try again.'));};
+    document.body.appendChild(s);
+  });
+  return pptxLibPromise;
+}
+
+function renderSessionButtons(){
+  const wrap=document.getElementById('ilaw-session-btns');
+  if(!wrap||!ilawData)return;
+  const n=parseInt(ilawData.numSessions)||5;
+  let html='';
+  for(let i=1;i<=n;i++){
+    html+=`<button class="ilaw-session-btn" id="sess-btn-${i}" onclick="downloadSessionPPTX(${i})">⬇ Session ${i} Slides</button>`;
+  }
+  wrap.innerHTML=html;
+}
+
+function renderResourceLinks(){
+  const wrap=document.getElementById('ilaw-resource-links');
+  if(!wrap||!ilawData||ilawData.raw)return;
+  const d=ilawData;
+  const topic=(d.lessonName||'').trim();
+  const subject=(d.learningArea||'').trim();
+  const grade=(d.gradeSection||'').split('-')[0].trim();
+  if(!topic){wrap.innerHTML='';return;}
+  const q=encodeURIComponent([topic,subject,grade].filter(Boolean).join(' '));
+  const qVideo=encodeURIComponent([topic,'explained','tagalog'].filter(Boolean).join(' '));
+  const links=[
+    {label:'📺 YouTube Videos',url:'https://www.youtube.com/results?search_query='+qVideo},
+    {label:'🖼️ Images for Slides',url:'https://www.google.com/search?tbm=isch&q='+q},
+    {label:'📰 Articles & Readings',url:'https://www.google.com/search?q='+q},
+    {label:'📊 Ready-Made Slides',url:'https://www.google.com/search?q='+encodeURIComponent(topic+' powerpoint presentation '+subject)},
+    {label:'📖 Wikipedia', url:'https://en.wikipedia.org/w/index.php?search='+encodeURIComponent(topic)},
+  ];
+  wrap.innerHTML=links.map(l=>`<a class="ilaw-resource-link" href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('');
+}
+
+async function downloadSessionPPTX(sessionNum){
+  if(!ilawData||ilawData.raw){alert('Please generate a structured lesson plan first (not available for the raw-text fallback output).');return;}
+  const btn=document.getElementById('sess-btn-'+sessionNum);
+  const origText=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Writing content…';}
+  try{
+    const d=ilawData;
+    const key='session'+sessionNum;
+    const objective=(d.objectives&&d.objectives[key])||'';
+
+    const contentPrompt=`You are helping a Filipino teacher prepare TEACHING SLIDES to actually present and discuss in class for one lesson session — not a lesson plan document, but the real instructional content (explanations, examples, discussion points, an activity, and check-up questions) a teacher would put on screen while teaching.
+
+Context:
+Topic/Lesson: ${d.lessonName||''}
+Subject: ${d.learningArea||''} | Grade & Section: ${d.gradeSection||''} | ${d.term||''} / ${d.week||''}, Session ${sessionNum} of ${d.numSessions||5}
+Standards/Competency: ${d.standard||''}
+This session's objective: ${objective}
+Planned flow for this session: ${(d.flow&&d.flow[key])||''}
+${d.localContext?('Local context to weave into examples: '+d.localContext):''}
+
+Write ACTUAL subject-matter content (real facts, definitions, steps, or examples relevant to "${d.lessonName}" for ${d.gradeSection} — do not just restate planning language like "discuss the topic"; write the actual explanation a teacher would say/show).
+
+Return ONLY valid JSON, no markdown:
+{
+  "title": "short slide-friendly title for this session's lesson",
+  "objectiveText": "1-2 sentence learner-friendly restatement of the objective",
+  "motivationHeading": "short heading for the opening hook/motivation activity",
+  "motivationBullets": ["bullet 1 (a real question, scenario, or short activity to open the lesson)","bullet 2","bullet 3"],
+  "contentSections": [
+    {"heading":"first subtopic heading","bullets":["real explanatory point 1 with actual facts/definitions","point 2","point 3","point 4"]},
+    {"heading":"second subtopic heading (if applicable, else omit)","bullets":["point 1","point 2","point 3"]}
+  ],
+  "activityHeading": "short heading for the guided/hands-on activity",
+  "activityInstructions": "clear step-by-step instructions a teacher would read aloud or display for the class activity",
+  "checkQuestions": ["formative check-up question 1 relevant to the actual content above","question 2","question 3"],
+  "summaryBullets": ["key takeaway 1","key takeaway 2","key takeaway 3"]
+}
+Keep bullets concise (under 18 words each) since these go on slides. Include 1-2 items in contentSections depending on how much the topic needs.`;
+
+    const controller=new AbortController();
+    const timeoutId=setTimeout(()=>controller.abort(),55000);
+    const resp=await fetch(ANTHROPIC_PROXY_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1800,messages:[{role:'user',content:contentPrompt}]}),
+      signal:controller.signal
+    });
+    clearTimeout(timeoutId);
+    const rawResp=await resp.text();
+    let text='';
+    try{
+      const data=JSON.parse(rawResp);
+      if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+      text=data.content?.[0]?.text||'';
+    }catch(parseErr){
+      throw new Error('Worker error: '+rawResp.substring(0,200));
+    }
+    if(!text)throw new Error('Empty response from AI. Please try again.');
+    const clean=text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    const c=JSON.parse(clean);
+
+    if(btn)btn.textContent='Building slides…';
+    await loadPptxGenJS();
+
+    const NAVY='1A2E5A',GOLD='E8A400',DARK='222222',GRAY='666666',LIGHTBG='F7F9FC';
+    const pres=new window.PptxGenJS();
+    pres.layout='LAYOUT_WIDE';
+
+    const footer=(slide)=>{
+      slide.addText(`${d.school||'Tugdan National High School'}  •  ${d.learningArea||''}  •  ${d.week||''}, Session ${sessionNum}`,
+        {x:0.5,y:7.15,w:11,h:0.3,fontSize:9,color:GRAY,align:'left'});
+      slide.addText('AI-assisted draft — teacher-reviewed before use',
+        {x:9.3,y:7.15,w:3.6,h:0.3,fontSize:9,color:GRAY,align:'right',italic:true});
+    };
+    const badge=(slide,text)=>{
+      slide.addShape('roundRect',{x:11.3,y:0.4,w:1.6,h:0.45,rectRadius:0.08,fill:{color:GOLD},line:{type:'none'}});
+      slide.addText(text,{x:11.3,y:0.4,w:1.6,h:0.45,fontSize:12,bold:true,color:NAVY,align:'center',valign:'middle'});
+    };
+    const bulletList=(items)=>(items||[]).map((t,i)=>({text:t,options:{bullet:{code:'25CF'},color:DARK,breakLine:i<items.length-1}}));
+
+    // 1. Title
+    let s1=pres.addSlide();
+    s1.background={color:NAVY};
+    s1.addText(c.title||d.lessonName||'Lesson',{x:0.8,y:2.2,w:11.7,h:1.4,fontSize:34,bold:true,color:'FFFFFF'});
+    s1.addText(`Session ${sessionNum} of ${d.numSessions||5}`,{x:0.8,y:3.5,w:11.7,h:0.5,fontSize:16,color:GOLD,bold:true});
+    s1.addText(`${d.learningArea||''}   •   ${d.gradeSection||''}   •   ${d.week||''}`,{x:0.8,y:4.0,w:11.7,h:0.5,fontSize:13,color:'CCCCCC'});
+
+    // 2. Objective
+    let s2=pres.addSlide();
+    s2.background={color:'FFFFFF'};
+    s2.addText("Today's Objective",{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
+    badge(s2,'Session '+sessionNum);
+    s2.addShape('roundRect',{x:0.7,y:1.7,w:11.9,h:2.0,rectRadius:0.1,fill:{color:LIGHTBG},line:{type:'none'}});
+    s2.addText(c.objectiveText||objective,{x:1.1,y:1.95,w:11.1,h:1.5,fontSize:20,color:DARK,valign:'middle'});
+    footer(s2);
+
+    // 3. Motivation
+    let s3=pres.addSlide();
+    s3.addText(c.motivationHeading||'Let\'s Get Started',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
+    badge(s3,'Warm-Up');
+    s3.addText(bulletList(c.motivationBullets),{x:0.9,y:1.7,w:11.3,h:4.8,fontSize:18,valign:'top',lineSpacingMultiple:1.4,paraSpaceAfter:14});
+    footer(s3);
+
+    // 4+. Content sections
+    (c.contentSections||[]).forEach((sec)=>{
+      let s=pres.addSlide();
+      s.addText(sec.heading||'Discussion',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
+      badge(s,'Discuss');
+      s.addText(bulletList(sec.bullets),{x:0.9,y:1.7,w:11.3,h:4.8,fontSize:17,valign:'top',lineSpacingMultiple:1.35,paraSpaceAfter:12});
+      footer(s);
+    });
+
+    // Activity
+    let s5=pres.addSlide();
+    s5.addText(c.activityHeading||'Try It Yourself',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
+    badge(s5,'Activity');
+    s5.addShape('roundRect',{x:0.7,y:1.7,w:11.9,h:4.4,rectRadius:0.1,fill:{color:LIGHTBG},line:{type:'none'}});
+    s5.addText(c.activityInstructions||'',{x:1.1,y:1.95,w:11.1,h:3.9,fontSize:17,color:DARK,valign:'top',lineSpacingMultiple:1.35});
+    footer(s5);
+
+    // Check questions
+    let s6=pres.addSlide();
+    s6.addText('Check Your Understanding',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
+    badge(s6,'Check-Up');
+    s6.addText(bulletList(c.checkQuestions),{x:0.9,y:1.7,w:11.3,h:4.8,fontSize:18,valign:'top',lineSpacingMultiple:1.4,paraSpaceAfter:16});
+    footer(s6);
+
+    // Summary
+    let s7=pres.addSlide();
+    s7.background={color:NAVY};
+    s7.addText('Key Takeaways',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:'FFFFFF'});
+    s7.addText((c.summaryBullets||[]).map((t,i)=>({text:t,options:{bullet:{code:'25CF'},color:'FFFFFF',breakLine:i<(c.summaryBullets||[]).length-1}})),
+      {x:0.9,y:1.7,w:11.3,h:4.8,fontSize:19,valign:'top',lineSpacingMultiple:1.4,paraSpaceAfter:14});
+
+    const fname=`Session${sessionNum}_${(d.lessonName||'Lesson').replace(/[^a-z0-9]/gi,'_')}.pptx`;
+    await pres.writeFile({fileName:fname});
+  }catch(e){
+    if(e.name==='AbortError'){alert('Generation timed out. Please try again.');}
+    else{alert('Slide generation failed: '+e.message);}
+    console.error(e);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=origText;}
+  }
+}
+
 function copyILAW(){
   const el=document.getElementById('ilaw-output');
   if(!el||!el.innerText.trim())return;
