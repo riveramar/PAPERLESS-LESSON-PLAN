@@ -1512,9 +1512,7 @@ Return ONLY this JSON structure with ${numSessions} sessions (session1 to sessio
     try{
       const data=JSON.parse(rawResp);
       if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
-      let rawText=data.content?.[0]?.text;
-      if(Array.isArray(rawText))rawText=rawText.map(x=>typeof x==='string'?x:(x&&x.text)||'').join('');
-      text=typeof rawText==='string'?rawText:String(rawText||'');
+      text=data.content?.[0]?.text||'';
     }catch(parseErr){
       throw new Error('Worker error: '+rawResp.substring(0,200));
     }
@@ -1523,13 +1521,7 @@ Return ONLY this JSON structure with ${numSessions} sessions (session1 to sessio
     let parsed;
     try{
       const clean=text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-      try{
-        parsed=JSON.parse(clean);
-      }catch(je){
-        const m=clean.match(/\{[\s\S]*\}/);
-        if(m)parsed=JSON.parse(m[0]);
-        else throw je;
-      }
+      parsed=JSON.parse(clean);
     }catch(e){
       // fallback: show raw
       ilawData={raw:text,numSessions};
@@ -1760,22 +1752,13 @@ Keep bullets concise (under 18 words each) since these go on slides. Include 1-2
     try{
       const data=JSON.parse(rawResp);
       if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
-      let rawText=data.content?.[0]?.text;
-      if(Array.isArray(rawText))rawText=rawText.map(x=>typeof x==='string'?x:(x&&x.text)||'').join('');
-      text=typeof rawText==='string'?rawText:String(rawText||'');
+      text=data.content?.[0]?.text||'';
     }catch(parseErr){
       throw new Error('Worker error: '+rawResp.substring(0,200));
     }
     if(!text)throw new Error('Empty response from AI. Please try again.');
-    let clean=text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    let c;
-    try{
-      c=JSON.parse(clean);
-    }catch(je){
-      const m=clean.match(/\{[\s\S]*\}/);
-      if(m){c=JSON.parse(m[0]);}
-      else{throw new Error('AI returned unreadable content. Please try again.');}
-    }
+    const clean=text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    const c=JSON.parse(clean);
 
     if(btn)btn.textContent='Building slides…';
     await loadPptxGenJS();
@@ -1794,87 +1777,61 @@ Keep bullets concise (under 18 words each) since these go on slides. Include 1-2
       slide.addShape('roundRect',{x:11.3,y:0.4,w:1.6,h:0.45,rectRadius:0.08,fill:{color:GOLD},line:{type:'none'}});
       slide.addText(text,{x:11.3,y:0.4,w:1.6,h:0.45,fontSize:12,bold:true,color:NAVY,align:'center',valign:'middle'});
     };
-    const numberedBlock=(slide,items,startY,fontSize)=>{
-      const rowH=Math.min(1.0,(5.6-startY)/Math.max(items.length,1));
-      items.forEach((t,i)=>{
-        const y=startY+i*rowH;
-        slide.addShape('oval',{x:0.9,y:y+0.05,w:0.42,h:0.42,fill:{color:GOLD},line:{type:'none'}});
-        slide.addText(String(i+1),{x:0.9,y:y+0.05,w:0.42,h:0.42,fontSize:15,bold:true,color:NAVY,align:'center',valign:'middle'});
-        slide.addText(t,{x:1.5,y:y,w:10.7,h:rowH,fontSize:fontSize,color:DARK,valign:'middle',lineSpacingMultiple:1.15});
-      });
-    };
+    const bulletList=(items)=>(items||[]).map((t,i)=>({text:t,options:{bullet:{code:'25CF'},color:DARK,breakLine:i<items.length-1}}));
 
-    // 1. Title — decorative corner circles + gold accent bar
+    // 1. Title
     let s1=pres.addSlide();
     s1.background={color:NAVY};
-    s1.addShape('ellipse',{x:9.8,y:-1.6,w:5,h:5,fill:{color:'24386E'},line:{type:'none'}});
-    s1.addShape('ellipse',{x:-1.5,y:5.2,w:3.6,h:3.6,fill:{color:'16264A'},line:{type:'none'}});
-    s1.addShape('rect',{x:0.8,y:1.9,w:0.09,h:1.9,fill:{color:GOLD},line:{type:'none'}});
-    s1.addText(c.title||d.lessonName||'Lesson',{x:1.05,y:2.15,w:10.9,h:1.4,fontSize:34,bold:true,color:'FFFFFF'});
-    s1.addText(`SESSION ${sessionNum} OF ${d.numSessions||5}`,{x:1.05,y:3.5,w:10.9,h:0.5,fontSize:15,color:GOLD,bold:true,charSpacing:1});
-    s1.addText(`${d.learningArea||''}   •   ${d.gradeSection||''}   •   ${d.week||''}`,{x:1.05,y:4.0,w:10.9,h:0.5,fontSize:13,color:'BFC9DC'});
+    s1.addText(c.title||d.lessonName||'Lesson',{x:0.8,y:2.2,w:11.7,h:1.4,fontSize:34,bold:true,color:'FFFFFF'});
+    s1.addText(`Session ${sessionNum} of ${d.numSessions||5}`,{x:0.8,y:3.5,w:11.7,h:0.5,fontSize:16,color:GOLD,bold:true});
+    s1.addText(`${d.learningArea||''}   •   ${d.gradeSection||''}   •   ${d.week||''}`,{x:0.8,y:4.0,w:11.7,h:0.5,fontSize:13,color:'CCCCCC'});
 
     // 2. Objective
     let s2=pres.addSlide();
     s2.background={color:'FFFFFF'};
-    s2.addShape('rect',{x:0,y:0,w:0.18,h:7.5,fill:{color:GOLD},line:{type:'none'}});
-    s2.addText("TODAY'S OBJECTIVE",{x:0.7,y:0.5,w:9.5,h:0.6,fontSize:14,bold:true,color:GOLD,charSpacing:1});
+    s2.addText("Today's Objective",{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
     badge(s2,'Session '+sessionNum);
-    s2.addShape('roundRect',{x:0.7,y:1.5,w:11.9,h:2.4,rectRadius:0.12,fill:{color:LIGHTBG},line:{type:'none'}});
-    s2.addText(c.objectiveText||objective,{x:1.2,y:1.8,w:10.9,h:1.8,fontSize:22,color:DARK,valign:'middle',lineSpacingMultiple:1.3});
+    s2.addShape('roundRect',{x:0.7,y:1.7,w:11.9,h:2.0,rectRadius:0.1,fill:{color:LIGHTBG},line:{type:'none'}});
+    s2.addText(c.objectiveText||objective,{x:1.1,y:1.95,w:11.1,h:1.5,fontSize:20,color:DARK,valign:'middle'});
     footer(s2);
 
     // 3. Motivation
     let s3=pres.addSlide();
-    s3.background={color:'FFFFFF'};
-    s3.addShape('rect',{x:0,y:0,w:0.18,h:7.5,fill:{color:GOLD},line:{type:'none'}});
     s3.addText(c.motivationHeading||'Let\'s Get Started',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
     badge(s3,'Warm-Up');
-    numberedBlock(s3,c.motivationBullets||[],1.7,17);
+    s3.addText(bulletList(c.motivationBullets),{x:0.9,y:1.7,w:11.3,h:4.8,fontSize:18,valign:'top',lineSpacingMultiple:1.4,paraSpaceAfter:14});
     footer(s3);
 
     // 4+. Content sections
     (c.contentSections||[]).forEach((sec)=>{
       let s=pres.addSlide();
-      s.background={color:'FFFFFF'};
-      s.addShape('rect',{x:0,y:0,w:0.18,h:7.5,fill:{color:GOLD},line:{type:'none'}});
       s.addText(sec.heading||'Discussion',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
       badge(s,'Discuss');
-      numberedBlock(s,sec.bullets||[],1.7,16);
+      s.addText(bulletList(sec.bullets),{x:0.9,y:1.7,w:11.3,h:4.8,fontSize:17,valign:'top',lineSpacingMultiple:1.35,paraSpaceAfter:12});
       footer(s);
     });
 
     // Activity
     let s5=pres.addSlide();
-    s5.background={color:'FFFFFF'};
-    s5.addShape('rect',{x:0,y:0,w:0.18,h:7.5,fill:{color:GOLD},line:{type:'none'}});
     s5.addText(c.activityHeading||'Try It Yourself',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
     badge(s5,'Activity');
-    s5.addShape('roundRect',{x:0.7,y:1.7,w:11.9,h:4.4,rectRadius:0.12,fill:{color:LIGHTBG},line:{type:'none'}});
-    s5.addText(c.activityInstructions||'',{x:1.2,y:2.0,w:11.1,h:3.9,fontSize:17,color:DARK,valign:'top',lineSpacingMultiple:1.4});
+    s5.addShape('roundRect',{x:0.7,y:1.7,w:11.9,h:4.4,rectRadius:0.1,fill:{color:LIGHTBG},line:{type:'none'}});
+    s5.addText(c.activityInstructions||'',{x:1.1,y:1.95,w:11.1,h:3.9,fontSize:17,color:DARK,valign:'top',lineSpacingMultiple:1.35});
     footer(s5);
 
     // Check questions
     let s6=pres.addSlide();
-    s6.background={color:'FFFFFF'};
-    s6.addShape('rect',{x:0,y:0,w:0.18,h:7.5,fill:{color:GOLD},line:{type:'none'}});
     s6.addText('Check Your Understanding',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:NAVY});
     badge(s6,'Check-Up');
-    numberedBlock(s6,c.checkQuestions||[],1.7,18);
+    s6.addText(bulletList(c.checkQuestions),{x:0.9,y:1.7,w:11.3,h:4.8,fontSize:18,valign:'top',lineSpacingMultiple:1.4,paraSpaceAfter:16});
     footer(s6);
 
-    // Summary — closing slide with decorative circle
+    // Summary
     let s7=pres.addSlide();
     s7.background={color:NAVY};
-    s7.addShape('ellipse',{x:9.8,y:4.3,w:5,h:5,fill:{color:'24386E'},line:{type:'none'}});
-    s7.addShape('rect',{x:0.8,y:0.7,w:0.09,h:0.9,fill:{color:GOLD},line:{type:'none'}});
-    s7.addText('KEY TAKEAWAYS',{x:1.05,y:0.55,w:9.5,h:0.8,fontSize:26,bold:true,color:'FFFFFF'});
-    (c.summaryBullets||[]).forEach((t,i)=>{
-      const y=1.9+i*1.15;
-      s7.addShape('oval',{x:0.9,y:y,w:0.42,h:0.42,fill:{color:GOLD},line:{type:'none'}});
-      s7.addText(String(i+1),{x:0.9,y:y,w:0.42,h:0.42,fontSize:15,bold:true,color:NAVY,align:'center',valign:'middle'});
-      s7.addText(t,{x:1.5,y:y-0.05,w:10.4,h:0.9,fontSize:19,color:'FFFFFF',valign:'middle',lineSpacingMultiple:1.2});
-    });
+    s7.addText('Key Takeaways',{x:0.7,y:0.5,w:9.5,h:0.8,fontSize:26,bold:true,color:'FFFFFF'});
+    s7.addText((c.summaryBullets||[]).map((t,i)=>({text:t,options:{bullet:{code:'25CF'},color:'FFFFFF',breakLine:i<(c.summaryBullets||[]).length-1}})),
+      {x:0.9,y:1.7,w:11.3,h:4.8,fontSize:19,valign:'top',lineSpacingMultiple:1.4,paraSpaceAfter:14});
 
     const fname=`Session${sessionNum}_${(d.lessonName||'Lesson').replace(/[^a-z0-9]/gi,'_')}.pptx`;
     await pres.writeFile({fileName:fname});
@@ -1894,4 +1851,15 @@ function copyILAW(){
     const btn=document.querySelector('[onclick="copyILAW()"]');
     const orig=btn.textContent;btn.textContent='✅ Copied!';
     setTimeout(()=>{btn.textContent=orig;},2000);
-  }).
+  }).catch(()=>alert('Please select the text manually and copy.'));
+}
+function printILAW(){
+  const el=document.getElementById('ilaw-output');
+  if(!el||!el.innerHTML.trim())return;
+  const win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><title>ILAW Lesson Plan</title><style>body{font-family:Segoe UI,sans-serif;font-size:11px;margin:1cm;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:5px;font-size:10px;vertical-align:top;}@page{size:landscape;margin:1cm;}</style></head><body>'+el.innerHTML+'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  win.document.close();
+}
+</script>
+</body>
+</html>
