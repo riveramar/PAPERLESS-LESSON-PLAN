@@ -1512,7 +1512,9 @@ Return ONLY this JSON structure with ${numSessions} sessions (session1 to sessio
     try{
       const data=JSON.parse(rawResp);
       if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
-      text=data.content?.[0]?.text||'';
+      let rawText=data.content?.[0]?.text;
+      if(Array.isArray(rawText))rawText=rawText.map(x=>typeof x==='string'?x:(x&&x.text)||'').join('');
+      text=typeof rawText==='string'?rawText:String(rawText||'');
     }catch(parseErr){
       throw new Error('Worker error: '+rawResp.substring(0,200));
     }
@@ -1521,7 +1523,13 @@ Return ONLY this JSON structure with ${numSessions} sessions (session1 to sessio
     let parsed;
     try{
       const clean=text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-      parsed=JSON.parse(clean);
+      try{
+        parsed=JSON.parse(clean);
+      }catch(je){
+        const m=clean.match(/\{[\s\S]*\}/);
+        if(m)parsed=JSON.parse(m[0]);
+        else throw je;
+      }
     }catch(e){
       // fallback: show raw
       ilawData={raw:text,numSessions};
@@ -1752,13 +1760,22 @@ Keep bullets concise (under 18 words each) since these go on slides. Include 1-2
     try{
       const data=JSON.parse(rawResp);
       if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
-      text=data.content?.[0]?.text||'';
+      let rawText=data.content?.[0]?.text;
+      if(Array.isArray(rawText))rawText=rawText.map(x=>typeof x==='string'?x:(x&&x.text)||'').join('');
+      text=typeof rawText==='string'?rawText:String(rawText||'');
     }catch(parseErr){
       throw new Error('Worker error: '+rawResp.substring(0,200));
     }
     if(!text)throw new Error('Empty response from AI. Please try again.');
-    const clean=text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    const c=JSON.parse(clean);
+    let clean=text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    let c;
+    try{
+      c=JSON.parse(clean);
+    }catch(je){
+      const m=clean.match(/\{[\s\S]*\}/);
+      if(m){c=JSON.parse(m[0]);}
+      else{throw new Error('AI returned unreadable content. Please try again.');}
+    }
 
     if(btn)btn.textContent='Building slides…';
     await loadPptxGenJS();
@@ -1877,15 +1894,4 @@ function copyILAW(){
     const btn=document.querySelector('[onclick="copyILAW()"]');
     const orig=btn.textContent;btn.textContent='✅ Copied!';
     setTimeout(()=>{btn.textContent=orig;},2000);
-  }).catch(()=>alert('Please select the text manually and copy.'));
-}
-function printILAW(){
-  const el=document.getElementById('ilaw-output');
-  if(!el||!el.innerHTML.trim())return;
-  const win=window.open('','_blank');
-  win.document.write('<!DOCTYPE html><html><head><title>ILAW Lesson Plan</title><style>body{font-family:Segoe UI,sans-serif;font-size:11px;margin:1cm;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:5px;font-size:10px;vertical-align:top;}@page{size:landscape;margin:1cm;}</style></head><body>'+el.innerHTML+'<script>window.onload=function(){window.print();}<\/script></body></html>');
-  win.document.close();
-}
-</script>
-</body>
-</html>
+  }).
