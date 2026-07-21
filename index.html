@@ -25,8 +25,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-50);color
 /* NAV */
 nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:68px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,0.2);}
 .nav-logo{display:flex;align-items:center;gap:12px;cursor:pointer;}
-.nav-logo img{width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;}
-.nav-logo-text .school{color:#fff;font-weight:800;font-size:14px;line-height:1.2;}
+.nav-logo img{width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;animation:logoFloat 3.5s ease-in-out infinite,logoGlow 3.5s ease-in-out infinite;transition:transform .2s;}
+.nav-logo:hover img{transform:scale(1.12) rotate(-4deg);}
+.nav-logo-text .school{color:#fff;font-weight:800;font-size:14px;line-height:1.2;animation:colorCycleLight 7s linear infinite;}
+@keyframes colorCycleLight{0%{color:#FFD98A;}16%{color:#FF9E9E;}33%{color:#8CE8E1;}50%{color:#C9B6FF;}66%{color:#8FE8B4;}83%{color:#9FC6FF;}100%{color:#FFD98A;}}
 .nav-logo-text .sub{color:rgba(255,255,255,0.55);font-size:11px;}
 .nav-links{display:flex;align-items:center;}
 .nav-sy-select{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:7px;padding:6px 10px;font-size:13px;font-weight:700;cursor:pointer;margin-left:10px;}
@@ -45,9 +47,13 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .hero{background:linear-gradient(135deg,var(--navy) 0%,#2a4a8a 100%);color:#fff;padding:4rem 2rem 3rem;text-align:center;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");}
 .hero-inner{position:relative;max-width:700px;margin:0 auto;}
-.hero-logo-img{display:block;width:110px;height:110px;border-radius:50%;border:4px solid var(--gold);object-fit:cover;margin:0 auto 1.25rem;box-shadow:0 0 32px rgba(232,164,0,0.4);}
+.hero-logo-img{display:block;width:110px;height:110px;border-radius:50%;border:4px solid var(--gold);object-fit:cover;margin:0 auto 1.25rem;box-shadow:0 0 32px rgba(232,164,0,0.4);animation:logoFloat 3.5s ease-in-out infinite,logoGlow 3.5s ease-in-out infinite;transition:transform .25s;}
+.hero-logo-img:hover{transform:scale(1.08) rotate(-3deg);}
+@keyframes logoFloat{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-6px) rotate(3deg);}}
+@keyframes logoGlow{0%,100%{box-shadow:0 0 18px rgba(232,164,0,0.45);}50%{box-shadow:0 0 34px rgba(232,164,0,0.9),0 0 46px rgba(255,255,255,0.35);}}
+@keyframes colorCycle{0%{color:#E8A400;}16%{color:#FF6B6B;}33%{color:#4ECDC4;}50%{color:#A78BFA;}66%{color:#34D399;}83%{color:#60A5FA;}100%{color:#E8A400;}}
 .hero-tag{display:inline-block;background:var(--gold);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:1rem;}
-.hero h1{font-size:2.1rem;font-weight:800;line-height:1.2;margin-bottom:.4rem;}
+.hero h1{font-size:2.1rem;font-weight:800;line-height:1.2;margin-bottom:.4rem;animation:colorCycle 7s linear infinite;}
 .hero .loc{color:rgba(255,255,255,0.55);font-size:13px;margin-bottom:.75rem;letter-spacing:.5px;}
 .hero .desc{color:rgba(255,255,255,0.8);font-size:15px;max-width:540px;margin:0 auto;}
 .hero-stats{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;padding-top:1.5rem;margin-top:1.5rem;border-top:1px solid rgba(255,255,255,0.15);}
@@ -825,7 +831,7 @@ const GDRIVE_FOLDER_ID='1kwStyZ4ZiP4PaYU3tristZ7GVnkj-7bT';
 const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive openid email profile';
 /* Set this to the first Monday of classes (YYYY-MM-DD).
    Used by the Tracker to mark submissions On Time (Mon–Fri of that week) or Late. */
-const SCHOOL_START='2026-06-15'; // ← Change to actual first day of classes
+const SCHOOL_START='2026-07-27'; // ← Change to actual first day of classes
 
 let gToken=null,gTokenClient=null,gapiInited=false,gisInited=false,signedInEmail=null;
 const gFolderId=(GDRIVE_FOLDER_ID&&GDRIVE_FOLDER_ID.indexOf('PASTE_YOUR')!==0)?GDRIVE_FOLDER_ID:null;
