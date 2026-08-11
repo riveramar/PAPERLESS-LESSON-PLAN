@@ -248,6 +248,10 @@ nav{background:var(--navy);display:flex;align-items:center;justify-content:space
 .fgrp label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--gray-800);}
 .fgrp select,.fgrp input[type=text]{width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid var(--gray-300);font-size:14px;color:var(--gray-800);outline:none;transition:border-color .15s;background:#fff;}
 .fgrp select:focus,.fgrp input:focus{border-color:var(--navy);}
+.week-hint{font-size:12px;color:#667;margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.week-hint.current strong{color:var(--navy);}
+.week-hint button{border:none;background:var(--gray-100);color:var(--navy);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;}
+.week-hint button:hover{background:#e2e6ee;}
 .dropzone{border:2px dashed var(--gray-300);border-radius:var(--radius);padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .15s;position:relative;background:var(--gray-50);}
 .dropzone:hover,.dropzone.over{border-color:var(--navy);background:var(--blue-light);}
 .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
@@ -742,6 +746,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         <option value="">– Select Week –</option>
         <option value="1">Week 1</option><option value="2">Week 2</option><option value="3">Week 3</option><option value="4">Week 4</option><option value="5">Week 5</option><option value="6">Week 6</option><option value="7">Week 7</option><option value="8">Week 8</option><option value="9">Week 9</option><option value="10">Week 10</option><option value="11">Week 11</option><option value="12">Week 12</option><option value="13">Week 13</option><option value="14">Week 14</option><option value="15">Week 15</option><option value="16">Week 16</option><option value="17">Week 17</option><option value="18">Week 18</option><option value="19">Week 19</option><option value="20">Week 20</option>
       </select>
+      <div class="week-hint current" id="u-week-hint"></div>
     </div>
     <div class="fgrp">
       <label for="file-input">Lesson Plan File</label>
@@ -1326,6 +1331,44 @@ function getWeekWindow(weekNum){
   const fri=new Date(mon);fri.setDate(mon.getDate()+4);fri.setHours(23,59,59,999);
   return{mon,fri};
 }
+/* ── Human-readable date range for a Week number, e.g. "Aug 10–14, 2026" ── */
+function fmtWeekRange(weekNum){
+  const{mon,fri}=getWeekWindow(weekNum);
+  const sameMonth=mon.getMonth()===fri.getMonth();
+  const monStr=mon.toLocaleDateString('en-PH',{month:'short',day:'numeric'});
+  const friStr=fri.toLocaleDateString('en-PH',sameMonth?{day:'numeric'}:{month:'short',day:'numeric'});
+  return`${monStr}–${friStr}, ${fri.getFullYear()}`;
+}
+/* ── Which Week number is "today" in, based on SCHOOL_START ── */
+function getCurrentWeekNum(){
+  const start=new Date(SCHOOL_START+'T00:00:00');
+  const day=start.getDay();
+  const diff=day===0?-6:(1-day);
+  start.setDate(start.getDate()+diff); // Monday of Week 1
+  const now=new Date();
+  const diffDays=Math.floor((now-start)/86400000);
+  const wk=Math.floor(diffDays/7)+1;
+  return wk<1?1:wk;
+}
+/* ── Add the actual date range to every Week option, and mark the current one ── */
+function populateWeekSelects(){
+  const curWk=getCurrentWeekNum();
+  ['u-week','tr-week','ilaw-week'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    Array.from(sel.options).forEach(opt=>{
+      const m=(opt.value||opt.textContent).match(/\d+/);
+      if(!m)return;
+      const wk=parseInt(m[0]);
+      const isCur=wk===curWk;
+      opt.textContent=`Week ${wk} (${fmtWeekRange(wk)})${isCur?' ⭐ Current':''}`;
+    });
+  });
+  const hint=document.getElementById('u-week-hint');
+  if(hint){
+    hint.innerHTML=`📅 Kasalukuyang Linggo: <strong>Week ${curWk} (${fmtWeekRange(curWk)})</strong> <button type="button" onclick="document.getElementById('u-week').value='${curWk}'">Gamitin ito</button>`;
+  }
+}
 function getTimingBadge(dateStr,weekNum){
   if(!dateStr)return'<span class="badge-pending">No Date</span>';
   if(!weekNum)return'<span class="badge-pending">No Week Info</span>';
@@ -1402,7 +1445,9 @@ function renderTracker(){
   weeks.forEach(w=>{
     const entries=byWeek[w]||[];
     if(weekFilter!=='all'&&entries.length===0){
-      html+=`<div class="tracker-week-block"><div class="tracker-week-header">Week ${w}<span>0 submissions</span></div><div class="tr-empty">No submissions yet for this week.</div></div>`;
+      const wN=parseInt(w)||0;
+      const rng=wN?` · Deadline: ${getWeekWindow(wN).fri.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}`:'';
+      html+=`<div class="tracker-week-block"><div class="tracker-week-header">Week ${w}<span>0 submissions${rng}</span></div><div class="tr-empty">No submissions yet for this week.</div></div>`;
       return;
     }
     if(entries.length===0)return;
@@ -1432,6 +1477,7 @@ function renderTracker(){
   document.getElementById('tracker-body').innerHTML=html||'<div class="tr-empty">No submissions found.</div>';
 }
 renderAll();updateTermCounts();
+populateWeekSelects();
 setDriveStatus(false);
 
 /* ══ ILAW GENERATOR ══ */
