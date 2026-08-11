@@ -821,6 +821,65 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   </div>
 </div>
 
+<!-- ══ TAG MODAL — add/remove which Departments & Grade Levels an already-uploaded file counts toward, without needing to re-upload it ══ -->
+<div class="moverlay" id="m-tag" onclick="if(event.target===this)closeTagModal()">
+  <div class="modal">
+    <div class="modal-body">
+    <button class="mclose" onclick="closeTagModal()">✕</button>
+    <h3>🏷 I-tag sa Ibang Department / Grade Level</h3>
+    <p class="msub">Piliin ang lahat ng destinasyon kung saan dapat mabilang ang file na ito: <strong id="tag-fname"></strong>. Naka-check na ang mga kasalukuyang naka-tag — pwede kang magdagdag o mag-alis.</p>
+    <div class="fgrp">
+      <div class="deptgrade-wrap" id="tg-deptgrade-wrap">
+        <div class="dg-section">
+          <div class="dg-header" onclick="toggleTgSection('jhs')">
+            <span class="dg-arrow" id="tg-arrow-jhs">▶</span>
+            <span class="gbadge jhs" style="font-size:11px;padding:2px 8px;">JHS</span>
+            Junior High School
+          </div>
+          <div class="dg-body" id="tg-body-jhs">
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="jhs|7"> Grade 7 – JHS</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="jhs|8"> Grade 8 – JHS</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="jhs|9"> Grade 9 – JHS</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="jhs|10"> Grade 10 – JHS</label>
+          </div>
+        </div>
+        <div class="dg-section">
+          <div class="dg-header" onclick="toggleTgSection('ste')">
+            <span class="dg-arrow" id="tg-arrow-ste">▶</span>
+            <span class="gbadge ste" style="font-size:11px;padding:2px 8px;">STE</span>
+            Science &amp; Technology
+          </div>
+          <div class="dg-body" id="tg-body-ste">
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="ste|7"> Grade 7 – STE</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="ste|8"> Grade 8 – STE</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="ste|9"> Grade 9 – STE</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="ste|10"> Grade 10 – STE</label>
+          </div>
+        </div>
+        <div class="dg-section">
+          <div class="dg-header" onclick="toggleTgSection('shs')">
+            <span class="dg-arrow" id="tg-arrow-shs">▶</span>
+            <span class="gbadge shs" style="font-size:11px;padding:2px 8px;">SHS</span>
+            Senior High School
+          </div>
+          <div class="dg-body" id="tg-body-shs">
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="shs|11|Academics"> Grade 11 – Academics</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="shs|11|TechPro"> Grade 11 – TechPro</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="shs|12|Academics"> Grade 12 – Academics</label>
+            <label class="dg-check"><input type="checkbox" name="tgdg" value="shs|12|TechPro"> Grade 12 – TechPro</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div><!-- /modal-body -->
+    <div class="modal-footer">
+    <button class="btn-sub" id="tag-btn" onclick="saveTagTargets()">💾 I-save ang Mga Destinasyon</button>
+    <div class="smsg" id="tag-ok">✅ Na-update na ang pag-tag ng file!</div>
+    <div class="emsg" id="tag-err"></div>
+    </div>
+  </div>
+</div>
+
 <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoad()"></script>
 <script src="https://apis.google.com/js/api.js?onload=gapiLoad" async defer></script>
 <script>
@@ -839,9 +898,10 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       - Add each teacher's account individually as Editor → so they can upload/delete once signed in.
       Copy the folder's ID from its URL (drive.google.com/drive/folders/THIS_PART) and paste it
       below as GDRIVE_FOLDER_ID. */
-/* Set this to the Gmail address that should have access to the Tracker page.
-   Only this account will see the Tracker tab after signing in. */
-const ADMIN_EMAIL='findmetodeath@gmail.com'; // ← e.g. 'principal@gmail.com'
+/* Set the Gmail/DepEd address(es) that should have access to the Tracker page.
+   Only accounts in this list will see the Tracker tab after signing in.
+   Add more emails to the array as needed, separated by commas. */
+const ADMIN_EMAILS=['findmetodeath@gmail.com','marisol.tapalla@deped.gov.ph'];
 /* Paste your Cloudflare Worker URL here after deploying it.
    Example: 'https://tnhs-proxy.yourname.workers.dev' */
 const ANTHROPIC_PROXY_URL='https://late-violet-c7a6.findmetodeath.workers.dev';
@@ -924,6 +984,43 @@ function openDriveFolder(){
 /* ══ DATA ══ */
 const SYS=['2025-2026','2026-2027','2027-2028','2028-2029','2029-2030','2030-2031'];
 const TERMS=['term1','term2','term3'];
+/* ── Compact Department/Grade target encoding ──
+   Google Drive custom file properties are capped at 124 bytes (key+value combined).
+   The old verbose JSON format, e.g. [{"dept":"jhs","grade":"7","track":""}, ...],
+   silently blew past that limit once a teacher tagged 3+ destinations, which made
+   the ENTIRE upload get rejected by Drive — so a file meant for multiple
+   departments/grade levels would fail to save those extra tags (or fail outright).
+   This compact "j7,j8,s7,h11a" format uses ~4 bytes per destination instead of
+   ~38, so even all 12 destinations fit comfortably under the limit. */
+const DEPT_CODE={jhs:'j',ste:'s',shs:'h'};
+const DEPT_FROM_CODE={j:'jhs',s:'ste',h:'shs'};
+const TRACK_CODE={Academics:'a',TechPro:'t'};
+const TRACK_FROM_CODE={a:'Academics',t:'TechPro'};
+function encodeTargets(targets){
+  return targets.map(t=>{
+    const c=DEPT_CODE[t.dept]||'';
+    if(t.dept==='shs')return c+t.grade+(TRACK_CODE[t.track]||'');
+    return c+t.grade;
+  }).join(',');
+}
+function decodeTargets(str){
+  if(!str)return[];
+  str=String(str).trim();
+  if(str[0]==='['){ // legacy verbose JSON format — still readable for old files
+    try{return JSON.parse(str);}catch(e){return[];}
+  }
+  return str.split(',').map(tok=>{
+    tok=tok.trim();if(!tok)return null;
+    const dept=DEPT_FROM_CODE[tok[0]];
+    if(!dept)return null;
+    let rest=tok.slice(1),track='';
+    if(dept==='shs'){
+      const last=rest.slice(-1).toLowerCase();
+      if(TRACK_FROM_CODE[last]){track=TRACK_FROM_CODE[last];rest=rest.slice(0,-1);}
+    }
+    return rest?{dept,grade:rest,track}:null;
+  }).filter(Boolean);
+}
 function newData(){
   const d={};
   SYS.forEach(sy=>{d[sy]={};TERMS.forEach(t=>{d[sy][t]={jhs:{7:[],8:[],9:[],10:[]},ste:{7:[],8:[],9:[],10:[]},shs:{11:{Academics:[],TechPro:[]},12:{Academics:[],TechPro:[]}}};});});
@@ -957,9 +1054,9 @@ async function refreshAll(){
 
         const baseEntry={id:f.id,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),week:p.week?parseInt(p.week):null,rawDate:f.createdTime||null,date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
 
-        let targets=[];
-        try{if(p.targets)targets=JSON.parse(p.targets);}catch(e){}
+        let targets=decodeTargets(p.targets);
         if(!targets.length&&p.dept&&p.grade){targets=[{dept:p.dept,grade:p.grade,track:p.track||''}];}
+        baseEntry.allTargets=targets;
 
         targets.forEach(t=>{
           const dept=t.dept,grade=parseInt(t.grade),track=t.track||'';
@@ -1000,7 +1097,7 @@ function goPortal(term){curTerm=term;showPage('portal');switchTerm(term);}
 function updateTrackerVisibility(){
   const trackerLink=document.getElementById('nav-tracker');
   if(!trackerLink)return;
-  const isAdmin=signedInEmail&&ADMIN_EMAIL&&signedInEmail.toLowerCase()===ADMIN_EMAIL.toLowerCase();
+  const isAdmin=!!signedInEmail&&ADMIN_EMAILS.some(e=>e.toLowerCase()===signedInEmail.toLowerCase());
   trackerLink.style.display=isAdmin?'':'none';
   if(!isAdmin&&document.getElementById('page-tracker').classList.contains('active')){showPage('home');}
 }
@@ -1086,6 +1183,7 @@ function makeCard(grade,files,dept,track,term){
         </div>
         <div class="fitem-acts">
           <button class="fbtn" onclick='viewFile(${JSON.stringify({id:f.id,file:f.file,teacher:f.teacher})})'>👁 View</button><a class="fbtn" href="https://drive.google.com/uc?export=download&amp;id=${x(f.id)}" target="_blank">⬇</a>
+          <button class="fbtn" onclick='openTagModal(${JSON.stringify({id:f.id,file:f.file,targets:f.allTargets||[]})})'>🏷</button>
           <button class="fbtn del" onclick="askDel('${x(f.id)}','${x(f.file)}')">🗑</button>
         </div>
       </li>`;
@@ -1227,7 +1325,7 @@ function doUpload(){
 
   // parse targets: each value is "dept|grade" or "dept|grade|track"
   const targets=checked.map(cb=>{const p=cb.value.split('|');return{dept:p[0],grade:p[1],track:p[2]||''};});
-  const targetsJson=JSON.stringify(targets);
+  const targetsEncoded=encodeTargets(targets);
 
   const btn=document.getElementById('upload-btn');btn.disabled=true;btn.textContent='Uploading…';
   document.getElementById('progwrap').classList.add('show');
@@ -1237,7 +1335,7 @@ function doUpload(){
   const metadata={
     name:selFile.name,
     parents:[gFolderId],
-    properties:{sy,term,dept:firstTarget.dept,grade:firstTarget.grade,track:firstTarget.track||'',week,teacher,subject,targets:targetsJson}
+    properties:{sy,term,dept:firstTarget.dept,grade:firstTarget.grade,track:firstTarget.track||'',week,teacher,subject,targets:targetsEncoded}
   };
 
   const form=new FormData();
@@ -1272,6 +1370,72 @@ function doUpload(){
     document.getElementById('progwrap').classList.remove('show');
   };
   xhr.send(form);
+}
+
+/* ══ TAG / RETAG (add or remove Dept/Grade destinations on an existing file, no re-upload needed) ══ */
+let tagTarget=null;
+function toggleTgSection(dept){
+  const body=document.getElementById('tg-body-'+dept);
+  const arrow=document.getElementById('tg-arrow-'+dept);
+  if(!body)return;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  if(arrow)arrow.classList.toggle('open',!isOpen);
+}
+function openTagModal(info){
+  if(!gToken){
+    alert('Please sign in first ("Sign In to Upload", top right) before editing tags.');
+    return;
+  }
+  tagTarget={id:info.id};
+  document.getElementById('tag-fname').textContent='"'+info.file+'"';
+  document.querySelectorAll('input[name="tgdg"]').forEach(cb=>cb.checked=false);
+  ['jhs','ste','shs'].forEach(d=>{
+    const b=document.getElementById('tg-body-'+d);const a=document.getElementById('tg-arrow-'+d);
+    if(b)b.classList.remove('open');if(a)a.classList.remove('open');
+  });
+  (info.targets||[]).forEach(t=>{
+    const val=t.dept==='shs'&&t.track?t.dept+'|'+t.grade+'|'+t.track:t.dept+'|'+t.grade;
+    const cb=document.querySelector('input[name="tgdg"][value="'+val+'"]');
+    if(cb){
+      cb.checked=true;
+      const b=document.getElementById('tg-body-'+t.dept);const a=document.getElementById('tg-arrow-'+t.dept);
+      if(b)b.classList.add('open');if(a)a.classList.add('open');
+    }
+  });
+  document.getElementById('tag-ok').classList.remove('show');
+  document.getElementById('tag-err').classList.remove('show');
+  document.getElementById('tag-btn').disabled=false;document.getElementById('tag-btn').textContent='💾 I-save ang Mga Destinasyon';
+  document.getElementById('m-tag').classList.add('open');document.body.style.overflow='hidden';
+}
+function closeTagModal(){document.getElementById('m-tag').classList.remove('open');document.body.style.overflow='';tagTarget=null;}
+async function saveTagTargets(){
+  if(!tagTarget)return;
+  const err=document.getElementById('tag-err');err.classList.remove('show');
+  const checked=[...document.querySelectorAll('input[name="tgdg"]:checked')];
+  if(checked.length===0){err.textContent='Pumili ng kahit isang Department & Grade Level.';err.classList.add('show');return;}
+  if(!gToken){err.textContent='Your sign-in session expired. Click "Sign In to Upload" again, then try once more.';err.classList.add('show');return;}
+  const targets=checked.map(cb=>{const p=cb.value.split('|');return{dept:p[0],grade:p[1],track:p[2]||''};});
+  const firstTarget=targets[0];
+  const btn=document.getElementById('tag-btn');btn.disabled=true;btn.textContent='Sina-save…';
+  try{
+    const res=await fetch('https://www.googleapis.com/drive/v3/files/'+tagTarget.id,{
+      method:'PATCH',
+      headers:{Authorization:'Bearer '+gToken,'Content-Type':'application/json'},
+      body:JSON.stringify({properties:{dept:firstTarget.dept,grade:firstTarget.grade,track:firstTarget.track||'',targets:encodeTargets(targets)}})
+    });
+    if(!res.ok){const j=await res.json().catch(()=>({}));throw {status:res.status,message:j?.error?.message};}
+    document.getElementById('tag-ok').classList.add('show');
+    btn.textContent='✓ Na-save!';
+    await refreshAll();
+    setTimeout(closeTagModal,1200);
+  }catch(e){
+    console.error('Tag update failed',e);
+    if(e&&e.status===401){gToken=null;setDriveStatus(false);err.textContent='Your sign-in session expired. Click "Sign In to Upload" again, then try once more.';}
+    else{err.textContent=(e&&e.message)||'Could not save the tags. Please try again.';}
+    err.classList.add('show');
+    btn.disabled=false;btn.textContent='💾 I-save ang Mga Destinasyon';
+  }
 }
 
 /* ══ DELETE ══ */
