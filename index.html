@@ -399,6 +399,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-50);backg
 .deadlines-wrap{max-width:900px;margin:0 auto;padding:1.75rem 2rem;}
 .dl-settings-card{background:#fff;border-radius:14px;padding:1.4rem 1.6rem;box-shadow:var(--shadow);border:1.5px solid var(--gray-100);margin-bottom:1.5rem;}
 .dl-settings-card label{display:block;font-weight:700;font-size:13.5px;color:var(--gray-800);margin-bottom:.6rem;}
+.dl-term-start-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:1rem;}
+.dl-term-start-grid input[type=date]{width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid var(--gray-300);font-size:13.5px;outline:none;}
+.dl-term-start-grid input[type=date]:focus{border-color:var(--navy);}
+.dl-auto-tag{font-size:10px;font-weight:800;color:var(--gray-600);background:var(--gray-100);padding:2px 7px;border-radius:8px;text-transform:none;margin-left:4px;}
 .dl-settings-row{display:flex;gap:10px;flex-wrap:wrap;}
 .dl-settings-row input[type=date]{padding:9px 12px;border-radius:8px;border:1.5px solid var(--gray-300);font-size:14px;outline:none;}
 .dl-settings-row input[type=date]:focus{border-color:var(--navy);}
@@ -936,10 +940,25 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   </div>
   <div class="deadlines-wrap">
     <div class="dl-settings-card">
-      <label for="dl-school-start">📅 First Monday of Classes (Week 1 start)</label>
+      <label>📅 Simula ng Klase per Term</label>
+      <p class="settings-sub" style="margin-top:-6px;">Term 1 lang ang kailangang Lunes na simula ng klase. Ang Term 2 at Term 3 ay awtomatikong sumusunod kung magkakasunod lang (walang break) — pero kung may semestral break o pagitan, pwede mong direktang itakda ang eksaktong Lunes na magsisimula ang term na iyon.</p>
+      <div class="dl-term-start-grid">
+        <div class="tw-field">
+          <label>Term 1 (First Day of Classes)</label>
+          <input type="date" id="dl-term1-start">
+        </div>
+        <div class="tw-field">
+          <label>Term 2 <span class="dl-auto-tag" id="dl-t2-auto-tag"></span></label>
+          <input type="date" id="dl-term2-start">
+        </div>
+        <div class="tw-field">
+          <label>Term 3 <span class="dl-auto-tag" id="dl-t3-auto-tag"></span></label>
+          <input type="date" id="dl-term3-start">
+        </div>
+      </div>
       <div class="dl-settings-row">
-        <input type="date" id="dl-school-start">
-        <button class="btn-gold" onclick="saveSchoolStart()">💾 I-save</button>
+        <button class="btn-gold" onclick="saveTermStarts()">💾 I-save</button>
+        <button class="btn-ghost" style="background:var(--gray-100);color:var(--navy);border:none;" onclick="resetTermStartsToAuto()">🔁 Ibalik sa Auto (walang break)</button>
       </div>
       <div class="dl-settings-note" id="dl-settings-note"></div>
       <div class="dl-settings-hint">⚠️ Naka-save lang ito sa browser na ito. Kung gagamitin ninyo ito sa ibang computer o ibang admin, kailangan din nilang i-set ito sa sarili nilang browser.</div>
@@ -2105,15 +2124,43 @@ function vLoaded(){document.getElementById('vload').style.display='none';documen
 function closeView(){document.getElementById('m-view').classList.remove('open');document.body.style.overflow='';document.getElementById('vframe-if').src='';}
 
 /* ══ TRACKER ══ */
-function getWeekWindow(weekNum){
-  const start=new Date(EFFECTIVE_SCHOOL_START+'T00:00:00');
-  // adjust to nearest Monday on or before SCHOOL_START
-  const day=start.getDay(); // 0=Sun,1=Mon,...
+/* ── Per-term start dates. Term 1 starts on EFFECTIVE_SCHOOL_START; Term 2/3
+   default to continuing right after Term 1/2 (no gap), but can each be
+   overridden with their own actual Monday — e.g. after a semestral break —
+   via Deadline Management. ── */
+function getRawTermStarts(){
+  try{
+    const v=JSON.parse(localStorage.getItem('tnhs_term_starts'));
+    if(v)return v;
+  }catch(e){}
+  return{};
+}
+function mondayOf(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const day=d.getDay();
   const diff=day===0?-6:(1-day);
-  start.setDate(start.getDate()+diff);
-  // add (weekNum-1)*7 days to get the Monday of that week
-  const mon=new Date(start);
-  mon.setDate(mon.getDate()+(weekNum-1)*7);
+  d.setDate(d.getDate()+diff);
+  return d;
+}
+function computeDefaultTermMonday(term){
+  const week1Mon=mondayOf(EFFECTIVE_SCHOOL_START);
+  const range=getTermWeekRange(term);
+  const mon=new Date(week1Mon);
+  mon.setDate(mon.getDate()+(range.start-1)*7);
+  return mon;
+}
+function getTermStartMonday(term){
+  const overrides=getRawTermStarts();
+  if(overrides[term])return mondayOf(overrides[term]);
+  return computeDefaultTermMonday(term);
+}
+function getWeekWindow(weekNum){
+  const term=autoTermForWeek(weekNum);
+  const range=getTermWeekRange(term);
+  const weekWithinTerm=weekNum-range.start+1;
+  const termMon=getTermStartMonday(term);
+  const mon=new Date(termMon);
+  mon.setDate(mon.getDate()+(weekWithinTerm-1)*7);
   const fri=new Date(mon);fri.setDate(mon.getDate()+4);fri.setHours(23,59,59,999);
   return{mon,fri};
 }
@@ -2125,16 +2172,15 @@ function fmtWeekRange(weekNum){
   const friStr=fri.toLocaleDateString('en-PH',sameMonth?{day:'numeric'}:{month:'short',day:'numeric'});
   return`${monStr}–${friStr}, ${fri.getFullYear()}`;
 }
-/* ── Which Week number is "today" in, based on SCHOOL_START ── */
+/* ── Which Week number is "today" in — walks the weeks (each with its own
+   term-aware window) so a gap/break between terms is handled correctly. ── */
 function getCurrentWeekNum(){
-  const start=new Date(EFFECTIVE_SCHOOL_START+'T00:00:00');
-  const day=start.getDay();
-  const diff=day===0?-6:(1-day);
-  start.setDate(start.getDate()+diff); // Monday of Week 1
-  const now=new Date();
-  const diffDays=Math.floor((now-start)/86400000);
-  const wk=Math.floor(diffDays/7)+1;
-  return wk<1?1:wk;
+  const now=new Date();now.setHours(0,0,0,0);
+  for(let w=1;w<=20;w++){
+    const{fri}=getWeekWindow(w);
+    if(now<=fri)return w;
+  }
+  return 20;
 }
 /* ── Manual override for "current" Term/Week (Settings > Kasalukuyang Submission
    Period). Kapag naka-set ito, ito ang gagamitin sa halip na yung auto-computed
@@ -2162,21 +2208,54 @@ function getEffectiveCurrentTerm(){
   return ov?ov.term:autoTermForWeek(getCurrentWeekNum());
 }
 /* ══ DEADLINE MANAGEMENT ══ */
-function saveSchoolStart(){
-  const val=document.getElementById('dl-school-start').value;
+function fmtISO(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function saveTermStarts(){
   const note=document.getElementById('dl-settings-note');
-  if(!val){note.style.color='#a12525';note.textContent='⚠️ Pumili muna ng petsa.';return;}
-  const d=new Date(val+'T00:00:00');
-  if(d.getDay()!==1){note.style.color='#a12525';note.textContent='⚠️ Dapat Lunes ang petsa (first day of classes).';return;}
-  EFFECTIVE_SCHOOL_START=val;
-  localStorage.setItem('tnhs_school_start',val);
+  const v1=document.getElementById('dl-term1-start').value;
+  const v2=document.getElementById('dl-term2-start').value;
+  const v3=document.getElementById('dl-term3-start').value;
+  if(!v1){note.style.color='#a12525';note.textContent='⚠️ Kailangan ang First Day of Classes (Term 1).';return;}
+  const vals=[['Term 1',v1],['Term 2',v2],['Term 3',v3]];
+  for(const[label,v]of vals){
+    if(!v)continue;
+    if(new Date(v+'T00:00:00').getDay()!==1){note.style.color='#a12525';note.textContent=`⚠️ Dapat Lunes ang petsa ng ${label}.`;return;}
+  }
+  EFFECTIVE_SCHOOL_START=v1;
+  localStorage.setItem('tnhs_school_start',v1);
+  const overrides={};
+  if(v2)overrides.term2=v2;
+  if(v3)overrides.term3=v3;
+  localStorage.setItem('tnhs_term_starts',JSON.stringify(overrides));
   note.style.color='#1e7d40';note.textContent='✅ Na-save! Na-update na ang lahat ng Week deadlines.';
   populateWeekSelects();renderDashboard();renderDeadlines();
+  applyTermWeekFilter('u-term','u-week');
+  applyTermWeekFilter('tr-term','tr-week');
+  applyTermWeekFilter('rp-term','rp-week');
   if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
 }
+function resetTermStartsToAuto(){
+  localStorage.removeItem('tnhs_term_starts');
+  const note=document.getElementById('dl-settings-note');
+  note.style.color='#1e7d40';note.textContent='✅ Ibinalik sa auto — magkakasunod na ulit ang Term 2 at Term 3, walang break.';
+  populateWeekSelects();renderDashboard();renderDeadlines();
+  applyTermWeekFilter('u-term','u-week');
+  applyTermWeekFilter('tr-term','tr-week');
+  applyTermWeekFilter('rp-term','rp-week');
+}
 function renderDeadlines(){
-  const input=document.getElementById('dl-school-start');
-  if(input)input.value=EFFECTIVE_SCHOOL_START;
+  const i1=document.getElementById('dl-term1-start');
+  const i2=document.getElementById('dl-term2-start');
+  const i3=document.getElementById('dl-term3-start');
+  const overrides=getRawTermStarts();
+  if(i1)i1.value=EFFECTIVE_SCHOOL_START;
+  if(i2)i2.value=fmtISO(getTermStartMonday('term2'));
+  if(i3)i3.value=fmtISO(getTermStartMonday('term3'));
+  const t2tag=document.getElementById('dl-t2-auto-tag');
+  const t3tag=document.getElementById('dl-t3-auto-tag');
+  if(t2tag)t2tag.textContent=overrides.term2?'Custom':'Auto';
+  if(t3tag)t3tag.textContent=overrides.term3?'Custom':'Auto';
   const curWk=getEffectiveCurrentWeek();
   const tw=getTermWeeks();
   const termRanges=[
@@ -2498,6 +2577,7 @@ function resetLocalPrefs(){
   localStorage.removeItem('tnhs_teacher_roster');
   localStorage.removeItem('tnhs_term_weeks');
   localStorage.removeItem('tnhs_current_override');
+  localStorage.removeItem('tnhs_term_starts');
   EFFECTIVE_SCHOOL_START=SCHOOL_START;
   applyTheme('navy');
   renderAdminList();
