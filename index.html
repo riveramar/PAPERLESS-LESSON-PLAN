@@ -315,6 +315,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-50);backg
 .subj-name{font-weight:700;font-size:13.5px;color:var(--gray-800);flex:1;min-width:140px;}
 .subj-details{font-size:12px;color:#667;flex:2;min-width:200px;}
 .subj-status{white-space:nowrap;}
+.mx-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--gray-600);margin:0 0 12px;}
+.mx-legend span{display:inline-flex;align-items:center;gap:5px;}
+.mx-wrap{overflow-x:auto;}
+.mx-table{border-collapse:collapse;width:100%;font-size:12.5px;}
+.mx-table th,.mx-table td{padding:8px 10px;border-bottom:1px solid var(--gray-100);text-align:center;white-space:nowrap;}
+.mx-table thead th{background:var(--gray-100);font-size:11px;font-weight:800;color:var(--gray-600);}
+.mx-table thead th small{display:block;font-weight:600;opacity:.8;font-size:10px;}
+.mx-table th:first-child,.mx-table td:first-child{text-align:left;position:sticky;left:0;background:#fff;font-weight:700;min-width:150px;z-index:1;}
+.mx-table thead th:first-child{background:var(--gray-100);}
+.mx-table td.mx-ok{background:#e6f5ea;} .mx-table td.mx-early{background:#e3edfb;} .mx-table td.mx-late{background:#fdf0d5;}
+.mx-table td.mx-miss{background:#fde2e2;color:#a12525;font-weight:800;} .mx-table td.mx-wait{color:#b0b6c3;}
+.mx-table td.mx-count{font-weight:800;}
 .badge-missing{background:#fde2e2;color:#a12525;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;}
 .tag-warn-badge{color:#a15c00;font-weight:700;}
 .fitem.single-tag{background:#fffaf0;border-radius:6px;padding-left:4px;}
@@ -784,7 +796,12 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         <select id="tr-view" onchange="renderTracker()">
           <option value="week">Week</option>
           <option value="grade">Grade Level / Subject</option>
+          <option value="matrix">Grade × Week (Matrix)</option>
         </select>
+      </div>
+      <div class="tracker-ctrl-group">
+        <label>Mga Guro</label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;cursor:pointer;"><input type="checkbox" id="tr-split" checked onchange="renderTracker()"> Hiwalay bawat guro</label>
       </div>
     </div>
     <div class="tracker-summary" id="tracker-summary"></div>
@@ -1134,6 +1151,24 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         <button class="btn-gold" onclick="addRosterTeacher()">➕ Idagdag</button>
       </div>
       <div class="settings-note" id="roster-note"></div>
+    </div>
+
+    <div class="settings-card">
+      <h3>Inaasahang Subject at Guro (para sa Tracker)</h3>
+      <p class="settings-sub">Ilista dito kung sino ang nagtuturo ng anong subject sa bawat Grade — kahit dalawa o higit pa ang guro sa iisang subject (hal. dalawang TLE sa Grade 10). Lalabas sila sa <strong>Submission Tracker</strong> bilang ✗ hangga't wala pa silang naipasa, kaya makikita agad kung sino ang hindi nakapagpasa. Naka-save lang ito sa browser na ito.</p>
+      <div id="assign-list"></div>
+      <div class="settings-add-row">
+        <select id="as-dg">
+          <option value="jhs|7">JHS · Grade 7</option><option value="jhs|8">JHS · Grade 8</option><option value="jhs|9">JHS · Grade 9</option><option value="jhs|10">JHS · Grade 10</option>
+          <option value="ste|7">STE · Grade 7</option><option value="ste|8">STE · Grade 8</option><option value="ste|9">STE · Grade 9</option><option value="ste|10">STE · Grade 10</option>
+          <option value="shs|11|Academics">SHS · Grade 11 – Academics</option><option value="shs|11|TechPro">SHS · Grade 11 – TechPro</option>
+          <option value="shs|12|Academics">SHS · Grade 12 – Academics</option><option value="shs|12|TechPro">SHS · Grade 12 – TechPro</option>
+        </select>
+        <input type="text" id="as-subject" placeholder="Subject (hal. TLE)">
+        <input type="text" id="as-teacher" placeholder="Pangalan ng guro">
+        <button class="btn-gold" onclick="addAssignment()">➕ Idagdag</button>
+      </div>
+      <div class="settings-note" id="as-note"></div>
     </div>
 
     <div class="settings-card">
@@ -2498,6 +2533,75 @@ function removeAdminEmail(email){
   renderAdminList();
   updateTrackerVisibility();
 }
+/* ══ SETTINGS: Inaasahang Subject at Guro ══ */
+function getAssignments(){
+  try{const v=JSON.parse(localStorage.getItem('tnhs_assignments'));if(Array.isArray(v))return v;}catch(e){}
+  return[];
+}
+function renderAssignments(){
+  const wrap=document.getElementById('assign-list');
+  if(!wrap)return;
+  const list=getAssignments();
+  if(!list.length){wrap.innerHTML='<div style="font-size:12.5px;color:var(--gray-600);padding:.4rem 0;">Wala pang naidagdag.</div>';return;}
+  const dl={jhs:'JHS',ste:'STE',shs:'SHS'};
+  wrap.innerHTML=list.map((a,i)=>`<div class="admin-row"><span class="admin-email">${x(a.subject)} — ${x(a.teacher)}</span><span style="display:flex;align-items:center;gap:8px;"><span class="admin-tag local">${dl[a.dept]} · G${x(String(a.grade))}${a.track?' '+x(a.track):''}</span><button class="admin-remove" onclick="removeAssignment(${i})">Alisin</button></span></div>`).join('');
+}
+function addAssignment(){
+  const note=document.getElementById('as-note');
+  const[dept,grade,track]=document.getElementById('as-dg').value.split('|');
+  const subject=document.getElementById('as-subject').value.trim();
+  const teacher=document.getElementById('as-teacher').value.trim();
+  if(!subject||!teacher){note.style.color='#a12525';note.textContent='⚠️ Ilagay ang Subject at pangalan ng guro.';return;}
+  const list=getAssignments();
+  if(list.some(a=>a.dept===dept&&String(a.grade)===grade&&(a.track||'')===(track||'')&&a.subject.toLowerCase()===subject.toLowerCase()&&sameTeacher(a.teacher,teacher))){
+    note.style.color='#a12525';note.textContent='⚠️ Nasa listahan na ito.';return;
+  }
+  list.push({dept,grade:parseInt(grade),track:track||'',subject,teacher});
+  localStorage.setItem('tnhs_assignments',JSON.stringify(list));
+  document.getElementById('as-subject').value='';document.getElementById('as-teacher').value='';
+  note.style.color='#1e7d40';note.textContent='✅ Naidagdag.';
+  renderAssignments();
+  if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
+}
+function removeAssignment(i){
+  const list=getAssignments();list.splice(i,1);
+  localStorage.setItem('tnhs_assignments',JSON.stringify(list));
+  renderAssignments();
+  if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
+}
+/* ── Pagtutugma ng pangalan ng guro (hindi sensitibo sa laki ng letra, tuldok, Mr./Ms./Sir) ── */
+function normName(t){
+  return(t||'').toLowerCase().replace(/\b(mr|mrs|ms|sir|engr|dr)\b/g,' ').replace(/[^a-z0-9ñ\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+function sameTeacher(a,b){
+  const A=normName(a),B=normName(b);
+  if(!A||!B)return A===B;
+  if(A===B)return true;
+  const ta=A.split(' '),tb=B.split(' ');
+  return ta.every(t=>tb.includes(t))||tb.every(t=>ta.includes(t));
+}
+/* ── Mga hanay ng Subject para sa isang Grade. Kung split=true, magkahiwalay ang hanay
+   ng bawat guro sa parehong subject (hal. dalawang TLE). Kasama ang mga nasa
+   "Inaasahang Subject at Guro" kahit wala pang naipasa. ── */
+function buildSubjectRows(files,dept,grade,track,split){
+  const rows=[];
+  const find=(subj,teacher)=>rows.find(r=>r.norm===subj.toLowerCase()&&(!split||sameTeacher(r.teacher,teacher)));
+  getAssignments().forEach(a=>{
+    if(a.dept!==dept||String(a.grade)!==String(grade)||(a.track||'')!==(track||''))return;
+    if(!find(a.subject,a.teacher))rows.push({norm:a.subject.toLowerCase(),subject:a.subject,teacher:a.teacher,files:[]});
+  });
+  files.forEach(f=>{
+    const subj=(f.subject||'').trim()||'(No Subject Given)';
+    let r=find(subj,f.teacher||'');
+    if(!r){r={norm:subj.toLowerCase(),subject:subj,teacher:f.teacher||'',files:[]};rows.push(r);}
+    r.files.push(f);
+  });
+  const perSubj={};
+  rows.forEach(r=>{perSubj[r.norm]=(perSubj[r.norm]||0)+1;});
+  rows.forEach(r=>{r.label=(split&&perSubj[r.norm]>1&&r.teacher)?`${r.subject} · ${r.teacher}`:r.subject;});
+  return rows.sort((a,b)=>a.label.localeCompare(b.label));
+}
+function trackerSplitOn(){const el=document.getElementById('tr-split');return!el||el.checked;}
 /* ══ SETTINGS: Teacher Roster ══ */
 function getTeacherRoster(){
   try{return JSON.parse(localStorage.getItem('tnhs_teacher_roster')||'[]');}catch(e){return[];}
@@ -2618,6 +2722,7 @@ function resetLocalPrefs(){
   localStorage.removeItem('tnhs_school_start');
   localStorage.removeItem('tnhs_local_admins');
   localStorage.removeItem('tnhs_teacher_roster');
+  localStorage.removeItem('tnhs_assignments');
   localStorage.removeItem('tnhs_current_override');
   localStorage.removeItem('tnhs_term_starts');
   localStorage.removeItem('tnhs_term_ends');
@@ -2638,6 +2743,7 @@ function renderSettings(){
   applyTheme(localStorage.getItem('tnhs_theme')||'navy');
   renderAdminList();
   renderRosterList();
+  renderAssignments();
   renderTermWeeksInputs();
   renderCurrentPeriodInputs();
   const note=document.getElementById('admin-note');
@@ -2778,6 +2884,10 @@ function renderTracker(){
     return;
   }
 
+  if(viewMode==='matrix'){
+    document.getElementById('tracker-body').innerHTML=renderTrackerMatrix(allFiles,deptFilter,weekFilter,term);
+    return;
+  }
   if(viewMode==='grade'){
     document.getElementById('tracker-body').innerHTML=renderTrackerByGrade(allFiles,deptFilter,weekFilter,term);
     return;
@@ -2823,6 +2933,89 @@ function renderTracker(){
    so it's easy to spot which subject hasn't submitted a lesson plan yet.
    "Roster" = every subject ever seen for that grade/dept this term (built from
    the data itself, since subjects are free-typed and not a fixed master list). ── */
+/* ── Grade × Week matrix: bawat Grade, may hanay ng Subject at hanay ng Week —
+   agad makikita kung anong subject ang walang naipasa sa anong linggo. ── */
+function renderTrackerMatrix(allFiles,deptFilter,weekFilter,term){
+  const groups={};
+  allFiles.forEach(f=>{
+    const key=f.dept+'|'+f.grade+'|'+(f.track||'');
+    if(!groups[key])groups[key]={files:[]};
+    groups[key].files.push(f);
+  });
+  const order=[];
+  ['jhs','ste'].forEach(dept=>{
+    if(deptFilter!=='all'&&deptFilter!==dept)return;
+    [7,8,9,10].forEach(g=>order.push(dept+'|'+g+'|'));
+  });
+  if(deptFilter==='all'||deptFilter==='shs'){
+    [11,12].forEach(g=>['Academics','TechPro'].forEach(t=>order.push('shs|'+g+'|'+t)));
+  }
+  const termIdx=['term1','term2','term3'].indexOf(term);
+  const effIdx=['term1','term2','term3'].indexOf(getEffectiveCurrentTerm());
+  const tw=getTermWeeks()[term];
+  const now=new Date();
+  const maxSubAll=Math.max(0,...allFiles.map(f=>f.week||0));
+  let lastWeek=0;
+  if(termIdx===effIdx)lastWeek=getEffectiveCurrentWeek();
+  else if(termIdx<effIdx&&getRawTermEnds()[term])lastWeek=tw;
+  lastWeek=Math.min(tw,Math.max(lastWeek,maxSubAll,1));
+  const wkNum=weekFilter!=='all'?parseInt(weekFilter):null;
+  const cols=wkNum?[wkNum]:Array.from({length:lastWeek},(_,i)=>i+1);
+
+  const headCells=cols.map(w=>{
+    const r=fmtWeekRange(w,term);
+    return`<th title="${x(r||'Week '+w)}">Wk ${w}${r?`<small>${x(r.replace(/, \d{4}$/,''))}</small>`:''}</th>`;
+  }).join('');
+
+  let html=`<div class="mx-legend"><span>✅ On time</span><span>🔵 Early</span><span>⚠️ Late</span><span><b style="color:#a12525;">✗</b> Walang naipasa (lampas na ang deadline)</span><span><b style="color:#b0b6c3;">·</b> Hindi pa due</span></div>`;
+  order.forEach(key=>{
+    const grp=groups[key];
+    const[dept,grade,track]=key.split('|');
+    const deptLabel=dept==='jhs'?'JHS':dept==='ste'?'STE':'SHS';
+    const gradeLabel=`Grade ${grade}${track?' – '+track:''}`;
+    const rowsArr=buildSubjectRows(grp?grp.files:[],dept,grade,track,trackerSplitOn());
+    if(rowsArr.length===0){
+      html+=`<div class="grade-block"><div class="grade-block-header"><span class="gbadge ${dept}" style="font-size:10px;padding:2px 8px;">${deptLabel}</span> ${gradeLabel} <span>0 submissions</span></div><div class="tr-empty">Wala pang naipasa para sa grade na ito.</div></div>`;
+      return;
+    }
+    const roster={};let noWeek=0;
+    rowsArr.forEach((r,i)=>{roster['k'+i]=r;});
+    (grp?grp.files:[]).forEach(f=>{if(!f.week)noWeek++;});
+    const keys=Object.keys(roster);
+    let totalMissing=0;
+    let rows='';
+    keys.forEach(nk=>{
+      const sj=roster[nk];
+      let missing=0;
+      const cells=cols.map(w=>{
+        const cf=sj.files.filter(f=>f.week===w);
+        const{mon,fri}=getWeekWindow(w,term);
+        if(cf.length){
+          const latest=cf.slice().sort((a,b)=>(b.rawDate||'').localeCompare(a.rawDate||''))[0];
+          const teachers=[...new Set(cf.map(f=>f.teacher))].join(', ');
+          let cls='mx-ok',icon='✅';
+          if(mon&&latest.rawDate){
+            const ph=new Date(new Date(latest.rawDate).getTime()+8*60*60*1000);
+            if(ph<mon){cls='mx-early';icon='🔵';}
+            else if(ph>fri){cls='mx-late';icon='⚠️';}
+          }
+          return`<td class="${cls}" title="${x(teachers)} · ${x(latest.date||'')}">${icon}${cf.length>1?`<sup>${cf.length}</sup>`:''}</td>`;
+        }
+        const due=fri?fri<now:(w<lastWeek);
+        if(due){missing++;return`<td class="mx-miss" title="Walang naipasa para sa Week ${w}">✗</td>`;}
+        return`<td class="mx-wait" title="Hindi pa due">·</td>`;
+      }).join('');
+      totalMissing+=missing;
+      rows+=`<tr><td title="${x(sj.label)}">${x(sj.label)}</td>${cells}<td class="mx-count" style="${missing?'color:#a12525;':'color:#1e7d40;'}">${missing}</td></tr>`;
+    });
+    html+=`<div class="grade-block">
+      <div class="grade-block-header"><span class="gbadge ${dept}" style="font-size:10px;padding:2px 8px;">${deptLabel}</span> ${gradeLabel} <span>${keys.length} subject${keys.length!==1?'s':''} · ${totalMissing?`<b style="color:#ffd7d7;">${totalMissing} kulang</b>`:'kumpleto'}</span></div>
+      <div class="mx-wrap"><table class="mx-table"><thead><tr><th>Subject</th>${headCells}<th>Kulang</th></tr></thead><tbody>${rows}</tbody></table></div>
+      ${noWeek?`<div style="font-size:11.5px;color:var(--gray-600);padding:6px 14px;">${noWeek} file na walang Week ang hindi kasama.</div>`:''}
+    </div>`;
+  });
+  return html;
+}
 function renderTrackerByGrade(allFiles,deptFilter,weekFilter,term){
   const groups={}; // key -> {dept,grade,track,files:[]}
   allFiles.forEach(f=>{
@@ -2848,19 +3041,14 @@ function renderTrackerByGrade(allFiles,deptFilter,weekFilter,term){
     const[dept,grade,track]=key.split('|');
     const deptLabel=dept==='jhs'?'JHS':dept==='ste'?'STE':'SHS';
     const gradeLabel=`Grade ${grade}${track?' – '+track:''}`;
-    if(!grp||grp.files.length===0){
+    const rowsArr=buildSubjectRows(grp?grp.files:[],dept,grade,track,trackerSplitOn());
+    if(rowsArr.length===0){
       html+=`<div class="grade-block"><div class="grade-block-header"><span class="gbadge ${dept}" style="font-size:10px;padding:2px 8px;">${deptLabel}</span> ${gradeLabel} <span>0 submissions ever</span></div><div class="tr-empty">No lesson plans submitted yet for this grade.</div></div>`;
       return;
     }
-    // build subject roster (normalized) from ALL weeks in scope, keep nicest-cased label
-    const roster={}; // normKey -> {label, files:[]}
-    grp.files.forEach(f=>{
-      const subj=(f.subject||'').trim()||'(No Subject Given)';
-      const norm=subj.toLowerCase();
-      if(!roster[norm])roster[norm]={label:subj,files:[]};
-      roster[norm].files.push(f);
-    });
-    const subjKeys=Object.keys(roster).sort((a,b)=>roster[a].label.localeCompare(roster[b].label));
+    const roster={};
+    rowsArr.forEach((r,i)=>{roster['k'+i]=r;});
+    const subjKeys=Object.keys(roster);
 
     let missingCount=0;
     let rows='';
