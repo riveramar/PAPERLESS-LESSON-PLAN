@@ -2143,10 +2143,15 @@ function mondayOf(dateStr){
   return d;
 }
 function computeDefaultTermMonday(term){
-  const week1Mon=mondayOf(EFFECTIVE_SCHOOL_START);
-  const range=getTermWeekRange(term);
-  const mon=new Date(week1Mon);
-  mon.setDate(mon.getDate()+(range.start-1)*7);
+  if(term==='term1')return mondayOf(EFFECTIVE_SCHOOL_START);
+  // Term 2/3 default: right after the previous term's last week (no gap)
+  const terms=['term1','term2','term3'];
+  const idx=terms.indexOf(term);
+  const prevTerm=terms[idx-1];
+  const prevWeeks=getTermWeeks()[prevTerm];
+  const prevMon=getTermStartMonday(prevTerm);
+  const mon=new Date(prevMon);
+  mon.setDate(mon.getDate()+prevWeeks*7);
   return mon;
 }
 function getTermStartMonday(term){
@@ -2154,33 +2159,37 @@ function getTermStartMonday(term){
   if(overrides[term])return mondayOf(overrides[term]);
   return computeDefaultTermMonday(term);
 }
-function getWeekWindow(weekNum){
-  const term=autoTermForWeek(weekNum);
-  const range=getTermWeekRange(term);
-  const weekWithinTerm=weekNum-range.start+1;
+/* Weeks now count from 1 at the start of EACH term (Term 2 Week 1, not
+   "Week 8") — so every date calculation needs both the week-in-term number
+   AND which term it belongs to. */
+function getWeekWindow(weekInTerm,term){
   const termMon=getTermStartMonday(term);
   const mon=new Date(termMon);
-  mon.setDate(mon.getDate()+(weekWithinTerm-1)*7);
+  mon.setDate(mon.getDate()+(weekInTerm-1)*7);
   const fri=new Date(mon);fri.setDate(mon.getDate()+4);fri.setHours(23,59,59,999);
   return{mon,fri};
 }
-/* ── Human-readable date range for a Week number, e.g. "Aug 10–14, 2026" ── */
-function fmtWeekRange(weekNum){
-  const{mon,fri}=getWeekWindow(weekNum);
+/* ── Human-readable date range for a Week-in-Term number, e.g. "Aug 10–14, 2026" ── */
+function fmtWeekRange(weekInTerm,term){
+  const{mon,fri}=getWeekWindow(weekInTerm,term);
   const sameMonth=mon.getMonth()===fri.getMonth();
   const monStr=mon.toLocaleDateString('en-PH',{month:'short',day:'numeric'});
   const friStr=fri.toLocaleDateString('en-PH',sameMonth?{day:'numeric'}:{month:'short',day:'numeric'});
   return`${monStr}–${friStr}, ${fri.getFullYear()}`;
 }
-/* ── Which Week number is "today" in — walks the weeks (each with its own
-   term-aware window) so a gap/break between terms is handled correctly. ── */
-function getCurrentWeekNum(){
+/* ── Which Term + Week-in-Term is "today" in — walks term by term, week by
+   week (each with its own term-aware window) so a gap/break between terms
+   is handled correctly. ── */
+function getCurrentTermAndWeek(){
   const now=new Date();now.setHours(0,0,0,0);
-  for(let w=1;w<=20;w++){
-    const{fri}=getWeekWindow(w);
-    if(now<=fri)return w;
+  const tw=getTermWeeks();
+  for(const term of['term1','term2','term3']){
+    for(let w=1;w<=tw[term];w++){
+      const{fri}=getWeekWindow(w,term);
+      if(now<=fri)return{term,week:w};
+    }
   }
-  return 20;
+  return{term:'term3',week:tw.term3};
 }
 /* ── Manual override for "current" Term/Week (Settings > Kasalukuyang Submission
    Period). Kapag naka-set ito, ito ang gagamitin sa halip na yung auto-computed
@@ -2194,18 +2203,13 @@ function getCurrentOverride(){
   }catch(e){}
   return null;
 }
-function autoTermForWeek(wk){
-  if(wk<=getTermWeekRange('term1').end)return'term1';
-  if(wk<=getTermWeekRange('term2').end)return'term2';
-  return'term3';
-}
 function getEffectiveCurrentWeek(){
   const ov=getCurrentOverride();
-  return ov?parseInt(ov.week):getCurrentWeekNum();
+  return ov?parseInt(ov.week):getCurrentTermAndWeek().week;
 }
 function getEffectiveCurrentTerm(){
   const ov=getCurrentOverride();
-  return ov?ov.term:autoTermForWeek(getCurrentWeekNum());
+  return ov?ov.term:getCurrentTermAndWeek().term;
 }
 /* ══ DEADLINE MANAGEMENT ══ */
 function fmtISO(d){
@@ -2256,32 +2260,37 @@ function renderDeadlines(){
   const t3tag=document.getElementById('dl-t3-auto-tag');
   if(t2tag)t2tag.textContent=overrides.term2?'Custom':'Auto';
   if(t3tag)t3tag.textContent=overrides.term3?'Custom':'Auto';
-  const curWk=getEffectiveCurrentWeek();
+  const effTerm=getEffectiveCurrentTerm();
+  const effWeek=getEffectiveCurrentWeek();
+  const termOrder=['term1','term2','term3'];
+  const effTermIdx=termOrder.indexOf(effTerm);
   const tw=getTermWeeks();
   const termRanges=[
-    {label:'Term 1',range:getTermWeekRange('term1')},
-    {label:'Term 2',range:getTermWeekRange('term2')},
-    {label:'Term 3',range:getTermWeekRange('term3')}
+    {label:'Term 1',term:'term1',count:tw.term1},
+    {label:'Term 2',term:'term2',count:tw.term2},
+    {label:'Term 3',term:'term3',count:tw.term3}
   ];
   let tables='';
-  termRanges.forEach(t=>{
+  termRanges.forEach((t,tIdx)=>{
     let rows='';
-    for(let w=t.range.start;w<=t.range.end;w++){
-      const{fri}=getWeekWindow(w);
-      const range=fmtWeekRange(w);
+    for(let w=1;w<=t.count;w++){
+      const{fri}=getWeekWindow(w,t.term);
+      const range=fmtWeekRange(w,t.term);
       const deadline=fri.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+      const isCur=tIdx===effTermIdx&&w===effWeek;
+      const isPast=tIdx<effTermIdx||(tIdx===effTermIdx&&w<effWeek);
       let status,cls;
-      if(w<curWk){status='✔ Tapos na';cls='past';}
-      else if(w===curWk){status='🔵 Kasalukuyan';cls='now';}
+      if(isPast){status='✔ Tapos na';cls='past';}
+      else if(isCur){status='🔵 Kasalukuyan';cls='now';}
       else{status='⏳ Darating';cls='upcoming';}
-      rows+=`<tr class="${w===curWk?'is-current':''}">
+      rows+=`<tr class="${isCur?'is-current':''}">
         <td><strong>Week ${w}</strong></td>
         <td>${range}</td>
         <td>${deadline}</td>
         <td><span class="dl-status ${cls}">${status}</span></td>
       </tr>`;
     }
-    tables+=`<h3 class="dl-term-heading">${t.label} <span>(Week ${t.range.start}–${t.range.end})</span></h3>
+    tables+=`<h3 class="dl-term-heading">${t.label} <span>(Week 1–${t.count})</span></h3>
       <table class="dl-table"><thead><tr><th>Week</th><th>Date Range (Mon–Fri)</th><th>Deadline</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
   });
   const wrap=document.getElementById('dl-table-wrap');
@@ -2322,7 +2331,7 @@ function renderReport(){
   allFiles.forEach(f=>{
     if(!f.rawDate||!f.week)return;
     const phTime=new Date(new Date(f.rawDate).getTime()+8*60*60*1000);
-    const{mon,fri}=getWeekWindow(f.week);
+    const{mon,fri}=getWeekWindow(f.week,term);
     if(phTime<mon)totalEarly++;
     else if(phTime<=fri)totalOnTime++;
     else totalLate++;
@@ -2343,7 +2352,7 @@ function renderReport(){
     <div class="dash-card"><div class="dc-label">Compliance Rate</div><div class="dc-value">${rate}%</div></div>
   </div>
   <h3 style="color:var(--navy);margin:1rem 0 .75rem;font-size:15px;">Per Grade Level / Subject Compliance</h3>`;
-  body.innerHTML=summary+renderTrackerByGrade(allFiles,deptFilter,weekFilter);
+  body.innerHTML=summary+renderTrackerByGrade(allFiles,deptFilter,weekFilter,term);
 }
 function printReport(){window.print();}
 
@@ -2479,12 +2488,6 @@ function getTermWeeks(){
   }catch(e){}
   return{term1:7,term2:7,term3:6};
 }
-function getTermWeekRange(term){
-  const tw=getTermWeeks();
-  if(term==='term1')return{start:1,end:tw.term1};
-  if(term==='term2')return{start:tw.term1+1,end:tw.term1+tw.term2};
-  return{start:tw.term1+tw.term2+1,end:tw.term1+tw.term2+tw.term3};
-}
 function saveTermWeeks(){
   const note=document.getElementById('term-weeks-note');
   const t1=parseInt(document.getElementById('tw-term1').value)||0;
@@ -2506,23 +2509,23 @@ function renderTermWeeksInputs(){
   if(i2)i2.value=tw.term2;
   if(i3)i3.value=tw.term3;
 }
-/* Rebuild a Week <select> so it only offers weeks belonging to the term
-   currently chosen in its paired Term <select> — keeps the very first
-   option (placeholder / "All Weeks") untouched. */
+/* Rebuild a Week <select> so it offers Week 1..N of the term currently
+   chosen in its paired Term <select> (weeks restart at 1 every term) —
+   keeps the very first option (placeholder / "All Weeks") untouched. */
 function applyTermWeekFilter(termSelectId,weekSelectId){
   const termSel=document.getElementById(termSelectId);
   const weekSel=document.getElementById(weekSelectId);
   if(!termSel||!weekSel||!weekSel.options.length)return;
   const term=termSel.value;
   if(!['term1','term2','term3'].includes(term))return;
-  const range=getTermWeekRange(term);
+  const count=getTermWeeks()[term];
   const curVal=weekSel.value;
   const first=weekSel.options[0];
   let html='';
   if(first&&(first.value==='all'||first.value==='')){
     html+=`<option value="${x(first.value)}">${x(first.textContent.split(' (')[0])}</option>`;
   }
-  for(let w=range.start;w<=range.end;w++){
+  for(let w=1;w<=count;w++){
     html+=`<option value="${w}">Week ${w}</option>`;
   }
   weekSel.innerHTML=html;
@@ -2552,7 +2555,7 @@ function renderCurrentPeriodInputs(){
   manualRow.style.display=isManual?'flex':'none';
   termSel.value=ov?ov.term:getEffectiveCurrentTerm();
   applyTermWeekFilter('cp-term','cp-week');
-  weekSel.value=ov?String(ov.week):String(getCurrentWeekNum());
+  weekSel.value=ov?String(ov.week):String(getCurrentTermAndWeek().week);
 }
 function saveCurrentPeriod(){
   const term=document.getElementById('cp-term').value;
@@ -2608,30 +2611,35 @@ function renderSettings(){
 }
 /* ── Add the actual date range to every Week option, and mark the current one ── */
 function populateWeekSelects(){
-  const curWk=getEffectiveCurrentWeek();
-  ['u-week','tr-week','ilaw-week','rp-week'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel)return;
-    Array.from(sel.options).forEach(opt=>{
+  const effTerm=getEffectiveCurrentTerm();
+  const effWeek=getEffectiveCurrentWeek();
+  const pairs=[['u-term','u-week'],['tr-term','tr-week'],['rp-term','rp-week'],['cp-term','cp-week']];
+  pairs.forEach(([termId,weekId])=>{
+    const termSel=document.getElementById(termId);
+    const weekSel=document.getElementById(weekId);
+    if(!weekSel)return;
+    const term=termSel?termSel.value:null;
+    if(!['term1','term2','term3'].includes(term))return;
+    Array.from(weekSel.options).forEach(opt=>{
       const m=(opt.value||opt.textContent).match(/\d+/);
       if(!m)return;
       const wk=parseInt(m[0]);
-      const isCur=wk===curWk;
-      opt.textContent=`Week ${wk} (${fmtWeekRange(wk)})${isCur?' ⭐ Current':''}`;
+      const isCur=term===effTerm&&wk===effWeek;
+      opt.textContent=`Week ${wk} (${fmtWeekRange(wk,term)})${isCur?' ⭐ Current':''}`;
     });
   });
   const hint=document.getElementById('u-week-hint');
   if(hint){
-    hint.innerHTML=`📅 Kasalukuyang Linggo: <strong>Week ${curWk} (${fmtWeekRange(curWk)})</strong> <button type="button" onclick="document.getElementById('u-term').value='${getEffectiveCurrentTerm()}';applyTermWeekFilter('u-term','u-week');document.getElementById('u-week').value='${curWk}'">Gamitin ito</button>`;
+    hint.innerHTML=`📅 Kasalukuyang Linggo: <strong>${termLabel(effTerm)}, Week ${effWeek} (${fmtWeekRange(effWeek,effTerm)})</strong> <button type="button" onclick="document.getElementById('u-term').value='${effTerm}';applyTermWeekFilter('u-term','u-week');document.getElementById('u-week').value='${effWeek}'">Gamitin ito</button>`;
   }
 }
-function getTimingBadge(dateStr,weekNum){
+function getTimingBadge(dateStr,weekNum,term){
   if(!dateStr)return'<span class="badge-pending">No Date</span>';
   if(!weekNum)return'<span class="badge-pending">No Week Info</span>';
   // Convert upload time to Philippine time (UTC+8)
   const uploaded=new Date(dateStr);
   const phTime=new Date(uploaded.getTime()+8*60*60*1000);
-  const{mon,fri}=getWeekWindow(weekNum);
+  const{mon,fri}=getWeekWindow(weekNum,term);
   // Submitted Early = uploaded before that week's own Monday even starts
   // On Time = uploaded from that week's Monday up to Friday's deadline
   // Late = uploaded after Friday's deadline
@@ -2683,7 +2691,7 @@ function renderTracker(){
   allFiles.forEach(f=>{
     if(!f.rawDate||!f.week)return;
     const phTime=new Date(new Date(f.rawDate).getTime()+8*60*60*1000);
-    const{mon,fri}=getWeekWindow(f.week);
+    const{mon,fri}=getWeekWindow(f.week,term);
     if(phTime<mon)totalEarly++;
     else if(phTime<=fri)totalOnTime++;
     else totalLate++;
@@ -2703,7 +2711,7 @@ function renderTracker(){
   }
 
   if(viewMode==='grade'){
-    document.getElementById('tracker-body').innerHTML=renderTrackerByGrade(allFiles,deptFilter,weekFilter);
+    document.getElementById('tracker-body').innerHTML=renderTrackerByGrade(allFiles,deptFilter,weekFilter,term);
     return;
   }
 
@@ -2712,13 +2720,13 @@ function renderTracker(){
     const entries=byWeek[w]||[];
     if(weekFilter!=='all'&&entries.length===0){
       const wN=parseInt(w)||0;
-      const rng=wN?` · Deadline: ${getWeekWindow(wN).fri.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}`:'';
+      const rng=wN?` · Deadline: ${getWeekWindow(wN,term).fri.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}`:'';
       html+=`<div class="tracker-week-block"><div class="tracker-week-header">Week ${w}<span>0 submissions${rng}</span></div><div class="tr-empty">No submissions yet for this week.</div></div>`;
       return;
     }
     if(entries.length===0)return;
     const wNum=parseInt(w)||0;
-    const{mon,fri}=wNum?getWeekWindow(wNum):{mon:null,fri:null};
+    const{mon,fri}=wNum?getWeekWindow(wNum,term):{mon:null,fri:null};
     const window=mon?`Deadline: ${fri.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}`:'';
     html+=`<div class="tracker-week-block">
       <div class="tracker-week-header">${w==='?'?'Unspecified Week':'Week '+w} <span>${entries.length} submission${entries.length!==1?'s':''} · ${window}</span></div>
@@ -2735,7 +2743,7 @@ function renderTracker(){
         <td><span class="gbadge ${f.dept}" style="font-size:10px;padding:2px 8px;">${deptLabel}</span> ${gradeLabel}</td>
         <td style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${x(f.file)}">${x(f.file)}</td>
         <td>${x(f.date)||'—'}</td>
-        <td>${getTimingBadge(f.rawDate,wNum)}</td>
+        <td>${getTimingBadge(f.rawDate,wNum,term)}</td>
       </tr>`;
     });
     html+=`</tbody></table></div>`;
@@ -2746,7 +2754,7 @@ function renderTracker(){
    so it's easy to spot which subject hasn't submitted a lesson plan yet.
    "Roster" = every subject ever seen for that grade/dept this term (built from
    the data itself, since subjects are free-typed and not a fixed master list). ── */
-function renderTrackerByGrade(allFiles,deptFilter,weekFilter){
+function renderTrackerByGrade(allFiles,deptFilter,weekFilter,term){
   const groups={}; // key -> {dept,grade,track,files:[]}
   allFiles.forEach(f=>{
     const key=f.dept+'|'+f.grade+'|'+(f.track||'');
@@ -2797,7 +2805,7 @@ function renderTrackerByGrade(allFiles,deptFilter,weekFilter){
       }else{
         const teachers=[...new Set(scoped.map(f=>f.teacher))].join(', ');
         const latest=scoped.slice().sort((a,b)=>(b.rawDate||'').localeCompare(a.rawDate||''))[0];
-        const statusBadge=wkNum?getTimingBadge(latest?.rawDate,wkNum):`<span class="badge-pending">${scoped.length} submission${scoped.length!==1?'s':''}</span>`;
+        const statusBadge=wkNum?getTimingBadge(latest?.rawDate,wkNum,term):`<span class="badge-pending">${scoped.length} submission${scoped.length!==1?'s':''}</span>`;
         rows+=`<div class="subj-row"><div class="subj-name">${x(s.label)}</div><div class="subj-details">${x(teachers)} · ${x(latest?.date||'')}</div><div class="subj-status">${statusBadge}</div></div>`;
       }
     });
