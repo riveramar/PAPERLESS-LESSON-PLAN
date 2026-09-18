@@ -787,6 +787,21 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
         </select>
       </div>
     </div>
+    <div style="margin:0 0 12px;">
+      <button type="button" class="dl-fixbtn" onclick="toggleWeekFix()" style="background:var(--gray-100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🛠 Ayusin ang Lumang Week #</button>
+    </div>
+    <div id="weekfix-panel" style="display:none;background:#fff;border:1.5px solid var(--gray-100);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:14px;box-shadow:var(--shadow);">
+      <div style="font-weight:800;color:var(--navy);margin-bottom:4px;">Ayusin ang lumang Week numbering</div>
+      <div style="font-size:12.5px;color:var(--gray-600);margin-bottom:10px;">Ang mga file na na-upload noong tuloy-tuloy pa ang Week (hal. Week 14 = Sept 14) ay ginagawang Week 1 ng bagong term. Ibabawas ang numerong itatakda mo sa Week ng bawat file na mas mataas doon. Babaguhin nito ang property sa Google Drive.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div class="tw-field"><label>Term</label>
+          <select id="wf-term" onchange="weekFixDefaults();weekFixPreview()"><option value="term1">Term 1</option><option value="term2">Term 2</option><option value="term3">Term 3</option></select></div>
+        <div class="tw-field"><label>Ibawas sa Week #</label><input type="number" id="wf-offset" min="1" max="60" oninput="weekFixPreview()" style="width:110px;"></div>
+        <button type="button" class="btn-gold" id="wf-apply" onclick="weekFixApply()">✔ Ayusin</button>
+      </div>
+      <div id="wf-preview" style="font-size:13px;margin-top:10px;color:var(--gray-800);"></div>
+      <div id="wf-note" style="font-size:12.5px;font-weight:700;margin-top:6px;"></div>
+    </div>
     <div class="tracker-summary" id="tracker-summary"></div>
     <div id="tracker-body"></div>
   </div>
@@ -2684,6 +2699,71 @@ function getTimingBadge(dateStr,weekNum,term){
   if(phTime<=fri)return'<span class="badge-ontime">✅ On Time</span>';
   return'<span class="badge-late">⚠️ Late</span>';
 }
+/* ══ AYUSIN ANG LUMANG WEEK # (admin, sa Tracker) ══ */
+function toggleWeekFix(){
+  const p=document.getElementById('weekfix-panel');
+  const show=p.style.display==='none';
+  p.style.display=show?'block':'none';
+  if(show){
+    document.getElementById('wf-term').value=document.getElementById('tr-term').value;
+    weekFixDefaults();weekFixPreview();
+  }
+}
+/* Default na ibabawas = ilang buong linggo ang pagitan ng simula ng Term 1 at simula ng napiling term
+   (hal. Jun 15 → Sep 14 = 13, kaya ang lumang Week 14 ay magiging Week 1). */
+function weekFixDefaults(){
+  const term=document.getElementById('wf-term').value;
+  const t1=getTermStartMonday('term1'),st=getTermStartMonday(term);
+  document.getElementById('wf-offset').value=(term!=='term1'&&t1&&st)?Math.round((st-t1)/(7*86400000)):'';
+  document.getElementById('wf-note').textContent='';
+}
+function weekFixCollect(){
+  const sy=document.getElementById('tr-sy')?.value||curSY;
+  const term=document.getElementById('wf-term').value;
+  const offset=parseInt(document.getElementById('wf-offset').value)||0;
+  const byId={};
+  collectAllFilesFor(sy,term,'all').forEach(f=>{
+    if(f.week&&offset>0&&f.week>offset&&!byId[f.id])byId[f.id]={id:f.id,file:f.file,week:f.week};
+  });
+  return{sy,term,offset,files:Object.values(byId)};
+}
+function weekFixPreview(){
+  const box=document.getElementById('wf-preview');
+  const{sy,term,offset,files}=weekFixCollect();
+  if(!offset){box.textContent='Maglagay ng numerong ibabawas.';return;}
+  if(!files.length){box.textContent=`Walang file sa ${termLabel(term)} (SY ${sy}) na may Week na mas mataas sa ${offset}.`;return;}
+  const counts={};
+  files.forEach(f=>{counts[f.week]=(counts[f.week]||0)+1;});
+  const lines=Object.keys(counts).map(Number).sort((a,b)=>a-b).map(w=>`Week ${w} → <strong>Week ${w-offset}</strong> (${counts[w]} file${counts[w]!==1?'s':''})`);
+  box.innerHTML=`${files.length} file${files.length!==1?'s':''} ang mababago sa ${termLabel(term)}:<br>${lines.join('<br>')}`;
+}
+async function weekFixApply(){
+  const note=document.getElementById('wf-note');
+  const{term,offset,files}=weekFixCollect();
+  note.style.color='#a12525';
+  if(!offset||!files.length){note.textContent='⚠️ Walang mababago.';return;}
+  if(!gToken){note.textContent='⚠️ Mag-Sign In muna sa Google ("Sign In to Upload", kanang itaas), tapos ulitin.';return;}
+  if(!confirm(`Babaguhin ang Week ng ${files.length} file sa ${termLabel(term)} (ibabawas ang ${offset}). Ituloy?`))return;
+  const btn=document.getElementById('wf-apply');btn.disabled=true;
+  let ok=0,fail=0;
+  for(const f of files){
+    note.style.color='#1a2e5a';note.textContent=`Ina-update… ${ok+fail+1}/${files.length}`;
+    try{
+      const res=await fetch('https://www.googleapis.com/drive/v3/files/'+f.id,{
+        method:'PATCH',
+        headers:{Authorization:'Bearer '+gToken,'Content-Type':'application/json'},
+        body:JSON.stringify({properties:{week:String(f.week-offset)}})
+      });
+      if(!res.ok){if(res.status===401){gToken=null;setDriveStatus(false);}throw new Error('status '+res.status);}
+      ok++;
+    }catch(e){console.error('Week fix failed',f.file,e);fail++;if(!gToken)break;}
+  }
+  btn.disabled=false;
+  await refreshAll();
+  weekFixPreview();
+  note.style.color=fail?'#a12525':'#1e7d40';
+  note.textContent=fail?`⚠️ ${ok} ang na-update, ${fail} ang hindi. Mag-Sign In ulit kung kailangan at ulitin.`:`✅ Na-update ang ${ok} file.`;
+}
 function renderTracker(){
   const sy=document.getElementById('tr-sy')?.value||curSY;
   const term=document.getElementById('tr-term')?.value||'term1';
@@ -2862,6 +2942,7 @@ populateWeekSelects();
 renderDashboard();
 updateHeaderInfo();
 applyTheme(localStorage.getItem('tnhs_theme')||'navy');
+['tr-term','rp-term'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=getEffectiveCurrentTerm();});
 applyTermWeekFilter('u-term','u-week');
 applyTermWeekFilter('tr-term','tr-week');
 applyTermWeekFilter('rp-term','rp-week');
