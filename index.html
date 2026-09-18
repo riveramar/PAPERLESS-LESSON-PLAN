@@ -941,24 +941,36 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
   <div class="deadlines-wrap">
     <div class="dl-settings-card">
       <label>📅 Simula ng Klase per Term</label>
-      <p class="settings-sub" style="margin-top:-6px;">Term 1 lang ang kailangang Lunes na simula ng klase. Ang Term 2 at Term 3 ay awtomatikong sumusunod kung magkakasunod lang (walang break) — pero kung may semestral break o pagitan, pwede mong direktang itakda ang eksaktong Lunes na magsisimula ang term na iyon.</p>
+      <p class="settings-sub" style="margin-top:-6px;">Ikaw ang magtatakda kung kailan nagsisimula at nagtatapos ang bawat Term. Ang <strong>Simula</strong> (dapat Lunes) ay ang Week 1 ng term na iyon (hal. Sept 14 = Term 2 Week 1); ang <strong>Katapusan</strong> ang nagtatakda kung ilang Week ang term. Kapag walang Katapusan, Week 1–15 ang mapipili. Kapag walang Simula ang isang term, walang petsa ang mga Week nito hanggang ma-set mo.</p>
       <div class="dl-term-start-grid">
         <div class="tw-field">
-          <label>Term 1 (First Day of Classes)</label>
+          <label>Term 1 — Simula (First Day of Classes)</label>
           <input type="date" id="dl-term1-start">
         </div>
         <div class="tw-field">
-          <label>Term 2 <span class="dl-auto-tag" id="dl-t2-auto-tag"></span></label>
+          <label>Term 1 — Katapusan</label>
+          <input type="date" id="dl-term1-end">
+        </div>
+        <div class="tw-field">
+          <label>Term 2 — Simula <span class="dl-auto-tag" id="dl-t2-auto-tag"></span></label>
           <input type="date" id="dl-term2-start">
         </div>
         <div class="tw-field">
-          <label>Term 3 <span class="dl-auto-tag" id="dl-t3-auto-tag"></span></label>
+          <label>Term 2 — Katapusan</label>
+          <input type="date" id="dl-term2-end">
+        </div>
+        <div class="tw-field">
+          <label>Term 3 — Simula <span class="dl-auto-tag" id="dl-t3-auto-tag"></span></label>
           <input type="date" id="dl-term3-start">
+        </div>
+        <div class="tw-field">
+          <label>Term 3 — Katapusan</label>
+          <input type="date" id="dl-term3-end">
         </div>
       </div>
       <div class="dl-settings-row">
         <button class="btn-gold" onclick="saveTermStarts()">💾 I-save</button>
-        <button class="btn-ghost" style="background:var(--gray-100);color:var(--navy);border:none;" onclick="resetTermStartsToAuto()">🔁 Ibalik sa Auto (walang break)</button>
+        <button class="btn-ghost" style="background:var(--gray-100);color:var(--navy);border:none;" onclick="resetTermStartsToAuto()">🗑 I-clear ang Term 2 & 3</button>
       </div>
       <div class="dl-settings-note" id="dl-settings-note"></div>
       <div class="dl-settings-hint">⚠️ Naka-save lang ito sa browser na ito. Kung gagamitin ninyo ito sa ibang computer o ibang admin, kailangan din nilang i-set ito sa sarili nilang browser.</div>
@@ -1080,17 +1092,6 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
       <div class="settings-note" id="admin-note"></div>
     </div>
 
-    <div class="settings-card">
-      <h3>Weeks per Term</h3>
-      <p class="settings-sub">Itakda kung hanggang ilang linggo (weeks) ang bawat term. Gagamitin ito ng <strong>Deadline Management</strong> para ipakita kung aling mga linggo ang nasa Term 1, 2, at 3, at limitahan din ang mga pipiliing Week sa Upload, Tracker, at Reports base sa napiling Term. Naka-save lang ito sa browser na ito.</p>
-      <div class="settings-add-row">
-        <div class="tw-field"><label>Term 1</label><input type="number" id="tw-term1" min="1" max="20" value="7"></div>
-        <div class="tw-field"><label>Term 2</label><input type="number" id="tw-term2" min="1" max="20" value="7"></div>
-        <div class="tw-field"><label>Term 3</label><input type="number" id="tw-term3" min="1" max="20" value="6"></div>
-        <button class="btn-gold" onclick="saveTermWeeks()">💾 I-save</button>
-      </div>
-      <div class="settings-note" id="term-weeks-note"></div>
-    </div>
 
     <div class="settings-card">
       <h3>Kasalukuyang Submission Period</h3>
@@ -1137,7 +1138,7 @@ footer{text-align:center;padding:2rem;margin-top:2rem;border-top:1px solid var(-
 
     <div class="settings-card">
       <h3>Reset Local Preferences</h3>
-      <p class="settings-sub">Ibabalik sa default ang theme, ang custom na First Day of Classes (Deadline Management), ang Weeks per Term, at ang mga naidagdag na admin sa browser na ito. Hindi ito magbabago ng anumang laman sa Google Drive.</p>
+      <p class="settings-sub">Ibabalik sa default ang theme, ang custom na First Day of Classes (Deadline Management), at ang mga naidagdag na admin sa browser na ito. Hindi ito magbabago ng anumang laman sa Google Drive.</p>
       <button class="btn-ghost-danger" onclick="resetLocalPrefs()">🗑️ I-reset ang Lahat</button>
     </div>
 
@@ -1395,6 +1396,8 @@ const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive openid email profile'
    from the Deadline Management page (stored in localStorage) without editing code. */
 const SCHOOL_START='2026-06-15'; // ← Change to actual first day of classes
 let EFFECTIVE_SCHOOL_START=localStorage.getItem('tnhs_school_start')||SCHOOL_START;
+const MAX_WEEKS=15; // default na bilang ng Week na mapipili kung wala pang End date ang Term
+const ABS_MAX_WEEKS=20; // pinakamahabang term na papayagan
 
 let gToken=null,gTokenClient=null,gapiInited=false,gisInited=false,signedInEmail=null;
 const gFolderId=(GDRIVE_FOLDER_ID&&GDRIVE_FOLDER_ID.indexOf('PASTE_YOUR')!==0)?GDRIVE_FOLDER_ID:null;
@@ -2142,28 +2145,43 @@ function mondayOf(dateStr){
   d.setDate(d.getDate()+diff);
   return d;
 }
-function computeDefaultTermMonday(term){
-  if(term==='term1')return mondayOf(EFFECTIVE_SCHOOL_START);
-  // Term 2/3 default: right after the previous term's last week (no gap)
-  const terms=['term1','term2','term3'];
-  const idx=terms.indexOf(term);
-  const prevTerm=terms[idx-1];
-  const prevWeeks=getTermWeeks()[prevTerm];
-  const prevMon=getTermStartMonday(prevTerm);
-  const mon=new Date(prevMon);
-  mon.setDate(mon.getDate()+prevWeeks*7);
-  return mon;
-}
+/* Term 1 = First Day of Classes. Term 2/3 = ang Lunes na itinakda ng admin;
+   kung wala pa, null (walang petsa) — walang auto-compute, para hindi mag-guess
+   kapag may bakasyon sa pagitan ng mga term. */
 function getTermStartMonday(term){
+  if(term==='term1')return mondayOf(EFFECTIVE_SCHOOL_START);
   const overrides=getRawTermStarts();
-  if(overrides[term])return mondayOf(overrides[term]);
-  return computeDefaultTermMonday(term);
+  return overrides[term]?mondayOf(overrides[term]):null;
+}
+function getRawTermEnds(){
+  try{const v=JSON.parse(localStorage.getItem('tnhs_term_ends'));if(v)return v;}catch(e){}
+  return{};
+}
+function getTermEndDate(term){
+  const v=getRawTermEnds()[term];
+  return v?new Date(v+'T00:00:00'):null;
+}
+/* Ilang Week ang term: kung may Start + End, kinukuwenta mula doon; kung wala, MAX_WEEKS. */
+function getTermWeeks(){
+  const out={};
+  ['term1','term2','term3'].forEach(t=>{
+    let n=MAX_WEEKS;
+    const st=getTermStartMonday(t),en=getTermEndDate(t);
+    if(st&&en){
+      const days=Math.round((en-st)/86400000)+1;
+      const w=Math.ceil(days/7);
+      if(w>=1&&w<=ABS_MAX_WEEKS)n=w;
+    }
+    out[t]=n;
+  });
+  return out;
 }
 /* Weeks now count from 1 at the start of EACH term (Term 2 Week 1, not
    "Week 8") — so every date calculation needs both the week-in-term number
    AND which term it belongs to. */
 function getWeekWindow(weekInTerm,term){
   const termMon=getTermStartMonday(term);
+  if(!termMon)return{mon:null,fri:null}; // hindi pa naka-set ang petsa ng term na ito
   const mon=new Date(termMon);
   mon.setDate(mon.getDate()+(weekInTerm-1)*7);
   const fri=new Date(mon);fri.setDate(mon.getDate()+4);fri.setHours(23,59,59,999);
@@ -2172,6 +2190,7 @@ function getWeekWindow(weekInTerm,term){
 /* ── Human-readable date range for a Week-in-Term number, e.g. "Aug 10–14, 2026" ── */
 function fmtWeekRange(weekInTerm,term){
   const{mon,fri}=getWeekWindow(weekInTerm,term);
+  if(!mon)return'';
   const sameMonth=mon.getMonth()===fri.getMonth();
   const monStr=mon.toLocaleDateString('en-PH',{month:'short',day:'numeric'});
   const friStr=fri.toLocaleDateString('en-PH',sameMonth?{day:'numeric'}:{month:'short',day:'numeric'});
@@ -2183,23 +2202,42 @@ function fmtWeekRange(weekInTerm,term){
 function getCurrentTermAndWeek(){
   const now=new Date();now.setHours(0,0,0,0);
   const tw=getTermWeeks();
+  let cur={term:'term1',week:1};
   for(const term of['term1','term2','term3']){
-    for(let w=1;w<=tw[term];w++){
-      const{fri}=getWeekWindow(w,term);
-      if(now<=fri)return{term,week:w};
+    const start=getTermStartMonday(term);
+    if(start&&now>=start){
+      const days=Math.round((now-start)/86400000);
+      cur={term,week:Math.min(Math.floor(days/7)+1,tw[term])};
     }
   }
-  return{term:'term3',week:tw.term3};
+  return cur;
 }
 /* ── Manual override for "current" Term/Week (Settings > Kasalukuyang Submission
    Period). Kapag naka-set ito, ito ang gagamitin sa halip na yung auto-computed
    value mula sa School Start date — kapaki-pakinabang kapag may suspension ng
    klase, makeup days, o ibang dahilan bakit hindi tumutugma ang simpleng date
    math sa aktwal na "official" week ng school ngayon. ── */
+/* ── Legacy fix: dati tuloy-tuloy ang Week (Term 2 = Week 8–14). Kapag may
+   natirang lumang numero (sa saved override o sa Drive file properties),
+   ginagawa itong Week-in-Term. Hal. Term 2 Week 9 → Term 2 Week 2.
+   Returns null kung wala talagang katumbas na week. ── */
+function legacyWeekToTermWeek(term,week){
+  if(!['term1','term2','term3'].includes(term))return null;
+  return(week>=1&&week<=ABS_MAX_WEEKS)?week:null;
+}
 function getCurrentOverride(){
   try{
     const v=JSON.parse(localStorage.getItem('tnhs_current_override'));
-    if(v&&v.term&&v.week)return v;
+    if(v&&v.term&&v.week){
+      const w=legacyWeekToTermWeek(v.term,parseInt(v.week));
+      if(w===null){localStorage.removeItem('tnhs_current_override');return null;}
+      if(w!==parseInt(v.week)){
+        const fixed={term:v.term,week:w};
+        localStorage.setItem('tnhs_current_override',JSON.stringify(fixed));
+        return fixed;
+      }
+      return v;
+    }
   }catch(e){}
   return null;
 }
@@ -2217,49 +2255,62 @@ function fmtISO(d){
 }
 function saveTermStarts(){
   const note=document.getElementById('dl-settings-note');
-  const v1=document.getElementById('dl-term1-start').value;
-  const v2=document.getElementById('dl-term2-start').value;
-  const v3=document.getElementById('dl-term3-start').value;
-  if(!v1){note.style.color='#a12525';note.textContent='⚠️ Kailangan ang First Day of Classes (Term 1).';return;}
-  const vals=[['Term 1',v1],['Term 2',v2],['Term 3',v3]];
-  for(const[label,v]of vals){
-    if(!v)continue;
-    if(new Date(v+'T00:00:00').getDay()!==1){note.style.color='#a12525';note.textContent=`⚠️ Dapat Lunes ang petsa ng ${label}.`;return;}
+  const g=id=>document.getElementById(id).value;
+  const starts={term1:g('dl-term1-start'),term2:g('dl-term2-start'),term3:g('dl-term3-start')};
+  const ends={term1:g('dl-term1-end'),term2:g('dl-term2-end'),term3:g('dl-term3-end')};
+  const fail=m=>{note.style.color='#a12525';note.textContent='⚠️ '+m;};
+  if(!starts.term1){fail('Kailangan ang First Day of Classes (Term 1).');return;}
+  const labels={term1:'Term 1',term2:'Term 2',term3:'Term 3'};
+  for(const t of['term1','term2','term3']){
+    const st=starts[t],en=ends[t];
+    if(st&&new Date(st+'T00:00:00').getDay()!==1){fail(`Dapat Lunes ang simula ng ${labels[t]}.`);return;}
+    if(en&&!st){fail(`Ilagay muna ang simula ng ${labels[t]} bago ang katapusan.`);return;}
+    if(st&&en){
+      const days=Math.round((new Date(en+'T00:00:00')-new Date(st+'T00:00:00'))/86400000)+1;
+      if(days<1){fail(`Dapat pagkatapos ng simula ang katapusan ng ${labels[t]}.`);return;}
+      if(Math.ceil(days/7)>ABS_MAX_WEEKS){fail(`Sobrang haba ng ${labels[t]} (hanggang ${ABS_MAX_WEEKS} linggo lang).`);return;}
+    }
   }
-  EFFECTIVE_SCHOOL_START=v1;
-  localStorage.setItem('tnhs_school_start',v1);
+  EFFECTIVE_SCHOOL_START=starts.term1;
+  localStorage.setItem('tnhs_school_start',starts.term1);
   const overrides={};
-  if(v2)overrides.term2=v2;
-  if(v3)overrides.term3=v3;
+  if(starts.term2)overrides.term2=starts.term2;
+  if(starts.term3)overrides.term3=starts.term3;
   localStorage.setItem('tnhs_term_starts',JSON.stringify(overrides));
-  note.style.color='#1e7d40';note.textContent='✅ Na-save! Na-update na ang lahat ng Week deadlines.';
-  populateWeekSelects();renderDashboard();renderDeadlines();
+  const endsOut={};
+  ['term1','term2','term3'].forEach(t=>{if(ends[t]&&starts[t])endsOut[t]=ends[t];});
+  localStorage.setItem('tnhs_term_ends',JSON.stringify(endsOut));
+  note.style.color='#1e7d40';note.textContent='✅ Na-save! Na-update na ang lahat ng Week at deadlines.';
+  refreshAfterTermDates();
+}
+function refreshAfterTermDates(){
+  populateWeekSelects();renderDashboard();renderDeadlines();renderCurrentPeriodInputs();
   applyTermWeekFilter('u-term','u-week');
   applyTermWeekFilter('tr-term','tr-week');
   applyTermWeekFilter('rp-term','rp-week');
   if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
 }
 function resetTermStartsToAuto(){
+  if(!confirm('I-clear ang petsa ng Term 2 at Term 3, at ang lahat ng End date?'))return;
   localStorage.removeItem('tnhs_term_starts');
+  localStorage.removeItem('tnhs_term_ends');
   const note=document.getElementById('dl-settings-note');
-  note.style.color='#1e7d40';note.textContent='✅ Ibinalik sa auto — magkakasunod na ulit ang Term 2 at Term 3, walang break.';
-  populateWeekSelects();renderDashboard();renderDeadlines();
-  applyTermWeekFilter('u-term','u-week');
-  applyTermWeekFilter('tr-term','tr-week');
-  applyTermWeekFilter('rp-term','rp-week');
+  note.style.color='#1e7d40';note.textContent='✅ Na-clear na ang petsa ng Term 2 at Term 3 at ang mga End date. Ilagay muli kapag handa na.';
+  refreshAfterTermDates();
 }
 function renderDeadlines(){
-  const i1=document.getElementById('dl-term1-start');
-  const i2=document.getElementById('dl-term2-start');
-  const i3=document.getElementById('dl-term3-start');
-  const overrides=getRawTermStarts();
-  if(i1)i1.value=EFFECTIVE_SCHOOL_START;
-  if(i2)i2.value=fmtISO(getTermStartMonday('term2'));
-  if(i3)i3.value=fmtISO(getTermStartMonday('term3'));
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  const overrides=getRawTermStarts(),ends=getRawTermEnds();
+  set('dl-term1-start',EFFECTIVE_SCHOOL_START);
+  set('dl-term2-start',overrides.term2);
+  set('dl-term3-start',overrides.term3);
+  set('dl-term1-end',ends.term1);
+  set('dl-term2-end',ends.term2);
+  set('dl-term3-end',ends.term3);
   const t2tag=document.getElementById('dl-t2-auto-tag');
   const t3tag=document.getElementById('dl-t3-auto-tag');
-  if(t2tag)t2tag.textContent=overrides.term2?'Custom':'Auto';
-  if(t3tag)t3tag.textContent=overrides.term3?'Custom':'Auto';
+  if(t2tag)t2tag.textContent=overrides.term2?'':'Hindi pa naka-set';
+  if(t3tag)t3tag.textContent=overrides.term3?'':'Hindi pa naka-set';
   const effTerm=getEffectiveCurrentTerm();
   const effWeek=getEffectiveCurrentWeek();
   const termOrder=['term1','term2','term3'];
@@ -2272,6 +2323,11 @@ function renderDeadlines(){
   ];
   let tables='';
   termRanges.forEach((t,tIdx)=>{
+    if(!getTermStartMonday(t.term)){
+      tables+=`<h3 class="dl-term-heading">${t.label}</h3>
+        <div class="tr-empty">📅 Hindi pa naka-set ang simula ng ${t.label}. Ilagay ang Lunes na magiging Week 1 sa itaas, tapos i-save.</div>`;
+      return;
+    }
     let rows='';
     for(let w=1;w<=t.count;w++){
       const{fri}=getWeekWindow(w,t.term);
@@ -2332,6 +2388,7 @@ function renderReport(){
     if(!f.rawDate||!f.week)return;
     const phTime=new Date(new Date(f.rawDate).getTime()+8*60*60*1000);
     const{mon,fri}=getWeekWindow(f.week,term);
+    if(!mon)return;
     if(phTime<mon)totalEarly++;
     else if(phTime<=fri)totalOnTime++;
     else totalLate++;
@@ -2481,27 +2538,6 @@ function removeRosterTeacher(idx){
   renderRosterList();
 }
 /* ══ SETTINGS: Weeks per Term ══ */
-function getTermWeeks(){
-  try{
-    const v=JSON.parse(localStorage.getItem('tnhs_term_weeks'));
-    if(v&&v.term1>0&&v.term2>0&&v.term3>0)return v;
-  }catch(e){}
-  return{term1:7,term2:7,term3:6};
-}
-function saveTermWeeks(){
-  const note=document.getElementById('term-weeks-note');
-  const t1=parseInt(document.getElementById('tw-term1').value)||0;
-  const t2=parseInt(document.getElementById('tw-term2').value)||0;
-  const t3=parseInt(document.getElementById('tw-term3').value)||0;
-  if(t1<1||t2<1||t3<1){note.style.color='#a12525';note.textContent='⚠️ Dapat hindi bababa sa 1 linggo ang bawat term.';return;}
-  if(t1+t2+t3>20){note.style.color='#a12525';note.textContent='⚠️ Ang kabuuan ng 3 term ay hindi dapat lumagpas sa 20 linggo.';return;}
-  localStorage.setItem('tnhs_term_weeks',JSON.stringify({term1:t1,term2:t2,term3:t3}));
-  note.style.color='#1e7d40';note.textContent='✅ Na-save! Na-update na ang Deadline Management at ang mga Week na pipiliin sa Upload, Tracker, at Reports.';
-  renderDeadlines();
-  applyTermWeekFilter('u-term','u-week');
-  applyTermWeekFilter('tr-term','tr-week');
-  applyTermWeekFilter('rp-term','rp-week');
-}
 function renderTermWeeksInputs(){
   const tw=getTermWeeks();
   const i1=document.getElementById('tw-term1'),i2=document.getElementById('tw-term2'),i3=document.getElementById('tw-term3');
@@ -2519,6 +2555,8 @@ function applyTermWeekFilter(termSelectId,weekSelectId){
   const term=termSel.value;
   if(!['term1','term2','term3'].includes(term))return;
   const count=getTermWeeks()[term];
+  const termChanged=weekSel.dataset.term!==term;
+  weekSel.dataset.term=term;
   const curVal=weekSel.value;
   const first=weekSel.options[0];
   let html='';
@@ -2530,7 +2568,7 @@ function applyTermWeekFilter(termSelectId,weekSelectId){
   }
   weekSel.innerHTML=html;
   populateWeekSelects();
-  if([...weekSel.options].some(o=>o.value===curVal))weekSel.value=curVal;
+  if(!termChanged&&[...weekSel.options].some(o=>o.value===curVal))weekSel.value=curVal;
 }
 /* ══ SETTINGS: Kasalukuyang Submission Period (manual override) ══ */
 function toggleCurrentPeriodMode(){
@@ -2573,14 +2611,14 @@ function refreshCurrentPeriodDependents(){
 }
 /* ══ SETTINGS: Reset ══ */
 function resetLocalPrefs(){
-  if(!confirm('Sigurado ka bang gusto mong i-reset ang theme, ang First Day of Classes override, ang Weeks per Term, ang Kasalukuyang Submission Period, ang mga naidagdag na admin, at ang Teacher Roster sa browser na ito?'))return;
+  if(!confirm('Sigurado ka bang gusto mong i-reset ang theme, ang First Day of Classes override, ang Kasalukuyang Submission Period, ang mga naidagdag na admin, at ang Teacher Roster sa browser na ito?'))return;
   localStorage.removeItem('tnhs_theme');
   localStorage.removeItem('tnhs_school_start');
   localStorage.removeItem('tnhs_local_admins');
   localStorage.removeItem('tnhs_teacher_roster');
-  localStorage.removeItem('tnhs_term_weeks');
   localStorage.removeItem('tnhs_current_override');
   localStorage.removeItem('tnhs_term_starts');
+  localStorage.removeItem('tnhs_term_ends');
   EFFECTIVE_SCHOOL_START=SCHOOL_START;
   applyTheme('navy');
   renderAdminList();
@@ -2604,8 +2642,6 @@ function renderSettings(){
   if(note)note.textContent='';
   const rnote=document.getElementById('roster-note');
   if(rnote)rnote.textContent='';
-  const twnote=document.getElementById('term-weeks-note');
-  if(twnote)twnote.textContent='';
   const cpnote=document.getElementById('current-period-note');
   if(cpnote)cpnote.textContent='';
 }
@@ -2625,12 +2661,12 @@ function populateWeekSelects(){
       if(!m)return;
       const wk=parseInt(m[0]);
       const isCur=term===effTerm&&wk===effWeek;
-      opt.textContent=`Week ${wk} (${fmtWeekRange(wk,term)})${isCur?' ⭐ Current':''}`;
+      {const r=fmtWeekRange(wk,term);opt.textContent=`Week ${wk}${r?' ('+r+')':''}${isCur?' ⭐ Current':''}`;}
     });
   });
   const hint=document.getElementById('u-week-hint');
   if(hint){
-    hint.innerHTML=`📅 Kasalukuyang Linggo: <strong>${termLabel(effTerm)}, Week ${effWeek} (${fmtWeekRange(effWeek,effTerm)})</strong> <button type="button" onclick="document.getElementById('u-term').value='${effTerm}';applyTermWeekFilter('u-term','u-week');document.getElementById('u-week').value='${effWeek}'">Gamitin ito</button>`;
+    hint.innerHTML=`📅 Kasalukuyang Linggo: <strong>${termLabel(effTerm)}, Week ${effWeek}${fmtWeekRange(effWeek,effTerm)?' ('+fmtWeekRange(effWeek,effTerm)+')':''}</strong> <button type="button" onclick="document.getElementById('u-term').value='${effTerm}';applyTermWeekFilter('u-term','u-week');document.getElementById('u-week').value='${effWeek}'">Gamitin ito</button>`;
   }
 }
 function getTimingBadge(dateStr,weekNum,term){
@@ -2640,6 +2676,7 @@ function getTimingBadge(dateStr,weekNum,term){
   const uploaded=new Date(dateStr);
   const phTime=new Date(uploaded.getTime()+8*60*60*1000);
   const{mon,fri}=getWeekWindow(weekNum,term);
+  if(!mon)return'<span class="badge-pending">Term dates not set</span>';
   // Submitted Early = uploaded before that week's own Monday even starts
   // On Time = uploaded from that week's Monday up to Friday's deadline
   // Late = uploaded after Friday's deadline
@@ -2692,6 +2729,7 @@ function renderTracker(){
     if(!f.rawDate||!f.week)return;
     const phTime=new Date(new Date(f.rawDate).getTime()+8*60*60*1000);
     const{mon,fri}=getWeekWindow(f.week,term);
+    if(!mon)return;
     if(phTime<mon)totalEarly++;
     else if(phTime<=fri)totalOnTime++;
     else totalLate++;
@@ -2720,7 +2758,8 @@ function renderTracker(){
     const entries=byWeek[w]||[];
     if(weekFilter!=='all'&&entries.length===0){
       const wN=parseInt(w)||0;
-      const rng=wN?` · Deadline: ${getWeekWindow(wN,term).fri.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}`:'';
+      const wf=wN?getWeekWindow(wN,term).fri:null;
+      const rng=wf?` · Deadline: ${wf.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}`:'';
       html+=`<div class="tracker-week-block"><div class="tracker-week-header">Week ${w}<span>0 submissions${rng}</span></div><div class="tr-empty">No submissions yet for this week.</div></div>`;
       return;
     }
