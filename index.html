@@ -952,7 +952,7 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
       <div class="ilaw-grid">
         <div class="fgrp">
           <label for="ilaw-teacher">Teacher Name</label>
-          <input type="text" id="ilaw-teacher" placeholder="e.g. Maria Santos">
+          <input type="text" id="ilaw-teacher" placeholder="e.g. Juan Dela Cruz">
         </div>
         <div class="fgrp">
           <label for="ilaw-section">Section</label>
@@ -1267,8 +1267,9 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
       <h3>Teacher Roster</h3>
       <p class="settings-sub">Idagdag dito ang mga guro na dapat masubaybayan sa <strong>Teacher Management</strong>, kahit wala pa silang naipasang lesson plan — makikita sila roon bilang "Wala pang naipasa" hangga't wala pang na-upload sa pangalan nila. Naka-save lang ito sa browser na ito.</p>
       <div id="roster-list"></div>
+      <p class="settings-sub" style="margin:0 0 10px;">💡 Gamitin ang parehong pagkakasulat ng pangalan sa Upload form (Pangalan, tapos Apelyido — walang "Mr./Ms./Sir") para hindi magkaroon ng duplicate na entry.</p>
       <div class="settings-add-row">
-        <input type="text" id="new-roster-name" placeholder="Pangalan ng guro">
+        <input type="text" id="new-roster-name" placeholder="hal. Juan Dela Cruz">
         <select id="new-roster-dept">
           <option value="">– Department (optional) –</option>
           <option value="jhs">JHS</option>
@@ -1292,7 +1293,7 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
           <option value="shs|12|Academics">SHS · Grade 12 – Academics</option><option value="shs|12|TechPro">SHS · Grade 12 – TechPro</option>
         </select>
         <input type="text" id="as-subject" placeholder="Subject (hal. TLE)">
-        <input type="text" id="as-teacher" placeholder="Pangalan ng guro">
+        <input type="text" id="as-teacher" placeholder="hal. Juan Dela Cruz">
         <button class="btn-gold" onclick="addAssignment()">➕ Idagdag</button>
       </div>
       <div class="settings-note" id="as-note"></div>
@@ -1333,7 +1334,9 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
     <h3>Upload Lesson Plan</h3>
     <p class="msub">Pick a file from your computer, fill in the details, and click Upload.</p>
     <p class="msub note-warn" id="upload-signin-note" style="display:none;">🔌 You'll need to sign in with Google before uploading — click <strong>"Sign In to Upload"</strong> in the top right, then come back to this form.</p>
-    <div class="fgrp"><label for="u-teacher">Teacher Name</label><input type="text" id="u-teacher" placeholder="e.g. Maria Santos"></div>
+    <div class="fgrp"><label for="u-teacher">Teacher Name</label><input type="text" id="u-teacher" placeholder="e.g. Juan Dela Cruz">
+      <div class="week-hint">💡 Type your name the same way every time (Given Name, then Surname — no "Mr./Ms./Sir") so you're not counted as a different teacher in Teacher Management.</div>
+    </div>
     <div class="fgrp"><label for="u-subject">Subject</label><input type="text" id="u-subject" placeholder="e.g. Mathematics, Science…"></div>
     <div class="fgrp">
       <label for="u-sy">School Year</label>
@@ -2735,13 +2738,23 @@ function removeAssignment(i){
   if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
 }
 /* ── Pagtutugma ng pangalan ng guro — gumagamit ng normalizeTeacherName() sa itaas,
-   kaya consistent ito sa Teacher Management, Roster, Assignments, atbp. ── */
+   kaya consistent ito sa Teacher Management, Roster, Assignments, atbp. Bukod sa
+   letter-case/bantas/titulo/pagkakasunod ng salita, tumutugma rin ito kapag ang isang
+   salita ay isang-letrang initial lang ng buong salita sa kabilang pangalan (hal.
+   "Juan Santos Dela Cruz" vs "Juan S. Dela Cruz") — kahit alin sa dalawa ang naka-initial.
+   Katangi-tanging limitasyon: dahil malabo talaga ang isang initial (maraming posibleng
+   buong salita ang nagsisimula sa parehong letra, hal. "Santos" at "Salazar" ay pareho
+   sa "S."), maaari itong magkamali kung dalawang GUROng magkaiba ang middle name pero
+   pareho ang unang letra nito. ── */
+function teacherTokenMatches(t,list){
+  return list.some(o=>o===t||(t.length===1&&o[0]===t)||(o.length===1&&t[0]===o));
+}
 function sameTeacher(a,b){
   const A=normalizeTeacherName(a),B=normalizeTeacherName(b);
   if(!A||!B)return A===B;
   if(A===B)return true;
   const ta=A.split(' '),tb=B.split(' ');
-  return ta.every(t=>tb.includes(t))||tb.every(t=>ta.includes(t));
+  return ta.every(t=>teacherTokenMatches(t,tb))||tb.every(t=>teacherTokenMatches(t,ta));
 }
 /* ── Mga hanay para sa isang Grade (Tracker).
    TEACHER ang pangunahing identity ng isang row, HINDI ang subject — kaya kapag
