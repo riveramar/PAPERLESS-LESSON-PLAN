@@ -1722,7 +1722,7 @@ async function refreshAll(){
         const sy=p.sy,term=p.term;
         if(!sy||!fresh[sy]||!term||!fresh[sy][term])return;
 
-        const baseEntry={wm:p.wm||'',id:f.id,subject:p.subject||'',teacher:p.teacher||'',file:f.name,size:fmtSize(parseInt(f.size||0)),week:p.week?parseInt(p.week):null,rawDate:f.createdTime||null,date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
+        const baseEntry={wm:p.wm||'',id:f.id,subject:p.subject||'',teacher:p.teacher||'',email:p.email||'',file:f.name,size:fmtSize(parseInt(f.size||0)),week:p.week?parseInt(p.week):null,rawDate:f.createdTime||null,date:f.createdTime?new Date(f.createdTime).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):''};
 
         let targets=decodeTargets(p.targets);
         if(!targets.length&&p.dept&&p.grade){targets=[{dept:p.dept,grade:p.grade,track:p.track||''}];}
@@ -1790,29 +1790,31 @@ function termLabel(t){return{term1:'Term 1',term2:'Term 2',term3:'Term 3'}[t]||t
    palaging dumadaan sa sameTeacher(), kaya ginagamit ito ng find-or-create na pattern na
    ito sa halip na isang plain object/Set na naka-key sa exact normalized string.
    Ginagamit ito ng Teacher Management (renderTeachers) at ng dashboard teacher count. ── */
-function findTeacherCluster(list,name){
+function findTeacherCluster(list,name,email){
   if(!name)return null;
-  return list.find(t=>sameTeacher(t.label,name));
+  const t=list.find(t=>sameTeacherRecord(t.label,t.email,name,email));
+  if(t&&email&&!t.email)t.email=email;
+  return t;
 }
 function renderDashboard(){
   let totalLP=0;
   const teacherClusters=[];
-  const addTeacher=(raw)=>{
+  const addTeacher=(raw,email)=>{
     const name=(raw||'').trim();
     if(!name)return;
-    if(!findTeacherCluster(teacherClusters,name))teacherClusters.push({label:name});
+    if(!findTeacherCluster(teacherClusters,name,email))teacherClusters.push({label:name,email:email||''});
   };
   const d=store[curSY];
   if(d){
     TERMS.forEach(term=>{
       const dt=d[term];
       [7,8,9,10].forEach(g=>{
-        (dt.jhs[g]||[]).forEach(f=>{totalLP++;addTeacher(f.teacher);});
-        (dt.ste[g]||[]).forEach(f=>{totalLP++;addTeacher(f.teacher);});
+        (dt.jhs[g]||[]).forEach(f=>{totalLP++;addTeacher(f.teacher,f.email);});
+        (dt.ste[g]||[]).forEach(f=>{totalLP++;addTeacher(f.teacher,f.email);});
       });
       [11,12].forEach(g=>{
-        (dt.shs[g].Academics||[]).forEach(f=>{totalLP++;addTeacher(f.teacher);});
-        (dt.shs[g].TechPro||[]).forEach(f=>{totalLP++;addTeacher(f.teacher);});
+        (dt.shs[g].Academics||[]).forEach(f=>{totalLP++;addTeacher(f.teacher,f.email);});
+        (dt.shs[g].TechPro||[]).forEach(f=>{totalLP++;addTeacher(f.teacher,f.email);});
       });
     });
   }
@@ -1848,8 +1850,8 @@ function renderTeachers(){
   files.forEach(f=>{
     const name=(f.teacher||'').trim();
     if(!name)return;
-    let t=findTeacherCluster(teachers,name);
-    if(!t){t={label:name,count:0,depts:new Set(),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:false};teachers.push(t);}
+    let t=findTeacherCluster(teachers,name,f.email);
+    if(!t){t={label:name,email:f.email||'',count:0,depts:new Set(),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:false};teachers.push(t);}
     t.count++;
     t.depts.add(f.dept);
     if(f.subject)t.subjects.add(f.subject.trim());
@@ -1860,9 +1862,9 @@ function renderTeachers(){
   getTeacherRoster().forEach(r=>{
     const name=(r.name||'').trim();
     if(!name)return;
-    let t=findTeacherCluster(teachers,name);
+    let t=findTeacherCluster(teachers,name,'');
     if(!t){
-      t={label:name,count:0,depts:new Set(r.dept?[r.dept]:[]),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:true};
+      t={label:name,email:'',count:0,depts:new Set(r.dept?[r.dept]:[]),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:true};
       teachers.push(t);
     }else if(r.dept){
       t.depts.add(r.dept);
@@ -2167,7 +2169,7 @@ function doUpload(){
   const metadata={
     name:selFile.name,
     parents:[gFolderId],
-    properties:{sy,term,dept:firstTarget.dept,grade:firstTarget.grade,track:firstTarget.track||'',week,wm:'t',teacher,subject,targets:targetsEncoded}
+    properties:{sy,term,dept:firstTarget.dept,grade:firstTarget.grade,track:firstTarget.track||'',week,wm:'t',teacher,email:signedInEmail||'',subject,targets:targetsEncoded}
   };
 
   const form=new FormData();
@@ -2756,6 +2758,18 @@ function sameTeacher(a,b){
   const ta=A.split(' '),tb=B.split(' ');
   return ta.every(t=>teacherTokenMatches(t,tb))||tb.every(t=>teacherTokenMatches(t,ta));
 }
+/* ── Pareho pa rin ang guro?, pero may email na rin bukod sa pangalan. Kapag may
+   naka-record na email ang PAREHONG panig (nangyayari lang sa aktwal na na-upload na
+   file, dahil kinukuha ito mula sa naka-sign-in na Google account), iyon na ang
+   pinal na batayan — kahit magkaiba ang spelling ng pangalan, o kahit magkatulad ang
+   pangalan pero magkaibang account. Kapag walang email ang alinman (lumang file bago
+   ito idinagdag, o manual na entry sa Teacher Roster/Assignments), babalik sa
+   name-based na sameTeacher(). ── */
+function sameTeacherRecord(nameA,emailA,nameB,emailB){
+  const eA=(emailA||'').trim().toLowerCase(),eB=(emailB||'').trim().toLowerCase();
+  if(eA&&eB)return eA===eB;
+  return sameTeacher(nameA,nameB);
+}
 /* ── Mga hanay para sa isang Grade (Tracker).
    TEACHER ang pangunahing identity ng isang row, HINDI ang subject — kaya kapag
    pareho ang guro (normalizeTeacherName/sameTeacher), iisa lang ang row nila kahit
@@ -2769,26 +2783,30 @@ function sameTeacher(a,b){
    nananatiling hiwalay bawat subject (walang teacher identity na pagbabatayan). ── */
 function buildSubjectRows(files,dept,grade,track,split){
   const rows=[];
-  /* split=true: TEACHER muna ang hinahanap (sameTeacher/normalizeTeacherName) — ito
-     ang bagong pagkakasunod-sunod (teacher match BEFORE subject grouping). Kapag walang
-     guro sa entry, subject text na lang ang gamit (walang ibang paraan para tukuyin). */
-  const find=(subj,teacher)=>{
-    if(split&&teacher)return rows.find(r=>r.teacher&&sameTeacher(r.teacher,teacher));
+  /* split=true: TEACHER muna ang hinahanap — ito ang bagong pagkakasunod-sunod (teacher
+     match BEFORE subject grouping). Kapag may email ang PAREHONG panig (nangyayari sa
+     aktwal na na-upload na file — kinukuha mula sa naka-sign-in na Google account), iyon
+     na ang pinal na batayan (sameTeacherRecord); kung wala, babalik sa pangalan
+     (sameTeacher/normalizeTeacherName). Kapag walang guro sa entry (walang laman ang
+     Teacher field), subject text na lang ang gamit (walang ibang paraan para tukuyin). */
+  const find=(subj,teacher,email)=>{
+    if(split&&teacher)return rows.find(r=>r.teacher&&sameTeacherRecord(r.teacher,r.email,teacher,email));
     if(split)return rows.find(r=>!r.teacher&&r.subjects.has(subj.toLowerCase()));
     return rows.find(r=>r.subjects.has(subj.toLowerCase()));
   };
   const addTo=(r,subj)=>{if(subj)r.subjects.add(subj.toLowerCase());if(subj&&!r.subjectLabels.includes(subj))r.subjectLabels.push(subj);};
   getAssignments().forEach(a=>{
     if(a.dept!==dept||String(a.grade)!==String(grade)||(a.track||'')!==(track||''))return;
-    let r=find(a.subject,a.teacher);
-    if(!r){r={subjects:new Set(),subjectLabels:[],teacher:a.teacher||'',files:[]};rows.push(r);}
+    let r=find(a.subject,a.teacher,'');
+    if(!r){r={subjects:new Set(),subjectLabels:[],teacher:a.teacher||'',email:'',files:[]};rows.push(r);}
     addTo(r,a.subject);
   });
   files.forEach(f=>{
     const subj=(f.subject||'').trim()||'(No Subject Given)';
     const teacher=(f.teacher||'').trim();
-    let r=find(subj,teacher);
-    if(!r){r={subjects:new Set(),subjectLabels:[],teacher,files:[]};rows.push(r);}
+    let r=find(subj,teacher,f.email);
+    if(!r){r={subjects:new Set(),subjectLabels:[],teacher,email:f.email||'',files:[]};rows.push(r);}
+    else if(f.email&&!r.email)r.email=f.email; // backfill once a real upload's email is seen
     addTo(r,subj);
     r.files.push(f);
   });
