@@ -1561,6 +1561,26 @@ let EFFECTIVE_SCHOOL_START=localStorage.getItem('tnhs_school_start')||SCHOOL_STA
 const MAX_WEEKS=15; // default na bilang ng Week na mapipili kung wala pang End date ang Term
 const ABS_MAX_WEEKS=20; // pinakamahabang term na papayagan
 
+/* ══ CENTRAL TEACHER-NAME NORMALIZATION ══
+   Iisang function na pinagbabatayan ng LAHAT ng paghahambing ng pangalan ng guro
+   (Teacher Management, Teacher Roster, Teacher Assignments, dashboard teacher count,
+   Tracker matching) para hindi na magkaroon ng duplicate na dulot lang ng ibang
+   capitalization, spacing, bantas, o titulo (Mr./Mrs./Ms./Sir/Engr./Dr.).
+   HINDI nito binabago ang naka-save na raw na pangalan sa records — ginagamit lang
+   ito para bumuo ng stable na "key" para sa pagtutugma/pag-group. ── */
+function normalizeTeacherName(name){
+  if(name===undefined||name===null)return'';
+  let s=String(name).trim();
+  if(typeof s.normalize==='function')s=s.normalize('NFKC'); // unicode normalize (e.g. combining accents)
+  s=s.replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g,' '); // NBSP at ibang unicode spaces -> regular space
+  s=s.toLowerCase();
+  s=s.replace(/\s+/g,' ').trim();
+  s=s.replace(/\b(mr|mrs|ms|sir|engr|dr)\b\.?/g,' '); // alisin ang common titles (bago tanggalin ang bantas)
+  s=s.replace(/[^a-z0-9ñ\s]/g,' '); // alisin ang bantas (tuldok, kuwit, gitling, atbp.)
+  s=s.replace(/\s+/g,' ').trim(); // gawing isa lang ang paulit-ulit na space
+  return s;
+}
+
 let gToken=null,gTokenClient=null,gapiInited=false,gisInited=false,signedInEmail=null;
 const gFolderId=(GDRIVE_FOLDER_ID&&GDRIVE_FOLDER_ID.indexOf('PASTE_YOUR')!==0)?GDRIVE_FOLDER_ID:null;
 
@@ -1767,12 +1787,12 @@ function renderDashboard(){
     TERMS.forEach(term=>{
       const dt=d[term];
       [7,8,9,10].forEach(g=>{
-        (dt.jhs[g]||[]).forEach(f=>{totalLP++;if(f.teacher)teacherSet.add(f.teacher.trim().toLowerCase());});
-        (dt.ste[g]||[]).forEach(f=>{totalLP++;if(f.teacher)teacherSet.add(f.teacher.trim().toLowerCase());});
+        (dt.jhs[g]||[]).forEach(f=>{totalLP++;const k=normalizeTeacherName(f.teacher);if(k)teacherSet.add(k);});
+        (dt.ste[g]||[]).forEach(f=>{totalLP++;const k=normalizeTeacherName(f.teacher);if(k)teacherSet.add(k);});
       });
       [11,12].forEach(g=>{
-        (dt.shs[g].Academics||[]).forEach(f=>{totalLP++;if(f.teacher)teacherSet.add(f.teacher.trim().toLowerCase());});
-        (dt.shs[g].TechPro||[]).forEach(f=>{totalLP++;if(f.teacher)teacherSet.add(f.teacher.trim().toLowerCase());});
+        (dt.shs[g].Academics||[]).forEach(f=>{totalLP++;const k=normalizeTeacherName(f.teacher);if(k)teacherSet.add(k);});
+        (dt.shs[g].TechPro||[]).forEach(f=>{totalLP++;const k=normalizeTeacherName(f.teacher);if(k)teacherSet.add(k);});
       });
     });
   }
@@ -1806,8 +1826,7 @@ function renderTeachers(){
   const files=collectAllFilesSY(curSY);
   const teachers={}; // normalized name -> aggregate
   files.forEach(f=>{
-    if(!f.teacher)return;
-    const norm=f.teacher.trim().toLowerCase();
+    const norm=normalizeTeacherName(f.teacher);
     if(!norm)return;
     if(!teachers[norm])teachers[norm]={label:f.teacher.trim(),count:0,depts:new Set(),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:false};
     const t=teachers[norm];
@@ -1819,7 +1838,7 @@ function renderTeachers(){
   // merge in the manually-added Teacher Roster (Settings) — covers teachers who
   // haven't submitted anything yet, so they still show up as "wala pang naipasa"
   getTeacherRoster().forEach(r=>{
-    const norm=r.name.trim().toLowerCase();
+    const norm=normalizeTeacherName(r.name);
     if(!norm)return;
     if(!teachers[norm]){
       teachers[norm]={label:r.name.trim(),count:0,depts:new Set(r.dept?[r.dept]:[]),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:true};
@@ -2696,12 +2715,10 @@ function removeAssignment(i){
   renderAssignments();
   if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
 }
-/* ── Pagtutugma ng pangalan ng guro (hindi sensitibo sa laki ng letra, tuldok, Mr./Ms./Sir) ── */
-function normName(t){
-  return(t||'').toLowerCase().replace(/\b(mr|mrs|ms|sir|engr|dr)\b/g,' ').replace(/[^a-z0-9ñ\s]/g,' ').replace(/\s+/g,' ').trim();
-}
+/* ── Pagtutugma ng pangalan ng guro — gumagamit ng normalizeTeacherName() sa itaas,
+   kaya consistent ito sa Teacher Management, Roster, Assignments, atbp. ── */
 function sameTeacher(a,b){
-  const A=normName(a),B=normName(b);
+  const A=normalizeTeacherName(a),B=normalizeTeacherName(b);
   if(!A||!B)return A===B;
   if(A===B)return true;
   const ta=A.split(' '),tb=B.split(' ');
@@ -2757,7 +2774,7 @@ function addRosterTeacher(){
   const dept=deptSel.value;
   if(!name){note.style.color='var(--danger-text)';note.textContent='⚠️ Maglagay ng pangalan ng guro.';return;}
   const roster=getTeacherRoster();
-  if(roster.some(t=>t.name.toLowerCase()===name.toLowerCase())){note.style.color='var(--danger-text)';note.textContent='⚠️ Nasa listahan na ang guro na ito.';return;}
+  if(roster.some(t=>normalizeTeacherName(t.name)===normalizeTeacherName(name))){note.style.color='var(--danger-text)';note.textContent='⚠️ Nasa listahan na ang guro na ito.';return;}
   roster.push({name,dept});
   localStorage.setItem('tnhs_teacher_roster',JSON.stringify(roster));
   nameInput.value='';deptSel.value='';
