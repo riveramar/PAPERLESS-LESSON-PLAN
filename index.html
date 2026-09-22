@@ -1779,25 +1779,42 @@ function closeSidebarMobile(){document.getElementById('sidebar').classList.remov
 
 /* ══ DASHBOARD ══ */
 function termLabel(t){return{term1:'Term 1',term2:'Term 2',term3:'Term 3'}[t]||t;}
+/* ── Pagsasama-sama ng magkatulad na pangalan ng guro sa ISANG identity, gamit ang
+   sameTeacher() (case, bantas, titulo, pagkakasunod ng pangalan — hal. "Geraldine Amag"
+   vs "Amag Geraldine" — at gitnang inisyal — hal. "Albert Maduro" vs "Albert M. Maduro").
+   EXACT STRING MATCH lang ang normalizeTeacherName() (kaya magkaiba pa rin ito kapag
+   nagbago ang pagkakasunod ng pangalan); ang totoong "same teacher?" na tanong ay dapat
+   palaging dumadaan sa sameTeacher(), kaya ginagamit ito ng find-or-create na pattern na
+   ito sa halip na isang plain object/Set na naka-key sa exact normalized string.
+   Ginagamit ito ng Teacher Management (renderTeachers) at ng dashboard teacher count. ── */
+function findTeacherCluster(list,name){
+  if(!name)return null;
+  return list.find(t=>sameTeacher(t.label,name));
+}
 function renderDashboard(){
   let totalLP=0;
-  const teacherSet=new Set();
+  const teacherClusters=[];
+  const addTeacher=(raw)=>{
+    const name=(raw||'').trim();
+    if(!name)return;
+    if(!findTeacherCluster(teacherClusters,name))teacherClusters.push({label:name});
+  };
   const d=store[curSY];
   if(d){
     TERMS.forEach(term=>{
       const dt=d[term];
       [7,8,9,10].forEach(g=>{
-        (dt.jhs[g]||[]).forEach(f=>{totalLP++;const k=normalizeTeacherName(f.teacher);if(k)teacherSet.add(k);});
-        (dt.ste[g]||[]).forEach(f=>{totalLP++;const k=normalizeTeacherName(f.teacher);if(k)teacherSet.add(k);});
+        (dt.jhs[g]||[]).forEach(f=>{totalLP++;addTeacher(f.teacher);});
+        (dt.ste[g]||[]).forEach(f=>{totalLP++;addTeacher(f.teacher);});
       });
       [11,12].forEach(g=>{
-        (dt.shs[g].Academics||[]).forEach(f=>{totalLP++;const k=normalizeTeacherName(f.teacher);if(k)teacherSet.add(k);});
-        (dt.shs[g].TechPro||[]).forEach(f=>{totalLP++;const k=normalizeTeacherName(f.teacher);if(k)teacherSet.add(k);});
+        (dt.shs[g].Academics||[]).forEach(f=>{totalLP++;addTeacher(f.teacher);});
+        (dt.shs[g].TechPro||[]).forEach(f=>{totalLP++;addTeacher(f.teacher);});
       });
     });
   }
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  set('dash-total-teachers',teacherSet.size);
+  set('dash-total-teachers',teacherClusters.length);
   set('dash-total-lp',totalLP);
   set('dash-current-sy',curSY);
   set('dash-current-qtr',termLabel(getEffectiveCurrentTerm()));
@@ -1824,12 +1841,12 @@ function renderTeachers(){
   const search=(document.getElementById('tm-search')?.value||'').trim().toLowerCase();
   const deptFilter=document.getElementById('tm-dept')?.value||'all';
   const files=collectAllFilesSY(curSY);
-  const teachers={}; // normalized name -> aggregate
+  const teachers=[]; // array (not a plain object) — dedup gamit ang sameTeacher(), hindi exact-key
   files.forEach(f=>{
-    const norm=normalizeTeacherName(f.teacher);
-    if(!norm)return;
-    if(!teachers[norm])teachers[norm]={label:f.teacher.trim(),count:0,depts:new Set(),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:false};
-    const t=teachers[norm];
+    const name=(f.teacher||'').trim();
+    if(!name)return;
+    let t=findTeacherCluster(teachers,name);
+    if(!t){t={label:name,count:0,depts:new Set(),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:false};teachers.push(t);}
     t.count++;
     t.depts.add(f.dept);
     if(f.subject)t.subjects.add(f.subject.trim());
@@ -1838,15 +1855,17 @@ function renderTeachers(){
   // merge in the manually-added Teacher Roster (Settings) — covers teachers who
   // haven't submitted anything yet, so they still show up as "wala pang naipasa"
   getTeacherRoster().forEach(r=>{
-    const norm=normalizeTeacherName(r.name);
-    if(!norm)return;
-    if(!teachers[norm]){
-      teachers[norm]={label:r.name.trim(),count:0,depts:new Set(r.dept?[r.dept]:[]),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:true};
+    const name=(r.name||'').trim();
+    if(!name)return;
+    let t=findTeacherCluster(teachers,name);
+    if(!t){
+      t={label:name,count:0,depts:new Set(r.dept?[r.dept]:[]),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:true};
+      teachers.push(t);
     }else if(r.dept){
-      teachers[norm].depts.add(r.dept);
+      t.depts.add(r.dept);
     }
   });
-  let list=Object.values(teachers);
+  let list=teachers;
   if(deptFilter!=='all')list=list.filter(t=>t.depts.has(deptFilter)||t.depts.size===0);
   if(search)list=list.filter(t=>t.label.toLowerCase().includes(search));
   list.sort((a,b)=>a.label.localeCompare(b.label));
@@ -2795,7 +2814,7 @@ function addRosterTeacher(){
   const dept=deptSel.value;
   if(!name){note.style.color='var(--danger-text)';note.textContent='⚠️ Maglagay ng pangalan ng guro.';return;}
   const roster=getTeacherRoster();
-  if(roster.some(t=>normalizeTeacherName(t.name)===normalizeTeacherName(name))){note.style.color='var(--danger-text)';note.textContent='⚠️ Nasa listahan na ang guro na ito.';return;}
+  if(roster.some(t=>sameTeacher(t.name,name))){note.style.color='var(--danger-text)';note.textContent='⚠️ Nasa listahan na ang guro na ito.';return;}
   roster.push({name,dept});
   localStorage.setItem('tnhs_teacher_roster',JSON.stringify(roster));
   nameInput.value='';deptSel.value='';
