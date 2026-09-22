@@ -2724,25 +2724,46 @@ function sameTeacher(a,b){
   const ta=A.split(' '),tb=B.split(' ');
   return ta.every(t=>tb.includes(t))||tb.every(t=>ta.includes(t));
 }
-/* ── Mga hanay ng Subject para sa isang Grade. Kung split=true, magkahiwalay ang hanay
-   ng bawat guro sa parehong subject (hal. dalawang TLE). Kasama ang mga nasa
-   "Inaasahang Subject at Guro" kahit wala pang naipasa. ── */
+/* ── Mga hanay para sa isang Grade (Tracker).
+   TEACHER ang pangunahing identity ng isang row, HINDI ang subject — kaya kapag
+   pareho ang guro (normalizeTeacherName/sameTeacher), iisa lang ang row nila kahit
+   nagbago ang pangalan ng subject sa ibang linggo (hal. "TLE" noong Week 1, "TLE ICT"
+   naman sa Week 2–3 — si Juan Dela Cruz pa rin ang parehong guro, isang row lang).
+   Ang aktwal na subject name sa bawat submission ay HINDI binabago — ipinapakita lang
+   silang lahat sa label ng row ("TLE / TLE ICT · Juan Dela Cruz"). Kapag OFF ang
+   "Hiwalay bawat guro" (split=false), pinagsasama pa rin ang lahat ng guro ng parehong
+   subject sa isang row, gaya ng dati. Kasama rin ang mga wala pang naipasa mula sa
+   "Inaasahang Subject at Guro" (Settings), at ang mga walang nakatalagang guro doon ay
+   nananatiling hiwalay bawat subject (walang teacher identity na pagbabatayan). ── */
 function buildSubjectRows(files,dept,grade,track,split){
   const rows=[];
-  const find=(subj,teacher)=>rows.find(r=>r.norm===subj.toLowerCase()&&(!split||sameTeacher(r.teacher,teacher)));
+  /* split=true: TEACHER muna ang hinahanap (sameTeacher/normalizeTeacherName) — ito
+     ang bagong pagkakasunod-sunod (teacher match BEFORE subject grouping). Kapag walang
+     guro sa entry, subject text na lang ang gamit (walang ibang paraan para tukuyin). */
+  const find=(subj,teacher)=>{
+    if(split&&teacher)return rows.find(r=>r.teacher&&sameTeacher(r.teacher,teacher));
+    if(split)return rows.find(r=>!r.teacher&&r.subjects.has(subj.toLowerCase()));
+    return rows.find(r=>r.subjects.has(subj.toLowerCase()));
+  };
+  const addTo=(r,subj)=>{if(subj)r.subjects.add(subj.toLowerCase());if(subj&&!r.subjectLabels.includes(subj))r.subjectLabels.push(subj);};
   getAssignments().forEach(a=>{
     if(a.dept!==dept||String(a.grade)!==String(grade)||(a.track||'')!==(track||''))return;
-    if(!find(a.subject,a.teacher))rows.push({norm:a.subject.toLowerCase(),subject:a.subject,teacher:a.teacher,files:[]});
+    let r=find(a.subject,a.teacher);
+    if(!r){r={subjects:new Set(),subjectLabels:[],teacher:a.teacher||'',files:[]};rows.push(r);}
+    addTo(r,a.subject);
   });
   files.forEach(f=>{
     const subj=(f.subject||'').trim()||'(No Subject Given)';
-    let r=find(subj,f.teacher||'');
-    if(!r){r={norm:subj.toLowerCase(),subject:subj,teacher:f.teacher||'',files:[]};rows.push(r);}
+    const teacher=(f.teacher||'').trim();
+    let r=find(subj,teacher);
+    if(!r){r={subjects:new Set(),subjectLabels:[],teacher,files:[]};rows.push(r);}
+    addTo(r,subj);
     r.files.push(f);
   });
-  const perSubj={};
-  rows.forEach(r=>{perSubj[r.norm]=(perSubj[r.norm]||0)+1;});
-  rows.forEach(r=>{r.label=(split&&perSubj[r.norm]>1&&r.teacher)?`${r.subject} · ${r.teacher}`:r.subject;});
+  rows.forEach(r=>{
+    const subjLabel=r.subjectLabels.slice().sort((a,b)=>a.localeCompare(b)).join(' / ')||'(No Subject Given)';
+    r.label=(split&&r.teacher)?`${subjLabel} · ${r.teacher}`:subjLabel;
+  });
   return rows.sort((a,b)=>a.label.localeCompare(b.label));
 }
 function trackerSplitOn(){const el=document.getElementById('tr-split');return!el||el.checked;}
