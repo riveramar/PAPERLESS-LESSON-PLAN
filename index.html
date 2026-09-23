@@ -1919,11 +1919,17 @@ function getLocalAdmins(){
 function getEffectiveAdminEmails(){
   return[...ADMIN_EMAILS,...getLocalAdmins()];
 }
+/* ── Iisang admin check na ito ang sinusunod ng Tracker nav link AT ng View/Download
+   ng bawat lesson plan sa Repository — kailangang naka-sign in AT nasa listahan ng
+   admin emails (Settings → Admin Access). ── */
+function isAdminNow(){
+  return!!signedInEmail&&getEffectiveAdminEmails().some(e=>e.toLowerCase()===signedInEmail.toLowerCase());
+}
 
 function updateTrackerVisibility(){
   const trackerLink=document.getElementById('nav-tracker');
   if(!trackerLink)return;
-  const isAdmin=!!signedInEmail&&getEffectiveAdminEmails().some(e=>e.toLowerCase()===signedInEmail.toLowerCase());
+  const isAdmin=isAdminNow();
   trackerLink.style.display=isAdmin?'':'none';
   if(!isAdmin&&document.getElementById('page-tracker').classList.contains('active')){showPage('home');}
   updateHeaderInfo();
@@ -2014,7 +2020,9 @@ function makeCard(grade,files,dept,track,term){
           ${f.size?'<div class="fitem-size">'+x(f.size)+'</div>':''}
         </div>
         <div class="fitem-acts">
-          <button class="fbtn" onclick='viewFile(${JSON.stringify({id:f.id,file:f.file,teacher:f.teacher})})'>👁 View</button><a class="fbtn" href="https://drive.google.com/uc?export=download&amp;id=${x(f.id)}" target="_blank">⬇</a>
+          ${isAdminNow()
+            ?`<button class="fbtn" onclick='viewFile(${JSON.stringify({id:f.id,file:f.file,teacher:f.teacher})})'>👁 View</button><a class="fbtn" href="https://drive.google.com/uc?export=download&amp;id=${x(f.id)}" target="_blank">⬇</a>`
+            :`<span class="fbtn" style="opacity:.45;cursor:not-allowed;" title="Admin access lang ang puwedeng mag-view/download ng lesson plan">🔒 Admin only</span>`}
           <button class="fbtn${singleTag?' tag-warn':''}" onclick='openTagModal(${JSON.stringify({id:f.id,file:f.file,targets:f.allTargets||[]})})' title="${singleTag?'Isang destinasyon lang ang naka-tag — i-click para magdagdag':'I-edit ang mga destinasyon'}">🏷</button>
           <button class="fbtn del" onclick="askDel('${x(f.id)}','${x(f.file)}')">🗑</button>
         </div>
