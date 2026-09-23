@@ -1798,23 +1798,31 @@ function findTeacherCluster(list,name,email){
 }
 function renderDashboard(){
   let totalLP=0;
+  const seenLpIds=new Set(); // isang beses lang bilangin ang isang file kahit naka-tag ito sa maraming Grade/Dept
   const teacherClusters=[];
   const addTeacher=(raw,email)=>{
     const name=(raw||'').trim();
     if(!name)return;
     if(!findTeacherCluster(teacherClusters,name,email))teacherClusters.push({label:name,email:email||''});
   };
+  const addLP=(f)=>{
+    if(!f.id||!seenLpIds.has(f.id)){
+      if(f.id)seenLpIds.add(f.id);
+      totalLP++;
+    }
+    addTeacher(f.teacher,f.email);
+  };
   const d=store[curSY];
   if(d){
     TERMS.forEach(term=>{
       const dt=d[term];
       [7,8,9,10].forEach(g=>{
-        (dt.jhs[g]||[]).forEach(f=>{totalLP++;addTeacher(f.teacher,f.email);});
-        (dt.ste[g]||[]).forEach(f=>{totalLP++;addTeacher(f.teacher,f.email);});
+        (dt.jhs[g]||[]).forEach(addLP);
+        (dt.ste[g]||[]).forEach(addLP);
       });
       [11,12].forEach(g=>{
-        (dt.shs[g].Academics||[]).forEach(f=>{totalLP++;addTeacher(f.teacher,f.email);});
-        (dt.shs[g].TechPro||[]).forEach(f=>{totalLP++;addTeacher(f.teacher,f.email);});
+        (dt.shs[g].Academics||[]).forEach(addLP);
+        (dt.shs[g].TechPro||[]).forEach(addLP);
       });
     });
   }
@@ -1851,8 +1859,15 @@ function renderTeachers(){
     const name=(f.teacher||'').trim();
     if(!name)return;
     let t=findTeacherCluster(teachers,name,f.email);
-    if(!t){t={label:name,email:f.email||'',count:0,depts:new Set(),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:false};teachers.push(t);}
-    t.count++;
+    if(!t){t={label:name,email:f.email||'',count:0,depts:new Set(),subjects:new Set(),lastRaw:null,lastDate:'',fromRoster:false,seenIds:new Set()};teachers.push(t);}
+    // isang file na naka-tag sa higit sa isang Grade/Dept (hal. parehong Grade 9 at
+    // Grade 10) ay lumalabas nang paulit-ulit dito, sabay-sabay isa bawat destinasyon —
+    // TAMA iyon para sa Repository, PERO isang LP pa rin iyon, kaya isang beses lang
+    // dapat itong mabilang bilang Lesson Plan bawat guro.
+    if(!f.id||!t.seenIds.has(f.id)){
+      if(f.id)t.seenIds.add(f.id);
+      t.count++;
+    }
     t.depts.add(f.dept);
     if(f.subject)t.subjects.add(f.subject.trim());
     if(f.rawDate&&(!t.lastRaw||f.rawDate>t.lastRaw)){t.lastRaw=f.rawDate;t.lastDate=f.date;}
