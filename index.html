@@ -1614,7 +1614,14 @@ function gisLoad(){
 }
 function maybeSilentConnect(){
   if(gapiInited&&gisInited&&!gToken&&localStorage.getItem('tnhs_drive_ever_connected')){
-    gTokenClient.callback=(resp)=>{if(!resp.error){gToken=resp.access_token;setDriveStatus(true);refreshAll();}};
+    gTokenClient.callback=async(resp)=>{
+      if(resp.error)return;
+      gToken=resp.access_token;
+      await fetchSignedInEmail();
+      setDriveStatus(true);
+      updateTrackerVisibility();
+      await refreshAll();
+    };
     try{gTokenClient.requestAccessToken({prompt:''});}catch(e){}
   }
 }
@@ -1629,20 +1636,26 @@ function setDriveStatus(connected){
     signedInEmail=null;updateTrackerVisibility();
   }
 }
+/* ── Kinukuha ang email ng naka-sign in na Google account. Iisang function na ito ang
+   ginagamit PAREHO ng connectDrive() (manual na "Sign In") AT ng maybeSilentConnect()
+   (awtomatikong pag-reconnect sa muling pagbukas ng site), para laging tama ang
+   signedInEmail — at kasama na dito ang admin check (isAdminNow()) — kahit anong paraan
+   ng pag-sign in ang nangyari. ── */
+async function fetchSignedInEmail(){
+  try{
+    const r=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gToken}});
+    const u=await r.json();
+    signedInEmail=u.email||null;
+  }catch(e){signedInEmail=null;}
+}
 function connectDrive(){
   if(!gapiInited||!gisInited){alert('Google services are still loading — please wait a few seconds and try again.');return;}
   if(!GDRIVE_CLIENT_ID||GDRIVE_CLIENT_ID.indexOf('PASTE_YOUR')===0||!gFolderId){alert('Google Drive isn\'t fully configured yet. See GOOGLE_DRIVE_SETUP.md.');return;}
   gTokenClient.callback=async(resp)=>{
     if(resp.error){console.error(resp);alert('Google sign-in failed or was cancelled.');return;}
     gToken=resp.access_token;
-    
     localStorage.setItem('tnhs_drive_ever_connected','1');
-    // fetch signed-in user's email to check admin access
-    try{
-      const r=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gToken}});
-      const u=await r.json();
-      signedInEmail=u.email||null;
-    }catch(e){signedInEmail=null;}
+    await fetchSignedInEmail();
     setDriveStatus(true);
     updateTrackerVisibility();
     await refreshAll();
