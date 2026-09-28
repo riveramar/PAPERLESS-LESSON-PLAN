@@ -677,7 +677,6 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
   .tr-table th,.dl-table th,.mx-table thead th{background:#eee!important;}
   .portal-hero{border:none!important;padding:0 0 12px!important;margin:0!important;}
 }
-
 </style>
 </head>
 <body>
@@ -1227,7 +1226,7 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
 
     <div class="settings-card">
       <h3>Admin Access (Tracker)</h3>
-      <p class="settings-sub">Ang mga email sa ibaba ang may access sa Submission Tracker. May mga <strong>built-in admin</strong> (naka-code, hindi natatanggal dito) at mga <strong>naidagdag mo sa browser na ito</strong> (pwedeng tanggalin).</p>
+      <p class="settings-sub">Ang mga email sa ibaba ang may access sa Submission Tracker at sa View/Download ng lesson plans. May mga <strong>built-in admin</strong> (naka-code, hindi natatanggal dito) at mga <strong>Shared admin</strong> na naka-save sa Google Drive — pareho ang listahan sa lahat ng device, kaya hindi mo na kailangang i-edit ang code. Kailangan mong naka-sign in bilang admin para makapagdagdag o makapag-alis.</p>
       <div id="admin-list"></div>
       <div class="settings-add-row">
         <input type="email" id="new-admin-email" placeholder="halimbawa@deped.gov.ph">
@@ -1300,8 +1299,20 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
     </div>
 
     <div class="settings-card">
+      <h3>Teacher Name Aliases</h3>
+      <p class="settings-sub">Kapag magkaibang pangalan ang gamit ng isang guro sa iba't ibang upload (hal. "Rio Amar" minsan, "River Amar" naman minsan — hindi lang ibang baybay o titulo, talagang ibang salita), idagdag dito para tuluyang ituring silang IISANG guro sa Teacher Management at Submission Tracker, kahit wala pang naka-record na email ang mga lumang upload. Sapat na ang email na mismong ginamit sa Google Sign-In para sa mga bagong upload — dito lang kailangan para sa mga LUMANG file o sa mga ginamitan ng ibang email.</p>
+      <div id="alias-list"></div>
+      <div class="settings-add-row">
+        <input type="text" id="alias-a" placeholder="hal. Rio Amar">
+        <input type="text" id="alias-b" placeholder="hal. River Amar">
+        <button class="btn-gold" onclick="addTeacherAlias()">➕ Idagdag</button>
+      </div>
+      <div class="settings-note" id="alias-note"></div>
+    </div>
+
+    <div class="settings-card">
       <h3>Reset Local Preferences</h3>
-      <p class="settings-sub">Ibabalik sa default ang theme, ang custom na First Day of Classes (Deadline Management), at ang mga naidagdag na admin sa browser na ito. Hindi ito magbabago ng anumang laman sa Google Drive.</p>
+      <p class="settings-sub">Ibabalik sa default ang theme, at ang custom na First Day of Classes (Deadline Management) sa browser na ito. Hindi nito binabago ang anumang laman sa Google Drive, kasama ang Shared admin list.</p>
       <button class="btn-ghost-danger" onclick="resetLocalPrefs()">🗑️ I-reset ang Lahat</button>
     </div>
 
@@ -1603,7 +1614,7 @@ function gisLoad(){
 }
 function maybeSilentConnect(){
   if(gapiInited&&gisInited&&!gToken&&localStorage.getItem('tnhs_drive_ever_connected')){
-    gTokenClient.callback=(resp)=>{if(!resp.error){gToken=resp.access_tokensetDriveStatus(true);refreshAll();}};
+    gTokenClient.callback=(resp)=>{if(!resp.error){gToken=resp.access_token;setDriveStatus(true);refreshAll();}};
     try{gTokenClient.requestAccessToken({prompt:''});}catch(e){}
   }
 }
@@ -1705,6 +1716,7 @@ async function refreshAll(){
   try{
     const fresh=newData();
     let pageToken=null;
+    let foundAdmins=[],foundMarkerId=null,foundKeys=0;
     do{
       const params=new URLSearchParams({
         q:`'${gFolderId}' in parents and trashed=false`,
@@ -1719,6 +1731,13 @@ async function refreshAll(){
       const data=await res.json();
       (data.files||[]).forEach(f=>{
         const p=f.properties||{};
+        if(p.kind==='admins'){ // marker ng shared admin list — hindi ito lesson plan
+          if(!foundMarkerId)foundMarkerId=f.id;
+          const em=readAdminMarkerProps(p);
+          foundKeys=Math.max(foundKeys,em.length);
+          foundAdmins=[...new Set([...foundAdmins,...em])];
+          return;
+        }
         const sy=p.sy,term=p.term;
         if(!sy||!fresh[sy]||!term||!fresh[sy][term])return;
 
@@ -1739,8 +1758,11 @@ async function refreshAll(){
       pageToken=data.nextPageToken||null;
     }while(pageToken);
     store=fresh;
+    sharedAdmins=foundAdmins;adminMarkerId=foundMarkerId;adminMarkerKeys=foundKeys;
     applyWeekConversion();
     renderAll();updateStat();updateTermCounts();
+    updateTrackerVisibility();renderAdminList();
+    migrateLocalAdmins();
     if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
   }catch(e){
     console.error('Drive refresh failed',e);
@@ -1931,8 +1953,58 @@ function updateHeaderInfo(){
 function getLocalAdmins(){
   try{return JSON.parse(localStorage.getItem('tnhs_local_admins')||'[]');}catch(e){return[];}
 }
+/* ── Shared admin list: naka-save sa Google Drive (isang maliit na marker file sa
+   parehong folder ng mga lesson plan), kaya pareho ang nakikita ng lahat ng browser
+   at device. Ang bawat email ay nasa sariling property (a1, a2, …) dahil 124 bytes ang
+   limit ng Drive bawat property. ── */
+const ADMIN_MARKER_NAME='_tnhs_admins';
+const ADMIN_MAX_SLOTS=40;
+let sharedAdmins=[];        // mga email mula sa Drive
+let adminMarkerId=null;     // id ng marker file sa Drive (kung mayroon na)
+let adminMarkerKeys=0;      // ilang slot ang may laman sa Drive ngayon
+function readAdminMarkerProps(p){
+  const out=[];
+  for(let i=1;i<=ADMIN_MAX_SLOTS;i++){const v=(p['a'+i]||'').trim().toLowerCase();if(v)out.push(v);}
+  return out;
+}
 function getEffectiveAdminEmails(){
-  return[...ADMIN_EMAILS,...getLocalAdmins()];
+  // built-in + shared (Drive) + lumang local (browser lang, hanggang mailipat sa Drive)
+  return[...ADMIN_EMAILS,...sharedAdmins,...getLocalAdmins()];
+}
+/* Isulat ang buong shared list sa Drive. Gumagawa ng marker file kung wala pa. */
+async function saveSharedAdmins(list){
+  if(!gToken)throw new Error('NOT_SIGNED_IN');
+  const clean=[...new Set(list.map(e=>e.trim().toLowerCase()).filter(Boolean))].filter(e=>!ADMIN_EMAILS.map(b=>b.toLowerCase()).includes(e));
+  if(clean.length>ADMIN_MAX_SLOTS)throw new Error('TOO_MANY');
+  const props={kind:'admins'};
+  for(let i=1;i<=Math.max(ADMIN_MAX_SLOTS,adminMarkerKeys);i++)props['a'+i]=clean[i-1]||null; // null = burahin ang lumang slot
+  const headers={Authorization:'Bearer '+gToken,'Content-Type':'application/json'};
+  let res;
+  if(adminMarkerId){
+    res=await fetch('https://www.googleapis.com/drive/v3/files/'+adminMarkerId,{method:'PATCH',headers,body:JSON.stringify({properties:props})});
+  }else{
+    const createProps={};Object.keys(props).forEach(k=>{if(props[k]!==null)createProps[k]=props[k];});
+    res=await fetch('https://www.googleapis.com/drive/v3/files',{method:'POST',headers,body:JSON.stringify({name:ADMIN_MARKER_NAME,mimeType:'text/plain',parents:[gFolderId],properties:createProps})});
+  }
+  if(!res.ok){if(res.status===401){gToken=null;setDriveStatus(false);}throw new Error('HTTP '+res.status);}
+  const data=await res.json();
+  if(data&&data.id)adminMarkerId=data.id;
+  sharedAdmins=clean;adminMarkerKeys=clean.length;
+}
+/* Kapag admin ang naka-sign in at may natitirang lokal na admin sa browser na ito,
+   awtomatikong ilipat sa Drive para makita na ng lahat ng device. */
+let adminMigrating=false;
+async function migrateLocalAdmins(){
+  if(adminMigrating||!gToken||!isAdminNow())return;
+  const local=getLocalAdmins();
+  if(!local.length)return;
+  adminMigrating=true;
+  try{
+    await saveSharedAdmins([...sharedAdmins,...local]);
+    localStorage.removeItem('tnhs_local_admins');
+    renderAdminList();updateTrackerVisibility();
+  }catch(e){console.warn('Admin migration failed',e);}
+  finally{adminMigrating=false;}
 }
 /* ── Iisang admin check na ito ang sinusunod ng Tracker nav link AT ng View/Download
    ng bawat lesson plan sa Repository — kailangang naka-sign in AT nasa listahan ng
@@ -2694,37 +2766,54 @@ function setTheme(theme){
 function renderAdminList(){
   const wrap=document.getElementById('admin-list');
   if(!wrap)return;
-  const local=getLocalAdmins();
   let html='';
   ADMIN_EMAILS.forEach(e=>{
     html+=`<div class="admin-row"><span class="admin-email">${x(e)}</span><span class="admin-tag builtin">Built-in</span></div>`;
   });
-  local.forEach(e=>{
-    html+=`<div class="admin-row"><span class="admin-email">${x(e)}</span><span style="display:flex;align-items:center;gap:8px;"><span class="admin-tag local">Local</span><button class="admin-remove" onclick="removeAdminEmail('${x(e)}')">Alisin</button></span></div>`;
+  sharedAdmins.forEach(e=>{
+    html+=`<div class="admin-row"><span class="admin-email">${x(e)}</span><span style="display:flex;align-items:center;gap:8px;"><span class="admin-tag local">Shared</span><button class="admin-remove" onclick="removeAdminEmail('${x(e)}')">Alisin</button></span></div>`;
+  });
+  getLocalAdmins().forEach(e=>{
+    if(sharedAdmins.map(a=>a.toLowerCase()).includes(e.toLowerCase()))return;
+    html+=`<div class="admin-row"><span class="admin-email">${x(e)}</span><span style="display:flex;align-items:center;gap:8px;"><span class="admin-tag builtin" title="Nasa browser na ito lang. Mag-sign in bilang admin para mailipat sa Drive.">Browser lang</span><button class="admin-remove" onclick="removeAdminEmail('${x(e)}')">Alisin</button></span></div>`;
   });
   wrap.innerHTML=html;
 }
-function addAdminEmail(){
+function adminNote(msg,ok){const n=document.getElementById('admin-note');if(!n)return;n.style.color=ok?'var(--success-text)':'var(--danger-text)';n.textContent=msg;}
+async function addAdminEmail(){
   const input=document.getElementById('new-admin-email');
-  const note=document.getElementById('admin-note');
   const val=(input.value||'').trim().toLowerCase();
-  if(!val||!val.includes('@')){note.style.color='var(--danger-text)';note.textContent='⚠️ Maglagay ng valid na email.';return;}
+  if(!val||!val.includes('@')){adminNote('⚠️ Maglagay ng valid na email.',false);return;}
   const all=getEffectiveAdminEmails().map(e=>e.toLowerCase());
-  if(all.includes(val)){note.style.color='var(--danger-text)';note.textContent='⚠️ Nasa listahan na ang email na ito.';return;}
-  const local=getLocalAdmins();
-  local.push(val);
-  localStorage.setItem('tnhs_local_admins',JSON.stringify(local));
-  input.value='';
-  note.style.color='var(--success-text)';note.textContent='✅ Naidagdag! Kailangan pa ring mag-sign in gamit ang email na iyon para lumabas ang Tracker.';
-  renderAdminList();
-  updateTrackerVisibility();
+  if(all.includes(val)){adminNote('⚠️ Nasa listahan na ang email na ito.',false);return;}
+  if(!gToken){adminNote('⚠️ Mag-Sign In muna (kanang itaas) para ma-save ang admin sa Google Drive at makita ito ng lahat ng device.',false);return;}
+  if(!isAdminNow()){adminNote('⚠️ Admin lang ang puwedeng magdagdag ng admin.',false);return;}
+  adminNote('Sine-save sa Google Drive…',true);
+  try{
+    await saveSharedAdmins([...sharedAdmins,val]);
+    input.value='';
+    adminNote('✅ Naidagdag sa Google Drive! Sa susunod na pag-open ng site sa kanilang device at pag-sign in gamit ang email na iyon, lalabas na ang Tracker.',true);
+    renderAdminList();updateTrackerVisibility();
+  }catch(e){
+    console.error('Add admin failed',e);
+    adminNote(e.message==='TOO_MANY'?'⚠️ Sobrang dami na ng admin (hanggang '+ADMIN_MAX_SLOTS+' lang).':'⚠️ Hindi na-save sa Google Drive ('+e.message+'). Subukan ulit o mag-Sign In muli.',false);
+  }
 }
-function removeAdminEmail(email){
-  let local=getLocalAdmins();
-  local=local.filter(e=>e.toLowerCase()!==email.toLowerCase());
-  localStorage.setItem('tnhs_local_admins',JSON.stringify(local));
-  renderAdminList();
-  updateTrackerVisibility();
+async function removeAdminEmail(email){
+  const em=email.toLowerCase();
+  const isShared=sharedAdmins.map(a=>a.toLowerCase()).includes(em);
+  if(!isShared){ // browser-only na entry
+    localStorage.setItem('tnhs_local_admins',JSON.stringify(getLocalAdmins().filter(e=>e.toLowerCase()!==em)));
+    renderAdminList();updateTrackerVisibility();return;
+  }
+  if(!gToken){adminNote('⚠️ Mag-Sign In muna para makapag-alis ng admin sa Google Drive.',false);return;}
+  if(!isAdminNow()){adminNote('⚠️ Admin lang ang puwedeng mag-alis ng admin.',false);return;}
+  try{
+    await saveSharedAdmins(sharedAdmins.filter(e=>e.toLowerCase()!==em));
+    localStorage.setItem('tnhs_local_admins',JSON.stringify(getLocalAdmins().filter(e=>e.toLowerCase()!==em)));
+    adminNote('✅ Naalis na sa Google Drive.',true);
+    renderAdminList();updateTrackerVisibility();
+  }catch(e){adminNote('⚠️ Hindi na-alis ('+e.message+'). Subukan ulit.',false);}
 }
 /* ══ SETTINGS: Inaasahang Subject at Guro ══ */
 function getAssignments(){
@@ -2762,6 +2851,47 @@ function removeAssignment(i){
   renderAssignments();
   if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
 }
+/* ══ SETTINGS: Teacher Name Aliases ══ */
+function refreshAfterTeacherIdentityChange(){
+  if(document.getElementById('page-home').classList.contains('active'))renderDashboard();
+  if(document.getElementById('page-tracker').classList.contains('active'))renderTracker();
+  if(document.getElementById('page-teachers').classList.contains('active'))renderTeachers();
+}
+function renderTeacherAliases(){
+  const wrap=document.getElementById('alias-list');
+  if(!wrap)return;
+  const groups=getTeacherAliasGroups();
+  if(!groups.length){wrap.innerHTML='<div style="font-size:12.5px;color:var(--gray-600);padding:.4rem 0;">Wala pang naidagdag.</div>';return;}
+  wrap.innerHTML=groups.map((g,i)=>`<div class="admin-row"><span class="admin-email">${g.map(n=>x(n)).join(' = ')}</span><button class="admin-remove" onclick="removeTeacherAliasGroup(${i})">Alisin</button></div>`).join('');
+}
+function addTeacherAlias(){
+  const note=document.getElementById('alias-note');
+  const a=document.getElementById('alias-a').value.trim();
+  const b=document.getElementById('alias-b').value.trim();
+  if(!a||!b){note.style.color='var(--danger-text)';note.textContent='⚠️ Ilagay ang dalawang pangalan na pagsasamahin.';return;}
+  if(normalizeTeacherName(a)===normalizeTeacherName(b)){note.style.color='var(--danger-text)';note.textContent='⚠️ Pareho lang ang dalawang pangalan.';return;}
+  const groups=getTeacherAliasGroups();
+  const An=normalizeTeacherName(a),Bn=normalizeTeacherName(b);
+  const findIdx=n=>groups.findIndex(g=>g.some(x2=>normalizeTeacherName(x2)===n));
+  const ia=findIdx(An),ib=findIdx(Bn);
+  if(ia>=0&&ib>=0){
+    if(ia===ib){note.style.color='var(--danger-text)';note.textContent='⚠️ Naka-link na ang dalawang pangalang ito.';return;}
+    groups[ia]=[...groups[ia],...groups[ib]];groups.splice(ib,1); // magkaibang grupo — pagsamahin
+  }else if(ia>=0){groups[ia].push(b);}
+  else if(ib>=0){groups[ib].push(a);}
+  else{groups.push([a,b]);}
+  localStorage.setItem('tnhs_teacher_aliases',JSON.stringify(groups));
+  document.getElementById('alias-a').value='';document.getElementById('alias-b').value='';
+  note.style.color='var(--success-text)';note.textContent='✅ Naidagdag! Ituturing na silang iisang guro.';
+  renderTeacherAliases();
+  refreshAfterTeacherIdentityChange();
+}
+function removeTeacherAliasGroup(i){
+  const groups=getTeacherAliasGroups();groups.splice(i,1);
+  localStorage.setItem('tnhs_teacher_aliases',JSON.stringify(groups));
+  renderTeacherAliases();
+  refreshAfterTeacherIdentityChange();
+}
 /* ── Pagtutugma ng pangalan ng guro — gumagamit ng normalizeTeacherName() sa itaas,
    kaya consistent ito sa Teacher Management, Roster, Assignments, atbp. Bukod sa
    letter-case/bantas/titulo/pagkakasunod ng salita, tumutugma rin ito kapag ang isang
@@ -2774,10 +2904,28 @@ function removeAssignment(i){
 function teacherTokenMatches(t,list){
   return list.some(o=>o===t||(t.length===1&&o[0]===t)||(o.length===1&&t[0]===o));
 }
+/* ── Teacher Name Aliases (Settings): admin-declared na "itong mga pangalan, isang
+   guro lang" — para sa mga totally-different-word na pangalan (hal. "Rio Amar" vs
+   "River Amar") na hindi kayang tugmain ng token/initial matching sa ibaba, at para sa
+   mga lumang upload na wala pang naka-record na email. Bawat grupo ay listahan ng mga
+   raw name na parehong tumutukoy sa iisang tao. ── */
+function getTeacherAliasGroups(){
+  try{const v=JSON.parse(localStorage.getItem('tnhs_teacher_aliases'));if(Array.isArray(v))return v;}catch(e){}
+  return[];
+}
+function aliasMatch(a,b){
+  const A=normalizeTeacherName(a),B=normalizeTeacherName(b);
+  if(!A||!B)return false;
+  return getTeacherAliasGroups().some(g=>{
+    const norm=g.map(n=>normalizeTeacherName(n));
+    return norm.includes(A)&&norm.includes(B);
+  });
+}
 function sameTeacher(a,b){
   const A=normalizeTeacherName(a),B=normalizeTeacherName(b);
   if(!A||!B)return A===B;
   if(A===B)return true;
+  if(aliasMatch(a,b))return true;
   const ta=A.split(' '),tb=B.split(' ');
   return ta.every(t=>teacherTokenMatches(t,tb))||tb.every(t=>teacherTokenMatches(t,ta));
 }
@@ -2955,12 +3103,13 @@ function refreshCurrentPeriodDependents(){
 }
 /* ══ SETTINGS: Reset ══ */
 function resetLocalPrefs(){
-  if(!confirm('Sigurado ka bang gusto mong i-reset ang theme, ang First Day of Classes override, ang Kasalukuyang Submission Period, ang mga naidagdag na admin, at ang Teacher Roster sa browser na ito?'))return;
+  if(!confirm('Sigurado ka bang gusto mong i-reset ang theme, ang First Day of Classes override, ang Kasalukuyang Submission Period, ang Teacher Roster, at ang Teacher Name Aliases sa browser na ito?'))return;
   localStorage.removeItem('tnhs_theme');
   localStorage.removeItem('tnhs_school_start');
   localStorage.removeItem('tnhs_local_admins');
   localStorage.removeItem('tnhs_teacher_roster');
   localStorage.removeItem('tnhs_assignments');
+  localStorage.removeItem('tnhs_teacher_aliases');
   localStorage.removeItem('tnhs_current_override');
   localStorage.removeItem('tnhs_term_starts');
   localStorage.removeItem('tnhs_term_ends');
@@ -2968,6 +3117,7 @@ function resetLocalPrefs(){
   applyTheme('navy');
   renderAdminList();
   renderRosterList();
+  renderTeacherAliases();
   renderTermWeeksInputs();
   renderCurrentPeriodInputs();
   populateWeekSelects();renderDashboard();
@@ -2982,6 +3132,7 @@ function renderSettings(){
   renderAdminList();
   renderRosterList();
   renderAssignments();
+  renderTeacherAliases();
   renderTermWeeksInputs();
   renderCurrentPeriodInputs();
   const note=document.getElementById('admin-note');
