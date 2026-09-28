@@ -3010,6 +3010,22 @@ function sameTeacherRecord(nameA,emailA,nameB,emailB){
    subject sa isang row, gaya ng dati. Kasama rin ang mga wala pang naipasa mula sa
    "Inaasahang Subject at Guro" (Settings), at ang mga walang nakatalagang guro doon ay
    nananatiling hiwalay bawat subject (walang teacher identity na pagbabatayan). ── */
+/* ── Magkaugnay ba ang dalawang subject name? Ginagamit para hindi mapagsama ang
+   MAGKAIBANG subject ng IISANG guro (hal. "Filipino" at "TLE") sa iisang row, pero
+   napagsasama pa rin ang mga pagbabago ng pangalan ng PAREHONG subject
+   ("TLE" → "TLE - ICT" → "TLE/ICT", "Filipino" → "Filipino 10", "Math" → "Mathematics").
+   Magkaugnay kung may magkatulad na salita (o isang salita na simula ng isa pa, min. 3
+   letra); hindi binibilang ang mga numero at ang salitang "grade". Kapag walang laman
+   ang alinman, ituturing na magkaugnay (gaya ng dati). ── */
+function subjectTokens(str){
+  return String(str||'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').split(' ')
+    .filter(t=>t&&!/^\d+$/.test(t)&&t!=='grade'&&t!=='gr');
+}
+function subjectsRelated(a,b){
+  const A=subjectTokens(a),B=subjectTokens(b);
+  if(!A.length||!B.length)return true;
+  return A.some(x=>B.some(y=>x===y||(x.length>=3&&y.length>=3&&(x.startsWith(y)||y.startsWith(x)))));
+}
 function buildSubjectRows(files,dept,grade,track,split){
   const rows=[];
   /* split=true: TEACHER muna ang hinahanap — ito ang bagong pagkakasunod-sunod (teacher
@@ -3019,7 +3035,7 @@ function buildSubjectRows(files,dept,grade,track,split){
      (sameTeacher/normalizeTeacherName). Kapag walang guro sa entry (walang laman ang
      Teacher field), subject text na lang ang gamit (walang ibang paraan para tukuyin). */
   const find=(subj,teacher,email)=>{
-    if(split&&teacher)return rows.find(r=>r.teacher&&sameTeacherRecord(r.teacher,r.email,teacher,email));
+    if(split&&teacher)return rows.find(r=>r.teacher&&sameTeacherRecord(r.teacher,r.email,teacher,email)&&(r.subjectLabels.length===0||r.subjectLabels.some(l=>subjectsRelated(l,subj))));
     if(split)return rows.find(r=>!r.teacher&&r.subjects.has(subj.toLowerCase()));
     return rows.find(r=>r.subjects.has(subj.toLowerCase()));
   };
