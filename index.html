@@ -6,7 +6,21 @@
 <title>Tugdan National High School – Lesson Plan Portal</title>
 <meta name="theme-color" content="#050816">
 <meta name="color-scheme" content="dark">
-<meta name="description" content="Tugdan National High School — official digital lesson plan repository.">
+<meta name="description" content="Tugdan National High School (TNHS), Alcantara, Romblon — official digital lesson plan repository and submission tracker for teachers. DepEd public secondary school.">
+<meta name="keywords" content="Tugdan National High School, TNHS, Alcantara Romblon, DepEd, lesson plan, lesson plan portal, submission tracker, JHS, STE, SHS, teachers, Philippines">
+<meta name="author" content="Tugdan National High School">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TNHS Lesson Plan Portal">
+<meta property="og:title" content="Tugdan National High School — Lesson Plan Portal">
+<meta property="og:description" content="Official digital lesson plan repository and submission tracker of Tugdan National High School, Alcantara, Romblon.">
+<meta property="og:locale" content="en_PH">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tugdan National High School — Lesson Plan Portal">
+<meta name="twitter:description" content="Official digital lesson plan repository and submission tracker of Tugdan National High School, Alcantara, Romblon.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"HighSchool","name":"Tugdan National High School","alternateName":["TNHS","TUGDANNHS"],"description":"DepEd public secondary school (Grades 7–12) in Alcantara, Romblon, Philippines. This site is its digital lesson plan portal.","address":{"@type":"PostalAddress","addressLocality":"Alcantara","addressRegion":"Romblon","addressCountry":"PH"}}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -2064,9 +2078,9 @@ async function migrateLocalAdmins(){
   }catch(e){console.warn('Admin migration failed',e);}
   finally{adminMigrating=false;}
 }
-/* ── Iisang admin check na ito ang sinusunod ng Tracker nav link AT ng View/Download
-   ng bawat lesson plan sa Repository — kailangang naka-sign in AT nasa listahan ng
-   admin emails (Settings → Admin Access). ── */
+/* ── Admin check: Tracker nav link lang ang naka-limit dito ngayon. Bukas na ulit
+   para sa lahat ang View/Download ng lesson plan sa Repository. Kailangang naka-sign in
+   AT nasa listahan ng admin emails (Settings → Admin Access) para makita ang Tracker. ── */
 function isAdminNow(){
   return!!signedInEmail&&getEffectiveAdminEmails().some(e=>e.toLowerCase()===signedInEmail.toLowerCase());
 }
@@ -2165,9 +2179,7 @@ function makeCard(grade,files,dept,track,term){
           ${f.size?'<div class="fitem-size">'+x(f.size)+'</div>':''}
         </div>
         <div class="fitem-acts">
-          ${isAdminNow()
-            ?`<button class="fbtn" onclick='viewFile(${JSON.stringify({id:f.id,file:f.file,teacher:f.teacher})})'>👁 View</button><a class="fbtn" href="https://drive.google.com/uc?export=download&amp;id=${x(f.id)}" target="_blank">⬇</a>`
-            :`<span class="fbtn" style="opacity:.45;cursor:not-allowed;" title="Admin access lang ang puwedeng mag-view/download ng lesson plan">🔒 Admin only</span>`}
+          <button class="fbtn" onclick='viewFile(${JSON.stringify({id:f.id,file:f.file,teacher:f.teacher})})'>👁 View</button><a class="fbtn" href="https://drive.google.com/uc?export=download&amp;id=${x(f.id)}" target="_blank">⬇</a>
           <button class="fbtn${singleTag?' tag-warn':''}" onclick='openTagModal(${JSON.stringify({id:f.id,file:f.file,targets:f.allTargets||[]})})' title="${singleTag?'Isang destinasyon lang ang naka-tag — i-click para magdagdag':'I-edit ang mga destinasyon'}">🏷</button>
           <button class="fbtn del" onclick="askDel('${x(f.id)}','${x(f.file)}')">🗑</button>
         </div>
