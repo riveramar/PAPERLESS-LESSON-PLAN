@@ -715,6 +715,48 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
   .sidebar-menu a:hover{transform:none;}
 }
 
+/* ── 12b. LOGIN GATE — compact sign-in card; the Google button has a neon "hacker" rotating border ── */
+.login-gate{display:none;position:fixed;inset:0;z-index:2;align-items:center;justify-content:center;padding:var(--s-4);overflow-y:auto;}
+body.gated .login-gate{display:flex;}
+body.gated .app-shell{display:none;}
+.lg-card{position:relative;width:100%;max-width:330px;margin:auto;padding:var(--s-5) var(--s-5) var(--s-4);text-align:center;
+  background:var(--glass-bg);border:1px solid var(--border-2);border-radius:var(--r-lg);
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.8),0 0 60px -26px rgba(var(--glow-rgb),.6);
+  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);animation:modalIn .6s var(--ease-out) both;}
+.lg-card .hero-logo-flame{width:60px;height:60px;margin:0 auto var(--s-3);}
+.lg-card .hero-logo-flame::before{inset:-10px;filter:blur(12px);}
+.lg-card .hero-logo-flame::after{display:none;}
+.lg-card .hero-logo-img{width:60px;height:60px;box-shadow:0 0 0 3px rgba(255,255,255,.96),0 0 0 4.5px rgba(129,140,248,.65),0 12px 24px -8px rgba(0,0,0,.65);}
+.lg-card .hero-tag{font-size:9.5px;padding:4px 12px;margin-bottom:var(--s-2);letter-spacing:.1em;}
+.lg-card h1{font-size:1.25rem;font-weight:800;line-height:1.2;letter-spacing:-.015em;margin:0 0 2px;
+  background:linear-gradient(100deg,#fff 0%,#C7D2FE 45%,#67E8F9 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;}
+.lg-loc{color:var(--text-3);font-size:11.5px;letter-spacing:.05em;margin-bottom:var(--s-3);}
+.lg-desc{color:var(--text-2);font-size:12.5px;line-height:1.55;margin:0 auto var(--s-4);max-width:260px;}
+
+/* Sign in with Google — dark neon button: a bright beam races around the border + pulsing glow + terminal cursor */
+.lg-google-btn{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:48px;padding:10px 16px;
+  border:none;border-radius:var(--r-sm);background:transparent;color:#F8FAFC;font-weight:700;font-size:14px;letter-spacing:.02em;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  animation:lgGlow 2.4s ease-in-out infinite;transition:transform .2s var(--ease);}
+.lg-google-btn::before{content:'';position:absolute;z-index:-2;left:50%;top:50%;width:170%;aspect-ratio:1;margin:-85% 0 0 -85%;
+  background:conic-gradient(from 0deg,transparent 0deg,transparent 200deg,#00F5D4 250deg,#6366F1 300deg,#A855F7 335deg,#FFFFFF 358deg,transparent 360deg),linear-gradient(rgba(0,245,212,.22),rgba(0,245,212,.22));
+  animation:spin 2.2s linear infinite;}
+.lg-google-btn::after{content:'';position:absolute;z-index:-1;inset:2.5px;border-radius:calc(var(--r-sm) - 2px);
+  background:linear-gradient(180deg,#0E1638 0%,#050816 100%);transition:background .25s;}
+.lg-google-btn:hover{transform:translateY(-1px);}
+.lg-google-btn:hover::after{background:linear-gradient(180deg,#16215A 0%,#0A1030 100%);}
+.lg-google-btn:active{transform:scale(.98);}
+.lg-google-btn svg{width:18px;height:18px;flex-shrink:0;}
+.lg-google-btn span::after{content:'_';margin-left:2px;color:#00F5D4;font-weight:800;animation:lgBlink 1s steps(1) infinite;}
+@keyframes lgGlow{
+  0%,100%{box-shadow:0 0 14px -2px rgba(0,245,212,.45),0 0 34px -10px rgba(99,102,241,.6);}
+  50%{box-shadow:0 0 22px 0 rgba(0,245,212,.85),0 0 52px -6px rgba(168,85,247,.75);}}
+@keyframes lgBlink{0%,50%{opacity:1;}50.01%,100%{opacity:0;}}
+
+.lg-msg{min-height:1.2em;margin-top:var(--s-3);font-size:12px;font-weight:600;color:var(--warn-text);line-height:1.45;}
+.lg-checking{display:none;flex-direction:column;align-items:center;gap:var(--s-2);padding:var(--s-2) 0;color:var(--text-2);font-size:13px;}
+.lg-checking .spin{width:30px;height:30px;}
+.lg-foot{margin-top:var(--s-3);padding-top:var(--s-3);border-top:1px solid var(--border);font-size:11px;color:var(--text-3);line-height:1.5;}
+
 /* ── 13. ACCESSIBILITY · PRINT ─────────────────────────────────────────── */
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important;}
@@ -738,7 +780,7 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
 }
 </style>
 </head>
-<body>
+<body class="gated">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <!-- AMBIENT BACKGROUND: mesh gradient · aurora · floating orbs · grid · grain · particles (decorative) -->
 <div class="bg-fx" aria-hidden="true">
@@ -748,6 +790,29 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
   <div class="bg-grid"></div>
   <div class="bg-noise"></div>
   <canvas id="fx-canvas"></canvas>
+</div>
+
+<!-- LOGIN GATE — shown first. The portal (app shell) stays hidden until Google sign-in succeeds. -->
+<div class="login-gate" id="login-gate" role="dialog" aria-modal="true" aria-labelledby="lg-title">
+  <div class="lg-card">
+    <div class="hero-logo-flame"><img class="hero-logo-img logo-clone" src="" alt="TNHS Logo"></div>
+    <div class="hero-tag">Official Lesson Plan Portal</div>
+    <h1 id="lg-title">Tugdan National High School</h1>
+    <p class="lg-loc">Alcantara, Romblon</p>
+    <div id="lg-signin">
+      <p class="lg-desc">Sign in with your Google account to access the lesson plan portal.</p>
+      <button type="button" class="lg-google-btn" id="lg-google-btn" onclick="gateSignIn()">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span>Sign in with Google</span>
+      </button>
+      <div class="lg-msg" id="lg-msg" role="status" aria-live="polite"></div>
+    </div>
+    <div class="lg-checking" id="lg-checking" role="status" aria-live="polite">
+      <div class="spin"></div>
+      <span id="lg-checking-text">Please wait…</span>
+    </div>
+    <p class="lg-foot">Use your authorized school Google account.<br>Having trouble? Contact your school administrator.</p>
+  </div>
 </div>
 
 <!-- APP SHELL (Sidebar + Topbar) -->
@@ -1662,36 +1727,41 @@ function gapiLoad(){
     try{
       await gapi.client.init({apiKey:GDRIVE_API_KEY});
       gapiInited=true;
-      if(gFolderId)refreshAll();
+      if(gFolderId&&!isGated())refreshAll(); // while the login screen is up, load data only AFTER sign-in
       maybeSilentConnect();
-    }catch(e){console.error('gapi init failed',e);gapiInited=true;if(gFolderId)refreshAll();}
+    }catch(e){console.error('gapi init failed',e);gapiInited=true;if(gFolderId&&!isGated())refreshAll();}
   });
 }
 function gisLoad(){
-  gTokenClient=google.accounts.oauth2.initTokenClient({client_id:GDRIVE_CLIENT_ID,scope:GDRIVE_SCOPES,callback:''});
+  gTokenClient=google.accounts.oauth2.initTokenClient({client_id:GDRIVE_CLIENT_ID,scope:GDRIVE_SCOPES,callback:'',
+    /* popup closed / blocked → tell the person on the login screen instead of leaving it silent */
+    error_callback:(err)=>{
+      if(!isGated())return;
+      gateShow('signin',err&&err.type==='popup_closed'?'Sign-in was cancelled. Please try again.':'Could not open the Google sign-in window. Allow pop-ups for this site, then try again.');
+    }});
   gisInited=true;maybeSilentConnect();
 }
 function maybeSilentConnect(){
   if(gapiInited&&gisInited&&!gToken&&localStorage.getItem('tnhs_drive_ever_connected')){
     gTokenClient.callback=async(resp)=>{
-      if(resp.error)return;
+      if(resp.error){if(isGated())gateShow('signin','Your session has expired. Please sign in again.');return;}
       gToken=resp.access_token;
       await fetchSignedInEmail();
       setDriveStatus(true);
       updateTrackerVisibility();
-      await refreshAll();
+      await afterSignIn();
     };
-    try{gTokenClient.requestAccessToken({prompt:''});}catch(e){}
+    try{gTokenClient.requestAccessToken({prompt:''});}catch(e){if(isGated())gateShow('signin','Please sign in to continue.');}
   }
 }
 function setDriveStatus(connected){
   const b=document.getElementById('gdrive-status');
   if(connected){
     b.classList.add('connected');b.innerHTML='<span>Signed In</span>';
-    b.onclick=()=>{};
+    b.onclick=signOut;b.title='Click to sign out';
   }else{
     b.classList.remove('connected');b.innerHTML='<span>Sign In to Upload</span>';
-    b.onclick=connectDrive;
+    b.onclick=connectDrive;b.title='';
     signedInEmail=null;updateTrackerVisibility();
   }
 }
@@ -1711,20 +1781,76 @@ function connectDrive(){
   if(!gapiInited||!gisInited){alert('Google services are still loading — please wait a few seconds and try again.');return;}
   if(!GDRIVE_CLIENT_ID||GDRIVE_CLIENT_ID.indexOf('PASTE_YOUR')===0||!gFolderId){alert('Google Drive isn\'t fully configured yet. See GOOGLE_DRIVE_SETUP.md.');return;}
   gTokenClient.callback=async(resp)=>{
-    if(resp.error){console.error(resp);alert('Google sign-in failed or was cancelled.');return;}
+    if(resp.error){
+      console.error(resp);
+      if(isGated())gateShow('signin','Google sign-in failed or was cancelled. Please try again.');
+      else alert('Google sign-in failed or was cancelled.');
+      return;
+    }
     gToken=resp.access_token;
     localStorage.setItem('tnhs_drive_ever_connected','1');
     await fetchSignedInEmail();
     setDriveStatus(true);
     updateTrackerVisibility();
-    await refreshAll();
+    await afterSignIn();
   };
-  gTokenClient.requestAccessToken({prompt:'consent'});
+  /* select_account: always lets the person pick/switch their Google account (important on shared
+     school computers after someone signs out). Google still shows the consent screen when needed. */
+  gTokenClient.requestAccessToken({prompt:'select_account'});
 }
 function openDriveFolder(){
   if(gFolderId)window.open('https://drive.google.com/drive/folders/'+gFolderId,'_blank');
   else alert('Google Drive folder isn\'t configured yet.');
 }
+
+/* ══ LOGIN GATE ══
+   The portal (.app-shell) is hidden while <body> has the "gated" class. Signing in with Google
+   (manual button, or automatic reconnect for returning users) removes it. NOTE: this is a
+   UI-level gate — it controls what the page shows, it is not server-side security. The real
+   protection of the files is still the Google Drive folder's sharing settings. */
+function isGated(){return document.body.classList.contains('gated');}
+function gateShow(state,msg){
+  const chk=document.getElementById('lg-checking'),sin=document.getElementById('lg-signin');
+  if(!chk||!sin)return;
+  chk.style.display=state==='checking'?'flex':'none';
+  sin.style.display=state==='signin'?'block':'none';
+  const ct=document.getElementById('lg-checking-text'),m=document.getElementById('lg-msg');
+  if(ct)ct.textContent=state==='checking'?(msg||'Please wait…'):'';
+  if(m)m.textContent=state==='signin'?(msg||''):'';
+}
+function enterSite(){
+  document.body.classList.remove('gated');
+  const g=document.getElementById('login-gate');
+  if(g)g.setAttribute('aria-hidden','true');
+  window.scrollTo(0,0);
+}
+async function afterSignIn(){
+  if(isGated())gateShow('checking','Loading the portal…');
+  try{await refreshAll();}catch(e){console.error('Initial load failed',e);}
+  enterSite();
+}
+function gateSignIn(){
+  if(!gapiInited||!gisInited){gateShow('signin','Google sign-in is still loading. Please wait a few seconds and try again.');return;}
+  gateShow('signin','');
+  connectDrive();
+}
+function signOut(){
+  if(!confirm('Sign out of the portal?'))return;
+  gToken=null;signedInEmail=null;
+  localStorage.removeItem('tnhs_drive_ever_connected');
+  location.reload(); // back to the login screen
+}
+(function gateInit(){
+  const ready=GDRIVE_CLIENT_ID&&GDRIVE_CLIENT_ID.indexOf('PASTE_YOUR')!==0&&gFolderId;
+  if(!ready){enterSite();return;} // Google isn't configured yet → don't lock the site behind a login that can't work
+  if(localStorage.getItem('tnhs_drive_ever_connected')){
+    gateShow('checking','Signing you in…');
+    setTimeout(()=>{if(isGated()&&!gToken)gateShow('signin','Please sign in to continue.');},9000);
+  }else{
+    gateShow('signin','');
+  }
+  setTimeout(()=>{if(isGated()&&(!gapiInited||!gisInited))gateShow('signin','Google sign-in is taking a while to load. Check your internet connection, then refresh the page.');},12000);
+})();
 </script>
 <script>
 /* Copy the single embedded logo image to the hero and footer placeholders,
