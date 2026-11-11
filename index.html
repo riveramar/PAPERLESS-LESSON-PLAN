@@ -307,6 +307,31 @@ label{color:var(--text-2);}
 .tr-empty,.empty-state,.tm-empty{text-align:center;padding:var(--s-6) var(--s-4);color:var(--text-3);font-size:14px;}
 .empty-state{padding:var(--s-5);font-size:13px;font-style:italic;}
 
+/* ── 4b. TOPBAR REFINED — one compact row, all controls the same height and pill shape ── */
+.topbar{min-height:58px;padding:.5rem var(--gutter);gap:var(--s-3);flex-wrap:nowrap;}
+.topbar-title{font-size:16px;gap:10px;flex-shrink:0;}
+.topbar-meta{gap:0;margin-left:var(--s-2);flex-wrap:nowrap;}
+.topbar-meta-label{display:none;}
+.topbar .nav-sy-select{height:36px;min-height:36px;padding:0 32px 0 14px;border-radius:var(--r-pill);font-size:12.5px;font-weight:700;letter-spacing:.01em;
+  background-color:rgba(255,255,255,.06);border:1px solid var(--border);box-shadow:none;background-position:right 11px center;background-size:14px;}
+.topbar .nav-sy-select:hover{background-color:rgba(255,255,255,.1);}
+.topbar-right{margin-left:auto;gap:8px;padding-left:0;border-left:none;flex-wrap:nowrap;min-width:0;}
+.topbar-user{height:36px;padding:0 14px 0 4px;border-radius:var(--r-pill);font-size:12px;font-weight:600;color:var(--text-2);background:rgba(255,255,255,.06);max-width:240px;}
+.topbar-user .tu-avatar{width:28px;height:28px;font-size:12px;}
+.topbar .btn-gold{height:36px;min-height:36px;padding:0 16px;border-radius:var(--r-pill);font-size:13px;gap:7px;}
+.topbar #gdrive-status{height:36px;min-height:36px;padding:0 14px;border-radius:var(--r-pill);font-size:12.5px;gap:7px;white-space:nowrap;}
+.topbar #gdrive-status.connected{background:transparent;border-color:rgba(16,185,129,.42);color:#6EE7B7;box-shadow:none;}
+.topbar #gdrive-status.connected:hover{background:rgba(16,185,129,.12);}
+@media(max-width:860px){.topbar{gap:var(--s-2);} .topbar-meta{margin-left:0;}}
+@media(max-width:700px){
+  .topbar-user{font-size:0;gap:0;padding:0 4px;max-width:none;}
+  .topbar-user .tu-avatar{font-size:12px;}
+}
+@media(max-width:480px){
+  .topbar .btn-gold,.topbar #gdrive-status{height:40px;min-height:40px;}
+  .topbar .nav-sy-select{height:40px;min-height:40px;}
+}
+
 /* ── 6. HOME · PORTAL HERO · REPOSITORY ────────────────────────────────── */
 .hero,.portal-hero{position:relative;overflow:hidden;isolation:isolate;border:1px solid var(--border);border-radius:var(--r-xl);
   margin:var(--s-5) max(var(--gutter),calc((100% - var(--page-w))/2)) 0;
@@ -435,6 +460,52 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
 .dg-body{display:none;padding:6px 14px 12px 38px;background:rgba(255,255,255,.03);} .dg-body.open{display:block;}
 .dg-check{display:flex;align-items:center;gap:10px;font-size:13px;padding:6px 0;cursor:pointer;color:var(--text-2);transition:color .15s;} .dg-check:hover{color:#fff;}
 
+/* ── 6b. PAGE HEADERS & TOOLBARS — one consistent, compact top section on every page ──
+   Page title banner → filter toolbar → tabs all share the same width, spacing, height and shape. */
+.page>.portal-hero{margin-top:var(--s-4);padding:14px 20px 14px 24px;border-radius:var(--r-md);
+  background:linear-gradient(100deg,rgba(var(--aurora-1),.18) 0%,rgba(var(--aurora-2),.06) 55%,rgba(255,255,255,.02) 100%);
+  box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
+.page>.portal-hero::before{inset:auto;left:0;top:14px;bottom:14px;width:3px;height:auto;z-index:1;opacity:1;border-radius:0 3px 3px 0;
+  background:linear-gradient(180deg,var(--accent),var(--primary));-webkit-mask-image:none;mask-image:none;}
+.page>.portal-hero .ph-blob{display:none;}
+.page>.portal-hero h2{font-size:1.2rem;margin:0 0 2px;}
+.page>.portal-hero p{font-size:12.5px;max-width:none;}
+/* Dashboard hero: same idea, just smaller */
+.page>.hero{margin-top:var(--s-4);padding:clamp(1.5rem,4vw,2.4rem) var(--s-5) clamp(1.25rem,3vw,1.9rem);}
+.page>.hero .hero-logo-flame{width:84px;height:84px;margin-bottom:var(--s-4);}
+.page>.hero .hero-logo-flame::before{inset:-14px;}
+.page>.hero .hero-logo-img{width:84px;height:84px;}
+.page>.hero h1{font-size:clamp(1.6rem,3.8vw,2.4rem);}
+.page>.hero .desc{font-size:14px;}
+.page .dash-card{padding:var(--s-4) 1.2rem;}
+.page .dash-cards{margin-bottom:var(--s-4);}
+/* Consistent spacing under the header */
+.page .home-wrap{padding-top:var(--s-4);}
+.page .tracker-wrap,.page .ilaw-wrap,.page .teachers-wrap,.page .deadlines-wrap,.page .reports-wrap,.page .archive-wrap,.page .settings-wrap{padding-top:var(--s-3);padding-bottom:var(--s-6);}
+.page>.term-nav{padding-top:var(--s-3);}
+.page>.portal-body{padding-top:var(--s-3);}
+/* Archive nests term tabs + body inside its own wrap → don't indent them a second time */
+.archive-wrap .term-nav,.archive-wrap .portal-body{padding-inline:0;max-width:none;}
+/* One toolbar look for every filter bar */
+.page .tracker-controls,.page .rp-controls,.page .teachers-toolbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px;padding:10px 14px;margin-bottom:var(--s-3);
+  background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
+.page .tracker-ctrl-group,.page .rp-ctrl-group{gap:3px;}
+.page .tracker-ctrl-group label,.page .rp-ctrl-group label{font-size:10px;letter-spacing:.07em;line-height:1.1;}
+.page .tracker-ctrl-group label[style]{font-size:12.5px!important;min-height:34px;}
+.page .tracker-controls select,.page .rp-controls select,.page .teachers-toolbar select{height:34px;min-height:34px;padding:0 30px 0 12px;font-size:12.5px;border-radius:var(--r-xs);background-position:right 10px center;background-size:14px;}
+.page .teachers-toolbar input{height:34px;min-height:34px;padding:0 12px;font-size:12.5px;border-radius:var(--r-xs);min-width:200px;flex:1;}
+.page .rp-controls .btn-gold{height:34px;min-height:34px;padding:0 14px;font-size:12.5px;}
+/* Tabs + section headers */
+.page .term-tabs,.page .dept-tabs{padding:4px;gap:4px;border-radius:var(--r-md);}
+.page .dept-tabs{margin-bottom:var(--s-3);}
+.page .term-tab,.page .dept-tab{min-height:38px;padding:7px 14px;font-size:13px;}
+.page .panel-header{margin-bottom:var(--s-3);padding-bottom:var(--s-2);}
+.page .panel-header h2{font-size:1rem;}
+@media(max-width:640px){
+  .page>.portal-hero{padding:12px 14px 12px 20px;}
+  .page .tracker-controls,.page .rp-controls,.page .teachers-toolbar{padding:10px 12px;}
+}
+
 /* ── 7. TRACKER · MATRIX · TABLES ──────────────────────────────────────── */
 .tracker-controls{display:flex;gap:var(--s-4);flex-wrap:wrap;padding:var(--s-4) var(--s-5);margin-bottom:var(--s-5);align-items:flex-end;}
 .tracker-summary{display:flex;gap:var(--s-4);flex-wrap:wrap;margin-bottom:var(--s-5);}
@@ -477,17 +548,7 @@ li.week-heading,div.week-heading{display:flex;width:fit-content;}
 
 /* ── 7b. TRACKER COMPACT — mas maliit at siksik na boxes/tables (override) ── */
 #page-tracker{--page-w:1240px;}
-#page-tracker .portal-hero{margin-top:var(--s-3);padding:8px var(--s-4);border-radius:var(--r-md);display:flex;align-items:baseline;flex-wrap:wrap;gap:2px var(--s-3);}
-#page-tracker .portal-hero h2{font-size:1.05rem;margin:0;}
-#page-tracker .portal-hero p{font-size:12px;max-width:none;}
-#page-tracker .portal-hero .ph-blob{display:none;}
-#page-tracker .tracker-wrap{padding-top:var(--s-3);padding-bottom:var(--s-6);}
 /* filters */
-#page-tracker .tracker-controls{gap:var(--s-2);padding:8px var(--s-3);margin-bottom:var(--s-2);border-radius:var(--r-md);}
-#page-tracker .tracker-ctrl-group{gap:2px;}
-#page-tracker .tracker-ctrl-group label{font-size:9.5px;letter-spacing:.06em;line-height:1.1;}
-#page-tracker .tracker-controls select{min-height:30px;padding:3px 28px 3px 9px;font-size:12px;border-radius:var(--r-xs);background-position:right 9px center;background-size:14px;}
-#page-tracker .tracker-ctrl-group label[style]{font-size:12px!important;min-height:30px;}
 /* summary stats → isang manipis na hanay */
 #page-tracker .tracker-summary{gap:6px;margin-bottom:var(--s-2);}
 #page-tracker .tr-stat{flex:0 1 auto;min-width:0;padding:5px 12px;border-radius:var(--r-sm);display:flex;align-items:baseline;justify-content:center;gap:8px;text-align:left;}
