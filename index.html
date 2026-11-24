@@ -6,6 +6,13 @@
 <title>Tugdan National High School – Lesson Plan Portal</title>
 <meta name="theme-color" content="#050816">
 <meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TNHS Portal">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="description" content="Tugdan National High School (TNHS), Alcantara, Romblon — official digital lesson plan repository and submission tracker for teachers. DepEd public secondary school.">
 <meta name="keywords" content="Tugdan National High School, TNHS, Alcantara Romblon, DepEd, lesson plan, lesson plan portal, submission tracker, JHS, STE, SHS, teachers, Philippines">
 <meta name="author" content="Tugdan National High School">
@@ -899,6 +906,7 @@ body.gated .app-shell{display:none;}
     <a data-page="reports" onclick="showPage('reports')"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="12" width="4" height="8"/><rect x="10" y="7" width="4" height="13"/><rect x="16" y="3" width="4" height="17"/></svg></span><span class="label">Reports</span></a>
     <a data-page="archive" onclick="showPage('archive')"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1.2"/><path d="M3 8l2-5h14l2 5"/><path d="M9 13h6"/></svg></span><span class="label">Archive</span></a>
     <a data-page="settings" onclick="showPage('settings')"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2"/></svg></span><span class="label">Settings</span></a>
+    <a id="nav-install" onclick="installApp()" style="display:none"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></span><span class="label">Install App</span></a>
   </nav>
   <button class="sidebar-collapse-btn" onclick="toggleSidebar()">« <span class="label">Collapse</span></button>
 </aside>
@@ -1401,8 +1409,8 @@ body.gated .app-shell{display:none;}
       <h3>Dashboard Background</h3>
       <p class="settings-sub">Piliin ang kulay-tema ng hero banner (sa taas ng Dashboard). Naka-save lang ito sa browser na ito.</p>
       <div class="theme-swatches" id="theme-swatches">
-        <button class="theme-swatch" data-theme="navy" onclick="setTheme('navy')"><span class="sw-preview navy"></span>Aurora (Default)</button>
-        <button class="theme-swatch" data-theme="gold" onclick="setTheme('gold')"><span class="sw-preview gold"></span>Amber Glow</button>
+        <button class="theme-swatch" data-theme="navy" onclick="setTheme('navy')"><span class="sw-preview navy"></span>Aurora</button>
+        <button class="theme-swatch" data-theme="gold" onclick="setTheme('gold')"><span class="sw-preview gold"></span>Amber Glow (Default)</button>
         <button class="theme-swatch" data-theme="ocean" onclick="setTheme('ocean')"><span class="sw-preview ocean"></span>Ocean Cyan</button>
         <button class="theme-swatch" data-theme="forest" onclick="setTheme('forest')"><span class="sw-preview forest"></span>Emerald</button>
         <button class="theme-swatch" data-theme="midnight" onclick="setTheme('midnight')"><span class="sw-preview midnight"></span>Deep Indigo</button>
@@ -3010,6 +3018,7 @@ function switchArchiveTerm(t){
 
 /* ══ SETTINGS: Theme ══ */
 const VALID_THEMES=['navy','gold','ocean','forest','midnight'];
+const DEFAULT_THEME='gold'; // Amber Glow — ginagamit kapag wala pang napiling theme sa browser na ito
 function applyTheme(theme){
   VALID_THEMES.forEach(t=>document.body.classList.remove('theme-'+t));
   if(theme&&theme!=='navy')document.body.classList.add('theme-'+theme);
@@ -3387,7 +3396,7 @@ function resetLocalPrefs(){
   localStorage.removeItem('tnhs_term_starts');
   localStorage.removeItem('tnhs_term_ends');
   EFFECTIVE_SCHOOL_START=SCHOOL_START;
-  applyTheme('navy');
+  applyTheme(DEFAULT_THEME);
   renderAdminList();
   renderRosterList();
   renderTeacherAliases();
@@ -3401,7 +3410,7 @@ function resetLocalPrefs(){
   alert('Na-reset na ang lahat ng local preferences.');
 }
 function renderSettings(){
-  applyTheme(localStorage.getItem('tnhs_theme')||'navy');
+  applyTheme(localStorage.getItem('tnhs_theme')||DEFAULT_THEME);
   renderAdminList();
   renderRosterList();
   renderAssignments();
@@ -3741,7 +3750,7 @@ renderAll();updateTermCounts();
 populateWeekSelects();
 renderDashboard();
 updateHeaderInfo();
-applyTheme(localStorage.getItem('tnhs_theme')||'navy');
+applyTheme(localStorage.getItem('tnhs_theme')||DEFAULT_THEME);
 ['tr-term','rp-term'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=getEffectiveCurrentTerm();});
 applyTermWeekFilter('u-term','u-week');
 applyTermWeekFilter('tr-term','tr-week');
@@ -4274,6 +4283,38 @@ function printILAW(){
   win.document.write('<!DOCTYPE html><html><head><title>ILAW Lesson Plan</title><style>body{font-family:Segoe UI,sans-serif;font-size:11px;margin:1cm;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:5px;font-size:10px;vertical-align:top;}@page{size:landscape;margin:1cm;}</style></head><body>'+el.innerHTML+'<script>window.onload=function(){window.print();}<\/script></body></html>');
   win.document.close();
 }
+</script>
+<script>
+/* ══ PWA — installable app (Android / Windows / Mac / ChromeOS via Chrome or Edge) ══
+   The service worker (sw.js) only handles this site's own files; Google Drive, Google Sign-In and the
+   AI proxy always go straight to the network. */
+(function(){
+  var deferred=null;
+  function navInstall(){return document.getElementById('nav-install');}
+  function standalone(){
+    return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  }
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();deferred=e;
+    var n=navInstall();if(n&&!standalone())n.style.display='';
+  });
+  window.addEventListener('appinstalled',function(){
+    deferred=null;var n=navInstall();if(n)n.style.display='none';
+  });
+  window.installApp=async function(){
+    if(!deferred)return;
+    deferred.prompt();
+    try{await deferred.userChoice;}catch(e){}
+    deferred=null;
+    var n=navInstall();if(n)n.style.display='none';
+    if(typeof closeSidebarMobile==='function')closeSidebarMobile();
+  };
+  if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
+    window.addEventListener('load',function(){
+      navigator.serviceWorker.register('./sw.js').catch(function(err){console.warn('Service worker not registered:',err);});
+    });
+  }
+})();
 </script>
 <script>
 /* ══ VISUAL FX — particles · parallax · card spotlight (purely decorative, performance-aware) ══ */
